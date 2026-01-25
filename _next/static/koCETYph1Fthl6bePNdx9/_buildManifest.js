@@ -1,12 +1,7 @@
 self.__BUILD_MANIFEST = {
   "__rewrites": {
     "afterFiles": [],
-    "beforeFiles": [
-      {
-        "source": "/TORONTOEVENTS_ANTIGRAVITY//_next/:path+",
-        "destination": "/TORONTOEVENTS_ANTIGRAVITY/_next/:path+"
-      }
-    ],
+    "beforeFiles": [],
     "fallback": []
   },
   "sortedPages": [
