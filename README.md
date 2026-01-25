@@ -1,4 +1,5 @@
 # Toronto Events 🍁
+**[✨ LIVE DEMO: Click here to view the app ✨](https://eltonaguiar.github.io/TORONTOEVENTS_ANTIGRAVITY/)**
 
 Welcome to the most curated feed of events happening in Toronto. We scrape, verify, and organize the best festivals, concerts, and meetups so you don't have to.
 
@@ -13,3 +14,5 @@ Simply browse the list above on our website. Click "View Details" to go directly
 
 ---
 *Built with ❤️ for Toronto.*
+<br>
+[Visit the Live Site](https://eltonaguiar.github.io/TORONTOEVENTS_ANTIGRAVITY/)
