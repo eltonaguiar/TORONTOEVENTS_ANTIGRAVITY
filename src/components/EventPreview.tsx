@@ -16,15 +16,22 @@ type Placement = 'center' | 'right' | 'left';
 export default function EventPreview({ event, onClose, isInline }: EventPreviewProps) {
     const { settings, updateSettings, toggleSavedEvent } = useSettings();
     const [mode, setMode] = useState<PreviewMode>('details');
-    const [size, setSize] = useState<'sm' | 'md' | 'lg' | 'full'>(settings.embedSize);
-    const [placement, setPlacement] = useState<Placement>(settings.embedPlacement);
-    const [themeColor, setThemeColor] = useState<string>('var(--pk-500)');
+
+    // Use settings or local overrides
+    const height = settings.previewHeight || 600;
+    const position = settings.previewPosition || 'center';
+    const isChatbox = settings.isChatboxMode;
 
     const isSaved = settings.savedEvents?.some((e) => e.id === event.id) ?? false;
 
-    // Proxy capabilities
-    const isAllEvents = event.url.includes('allevents.in');
-    const [useProxy, setUseProxy] = useState(isAllEvents);
+    // Fixed absolute URL for iframe - preventing GitHub relative link 404s
+    const getAbsoluteUrl = (url: string) => {
+        if (url.startsWith('http')) return url;
+        if (event.source === 'AllEvents.in') return `https://allevents.in${url.startsWith('/') ? '' : '/'}${url}`;
+        return url;
+    };
+
+    const absoluteUrl = getAbsoluteUrl(event.url);
 
     const bodyText = (event.title + ' ' + (event.description || ''));
     const { isSoldOut: inferredSoldOut, genderSoldOut: inferredGenderOut } = inferSoldOutStatus(bodyText);
@@ -40,166 +47,153 @@ export default function EventPreview({ event, onClose, isInline }: EventPreviewP
         }
     }
 
-    const handleApplyToAll = () => {
-        updateSettings({
-            embedSize: size,
-            embedPlacement: placement,
-            themeColor: settings.themeColor // We are not changing theme color here locally really, except for var override which is complex. ignoring themeColor sync for now as it wasn't explicitly requested to be consistent with others? User said "resizing,/coloring/ positioning". Okay, let's assuming coloring refers to the font/theme.
-            // Actually, the local 'themeColor' state is just initialized to var(--pk-500). It doesn't seem mutable in the UI currently?
-            // Wait, looking at lines 21 in original: const [themeColor, setThemeColor] = useState<string>('var(--pk-500)');
-            // It is used in line 53: style={{ '--pk-500': themeColor }
-            // But there are no controls to change it in the UI I read previously.
-            // User requested "allow a user to 'apply to all' , which will make all popups behave similarly".
-            // So I should sync size and placement.
-        });
-        alert('Settings applied to all popups!');
-    };
-
-    const sizeClasses = {
-        sm: 'max-w-xl h-[60vh]',
-        md: 'max-w-3xl h-[80vh]',
-        lg: 'max-w-5xl h-[90vh]',
-        full: 'max-w-[95%] h-[95vh]'
-    };
-
     const placementClasses = {
-        center: 'items-center justify-center',
-        right: 'items-center justify-end pr-4',
-        left: 'items-center justify-start pl-4'
+        center: 'items-center justify-center bg-black/80 backdrop-blur-sm',
+        'bottom-right': 'items-end justify-end p-8 pointer-events-none',
+        right: 'items-center justify-end p-4 bg-black/40 backdrop-blur-sm',
+        left: 'items-center justify-start p-4 bg-black/40 backdrop-blur-sm'
     };
+
+    const modalWidthClass = isChatbox ? 'w-[450px]' : (mode === 'split' ? 'max-w-[1200px] w-[90vw]' : 'max-w-4xl w-[90vw]');
 
     const content = (
         <div
-            className={`${isInline ? 'w-full h-full flex flex-col' : 'glass-panel w-full flex flex-col rounded-2xl overflow-hidden transition-all duration-300 ' + sizeClasses[size as keyof typeof sizeClasses]}`}
+            className={`
+                ${isInline ? 'w-full h-full flex flex-col' : `glass-panel shadow-2xl transition-all duration-500 pointer-events-auto rounded-3xl overflow-hidden flex flex-col ${modalWidthClass}`}
+                ${isChatbox && !isInline ? 'border-2 border-[var(--pk-500)]/30 animate-slide-up ring-4 ring-black/50' : ''}
+            `}
             style={{
-                '--pk-500': themeColor,
+                height: isInline ? '100%' : `${height}px`,
+                '--pk-500': 'var(--pk-500)',
                 color: settings.popupFontColor
             } as any}
             onClick={(e) => e.stopPropagation()}
         >
-            {/* Header / Controls */}
-            <div className="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-4 bg-white/5">
-                <div className="flex items-center gap-2">
-                    {/* View Modes */}
-                    <div className="flex bg-black/20 p-1 rounded-lg">
+            {/* Header / Premium Controls */}
+            <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40 backdrop-blur-xl">
+                <div className="flex items-center gap-3">
+                    <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
                         <button
                             onClick={() => setMode('details')}
-                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'details' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/50 hover:text-white'}`}
+                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mode === 'details' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
                         >
-                            Info
+                            Overview
                         </button>
-                        <button
-                            onClick={() => setMode('split')}
-                            className={`hidden md:block px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'split' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/50 hover:text-white'}`}
-                            title="Side-by-Side View"
-                        >
-                            Split View
-                        </button>
+                        {!isChatbox && (
+                            <button
+                                onClick={() => setMode('split')}
+                                className={`hidden md:block px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mode === 'split' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
+                            >
+                                Split
+                            </button>
+                        )}
                         <button
                             onClick={() => setMode('live')}
-                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'live' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/50 hover:text-white'}`}
+                            className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${mode === 'live' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/40 hover:text-white'}`}
                         >
-                            Full Site
+                            Link Out
                         </button>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {/* Save Button in Preview */}
+                    {/* Quick Height Adjuster */}
+                    <div className="hidden sm:flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full border border-white/5">
+                        <span className="text-[10px] uppercase font-black text-white/40">Height</span>
+                        <input
+                            type="range" min="400" max="1000" step="50" value={height}
+                            onChange={(e) => updateSettings({ previewHeight: parseInt(e.target.value) })}
+                            className="w-16 h-1 accent-[var(--pk-500)] cursor-pointer"
+                        />
+                    </div>
+
                     <button
-                        onClick={() => {
-                            if (toggleSavedEvent) toggleSavedEvent(event);
-                        }}
-                        className={`p-2 rounded-full transition-all ${isSaved ? 'bg-red-500 text-white shadow-lg' : 'bg-black/20 text-white/50 hover:bg-black/40 hover:text-white'}`}
-                        title={isSaved ? "Remove from My Events" : "Save to My Events"}
+                        onClick={() => toggleSavedEvent && toggleSavedEvent(event)}
+                        className={`p-2 rounded-xl transition-all ${isSaved ? 'bg-red-500 text-white shadow-lg' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}`}
                     >
                         <svg className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                     </button>
 
-                    {/* Apply to All */}
-                    {!isInline && (
-                        <button
-                            onClick={handleApplyToAll}
-                            className="text-[10px] font-bold uppercase tracking-wider text-[var(--pk-300)] hover:text-[var(--pk-100)] underline hidden md:block"
-                            title="Apply these size and position settings to be the default for all future popups"
-                        >
-                            Save View Defaults
-                        </button>
-                    )}
-
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full opacity-70 text-white font-bold">
+                    <button onClick={onClose} className="w-8 h-8 flex items-center justify-center bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-colors text-white/60">
                         ✕
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-hidden relative flex">
-                {/* DETAILS PANE (Left or Full) */}
+            <div className="flex-1 overflow-hidden relative flex bg-[#0a0a0b]">
+                {/* DETAILS PANE (Cloning the page feel) */}
                 {(mode === 'details' || mode === 'split') && (
-                    <div className={`flex flex-col overflow-y-auto custom-scrollbar ${mode === 'split' ? 'w-1/3 border-r border-white/10 min-w-[320px]' : 'w-full'}`}>
+                    <div className={`flex flex-col overflow-y-auto custom-scrollbar ${mode === 'split' ? 'w-1/3 border-r border-white/10' : 'w-full'}`}>
                         {event.image && (
-                            <img
-                                src={event.image}
-                                alt={event.title}
-                                className="w-full h-64 object-cover"
-                            />
+                            <div className="w-full h-72 shrink-0 relative">
+                                <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] via-transparent to-black/40" />
+                                {isSoldOut && (
+                                    <div className="absolute top-4 left-4 px-4 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">
+                                        Sold Out
+                                    </div>
+                                )}
+                            </div>
                         )}
-                        <div className="p-6">
-                            {/* Status Badges */}
-                            {isSoldOut && !genderSoldOutText && (
-                                <div className="mb-4 bg-red-600/20 border border-red-600/30 text-red-200 py-2 rounded-lg text-center font-black uppercase text-xs">
-                                    Sold Out
-                                </div>
-                            )}
-                            <h2 className="text-2xl font-bold mb-4 leading-tight" style={{ color: settings.popupFontColor }}>{event.title}</h2>
 
-                            <div className="flex flex-col gap-3 mb-6 text-sm" style={{ color: settings.popupFontColor, opacity: 0.9 }}>
-                                <div className="flex items-center gap-3">
-                                    <span className="opacity-50 text-lg">📅</span>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold">
-                                            {new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        <div className="p-8 space-y-8">
+                            <div>
+                                <h2 className="text-3xl font-black mb-4 leading-[1.1]" style={{ color: settings.popupFontColor }}>{event.title}</h2>
+                                <div className="flex flex-wrap gap-2">
+                                    {event.categories.map((cat) => (
+                                        <span key={cat} className="px-3 py-1 rounded-full bg-[var(--pk-500)]/10 text-[var(--pk-300)] text-[10px] font-black uppercase tracking-tighter border border-[var(--pk-500)]/20">
+                                            {cat}
                                         </span>
-                                        <span className="opacity-70 text-xs">
-                                            {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Core Info Blocks */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                                    <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">When</span>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-white">
+                                            {new Date(event.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                        </span>
+                                        <span className="text-[var(--pk-300)] text-sm font-bold">
+                                            {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="opacity-50 text-lg">📍</span>
-                                    <span className="truncate">{event.location}</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="opacity-50 text-lg">🎟️</span>
-                                    <span className="font-bold text-[var(--pk-300)]">{event.price || 'Price TBD'}</span>
+                                <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-1">
+                                    <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">Where</span>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-white truncate">{event.location}</span>
+                                        <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`} target="_blank" className="text-[var(--pk-300)] text-xs font-bold hover:underline">Open in Maps ↗</a>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 mb-6">
-                                {event.categories.map((cat) => (
-                                    <span key={cat} className="px-2 py-1 rounded-md bg-[var(--pk-500)]/10 text-[var(--pk-200)] text-[10px] font-bold uppercase border border-[var(--pk-500)]/20">
-                                        {cat}
-                                    </span>
-                                ))}
-                            </div>
-
-                            {event.description && (
-                                <div className="mb-8 prose prose-sm prose-invert max-w-none opacity-80">
-                                    <p className="whitespace-pre-wrap">{event.description}</p>
+                            {/* Ticket Card */}
+                            <div className="p-6 rounded-3xl bg-[var(--pk-500)] text-white shadow-xl shadow-[var(--pk-500)]/20 flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase font-black opacity-60">Admission</span>
+                                    <span className="text-2xl font-black">{event.price || 'Free'}</span>
                                 </div>
-                            )}
-
-                            <div className="sticky bottom-0 bg-[var(--surface-0)] pt-4 pb-0 mt-auto">
                                 <a
-                                    href={event.url}
+                                    href={absoluteUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="block w-full bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white text-center py-3 rounded-lg font-bold shadow-lg transition-transform hover:-translate-y-1"
+                                    className="px-6 py-3 bg-white text-[var(--pk-600)] font-black uppercase text-xs rounded-2xl shadow-lg hover:scale-105 transition-transform"
                                 >
                                     Get Tickets ↗
                                 </a>
+                            </div>
+
+                            {/* Description */}
+                            <div className="space-y-4">
+                                <h3 className="text-[10px] uppercase font-black text-white/30 tracking-widest">About this event</h3>
+                                <div className="prose prose-sm prose-invert max-w-none opacity-80 leading-relaxed text-sm">
+                                    <p className="whitespace-pre-wrap">{event.description || "No further details provided by the host."}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -208,27 +202,17 @@ export default function EventPreview({ event, onClose, isInline }: EventPreviewP
                 {/* EMBED PANE (Right or Full) */}
                 {(mode === 'live' || mode === 'split') && (
                     <div className={`flex flex-col bg-white h-full ${mode === 'split' ? 'w-2/3' : 'w-full'}`}>
-                        {/* Proxy Header */}
-                        <div className="bg-gray-100 text-gray-800 px-4 py-2 text-xs flex justify-between items-center border-b border-gray-200 shrink-0">
-                            <span className={isAllEvents ? "text-amber-600 font-bold" : ""}>
-                                {isAllEvents ? "Embed Blocked?" : "Live Site"}
-                            </span>
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={useProxy}
-                                    onChange={(e) => setUseProxy(e.target.checked)}
-                                    className="rounded text-[var(--pk-500)]"
-                                />
-                                <span>Use Proxy</span>
-                            </label>
-                        </div>
                         <iframe
-                            src={useProxy ? `/api/proxy?url=${encodeURIComponent(event.url)}` : event.url}
+                            src={absoluteUrl}
                             className="w-full flex-1 border-none bg-white"
                             title={`Preview: ${event.title}`}
                             sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                         />
+                        {/* Fallback Banner for blocked iframes */}
+                        <div className="p-3 bg-red-500/10 border-t border-red-500/20 flex items-center justify-between text-[10px] font-bold">
+                            <span className="text-red-400">⚠️ If the official site is blocked above, please use "Get Tickets" button.</span>
+                            <a href={absoluteUrl} target="_blank" className="text-red-400 underline">Open Link Independently ↗</a>
+                        </div>
                     </div>
                 )}
             </div>
@@ -239,7 +223,7 @@ export default function EventPreview({ event, onClose, isInline }: EventPreviewP
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm p-4 transition-all duration-300 ${placementClasses[placement as keyof typeof placementClasses]}`}
+            className={`fixed inset-0 z-[100] flex transition-all duration-500 ${placementClasses[position as keyof typeof placementClasses]}`}
             onClick={onClose}
         >
             {content}

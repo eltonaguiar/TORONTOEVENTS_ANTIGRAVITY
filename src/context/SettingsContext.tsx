@@ -23,6 +23,9 @@ interface Settings {
     gender: 'unspecified' | 'male' | 'female';
     hideGenderSoldOut: boolean;
     excludedKeywords: string[];
+    previewHeight: number;
+    previewPosition: 'center' | 'bottom-right' | 'right' | 'left';
+    isChatboxMode: boolean;
     webpageScale: number;
     savedEvents: any[]; // Using any[] to avoid circular dependency issues if Event isn't exported here, but ideally import Event
 }
@@ -45,11 +48,14 @@ const defaultSettings: Settings = {
     popupFontColor: '#ffffff', // Default white
     detailViewMode: 'popup',
     embedSize: 'md',
-    embedPlacement: 'center',
+    embedPlacement: 'center', // Legacy, we use previewPosition now
     hideSoldOut: true,
     gender: 'unspecified',
     hideGenderSoldOut: false,
     excludedKeywords: ['50 and Up', '70s', '80s'],
+    previewHeight: 600,
+    previewPosition: 'center',
+    isChatboxMode: false,
     webpageScale: 1.0,
     savedEvents: [],
 };

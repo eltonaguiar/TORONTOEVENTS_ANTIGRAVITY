@@ -120,6 +120,63 @@ export default function SettingsManager() {
                             </div>
                         </div>
 
+                        {/* Popup Architect */}
+                        <div className="space-y-4 pt-2 border-t border-white/5">
+                            <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)] opacity-70">Popup Architect</label>
+
+                            {/* Height Slider */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Preview Height</label>
+                                <div className="flex items-center gap-4 px-1">
+                                    <input
+                                        type="range"
+                                        min="400"
+                                        max="1000"
+                                        step="50"
+                                        value={settings.previewHeight}
+                                        onChange={(e) => updateSettings({ previewHeight: parseInt(e.target.value) })}
+                                        className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--pk-500)]"
+                                    />
+                                    <span className="text-xs font-mono w-10 text-right text-[var(--text-2)]">{settings.previewHeight}px</span>
+                                </div>
+                            </div>
+
+                            {/* Position Selector */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Anchor Position</label>
+                                <div className="grid grid-cols-2 gap-2 p-1 bg-black/20 rounded-lg">
+                                    {[
+                                        { id: 'center', label: 'Center Focus' },
+                                        { id: 'bottom-right', label: 'Bottom Right' },
+                                        { id: 'right', label: 'Right Side' },
+                                        { id: 'left', label: 'Left Side' }
+                                    ].map(pos => (
+                                        <button
+                                            key={pos.id}
+                                            onClick={() => updateSettings({ previewPosition: pos.id as any })}
+                                            className={`py-1.5 text-[10px] font-bold rounded-md transition-all ${settings.previewPosition === pos.id ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
+                                        >
+                                            {pos.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Chatbox Mode Toggle */}
+                            <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold">Chatbox Mode</span>
+                                    <span className="text-[10px] text-[var(--text-3)]">Docked & compact style</span>
+                                </div>
+                                <button
+                                    onClick={() => updateSettings({ isChatboxMode: !settings.isChatboxMode })}
+                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.isChatboxMode ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.isChatboxMode ? 'right-1' : 'left-1'}`} />
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Event Filters Section */}
                         <div className="space-y-4 pt-2 border-t border-white/5">
                             <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)] opacity-70">Intelligent Filtering</label>
