@@ -146,15 +146,19 @@ export default function EventFeed({ events }: EventFeedProps) {
                 }
 
                 // Started/Ongoing Logic
-                if (viewMode !== 'saved' && !showStarted && now) {
-                    const eventStartDate = new Date(e.date);
-                    const eventEndDate = e.endDate
-                        ? new Date(e.endDate)
-                        : new Date(eventStartDate.getTime() + 3 * 60 * 60 * 1000);
+                // If the user has a specific date filter (like TODAY), they likely want to see ALL events for that day,
+                // even if they already started.
+                if (dateFilter === 'all') { // Only apply "Hide Started" logic to the main feed
+                    if (viewMode !== 'saved' && !showStarted && now) {
+                        const eventStartDate = new Date(e.date);
+                        const eventEndDate = e.endDate
+                            ? new Date(e.endDate)
+                            : new Date(eventStartDate.getTime() + 3 * 60 * 60 * 1000);
 
-                    if (!isMultiDay(e)) {
-                        if (eventEndDate < now) return false; // Finished
-                        if (eventStartDate < now && dateFilter !== 'today') return false; // Started, hide unless Today filter active
+                        if (!isMultiDay(e)) {
+                            if (eventEndDate < now) return false; // Finished
+                            if (eventStartDate < now) return false; // Started (and not multi-day)
+                        }
                     }
                 }
 
@@ -253,22 +257,31 @@ export default function EventFeed({ events }: EventFeedProps) {
     // 2. If DateFilter == 'all', keep the split (Single Day vs Multi Day section).
 
     const displayEvents = useMemo(() => {
-        if (dateFilter !== 'all') {
-            // Show everything, sorted by start time
-            // If the user explicitly Hid Multi-Day via toggle, respecting that might be confusing for 'Today'.
-            // Let's compromise: If DateFilter is active, we IGNORE showMultiDay toggle (AUTO-SHOW), 
-            // OR we treat the toggle as a hard filter.
-            // Given the user complaint "Only 8 events", they want to see more. 
-            // Let's merge them.
+        // Hydration safety: If 'now' is not set (SSR), return empty or full list?
+        // Returning full list might cause flash. Returning empty is safer.
+        // Actually, if we just rely on 'validEvents' handling 'now', it's fine.
 
-            // We'll respect "showHidden" (cancelled), but maybe we should ignore "Multi-Day" separation.
-            // Actually, let's respect the toggle if they explicitly turned it off? 
-            // The user screenshot shows "Multi-Day Off" is the default state. 
-            // So we MUST show them by default or merge them.
+        if (dateFilter !== 'all') {
+            // MERGED VIEW Logic for Specific Dates (Today, Tomorrow, etc)
+            // Goal: Show EVERYTHING happening on that day.
+
+            // 1. Force inclusion of Started events if filtering by specific date (Today)
+            // The user wants to see "Today's events". Even if it started at 10 AM and it's 2 PM, 
+            // it's still "Today's event". The 'Started' toggle usually hides things for the generic 'Upcoming' feed
+            // where you only care about future things. But for 'Today', you want to see the whole menu.
+
+            // We can't re-filter 'sourceEvents' easily here without duplicate logic. 
+            // But we can check if we should relax the 'validEvents' logic.
+            // Actually, I modified 'validEvents' to handle dateFilter logic inside it, BUT
+            // 'validEvents' has a "Started" check that runs BEFORE date check.
+
+            // Let's refactor 'validEvents' to be more permissive if dateFilter is active.
+            // (See validEvents change below).
 
             return validEvents;
         } else {
             // Standard Split View for Global Feed
+            // Here we respect the "Multi-Day" separation
             return validEvents.filter(e => !isMultiDay(e));
         }
     }, [validEvents, dateFilter]);
