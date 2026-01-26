@@ -62,6 +62,8 @@ export class AllEventsScraper implements ScraperSource {
 
                     const location = cleanText(card.find('.subtitle, .venue, [itemprop="location"]').text()) || 'Toronto, ON';
 
+                    const description = cleanText(card.find('.description, .detail').text());
+
                     const event: Event = {
                         id: generateEventId(fullUrl),
                         title,
@@ -71,8 +73,8 @@ export class AllEventsScraper implements ScraperSource {
                         url: fullUrl,
                         price: 'TBD',
                         isFree: false,
-                        description: '',
-                        categories: categorizeEvent(title, ''),
+                        description,
+                        categories: categorizeEvent(title, description),
                         status: 'UPCOMING',
                         lastUpdated: new Date().toISOString()
                     };

@@ -20,6 +20,7 @@ export default function EventFeed({ events }: EventFeedProps) {
     const [showMultiDay, setShowMultiDay] = useState(false);
     const [maxPrice, setMaxPrice] = useState<number>(120);
     const [showExpensive, setShowExpensive] = useState(false);
+    const [showStarted, setShowStarted] = useState(false);
 
     // Extract unique categories (excluding Multi-Day as it's now a primary filter)
     const allCategories = useMemo(() => {
@@ -103,6 +104,12 @@ export default function EventFeed({ events }: EventFeedProps) {
                     return false;
                 }
 
+                // Started/Ongoing filtering
+                const eventStartDate = new Date(e.date);
+                if (!showStarted && eventStartDate < now && !isMultiDay(e)) {
+                    return false;
+                }
+
                 if (dateFilter === 'today' && !isToday(e.date)) return false;
                 if (dateFilter === 'tomorrow' && !isTomorrow(e.date)) return false;
                 if (dateFilter === 'this-week' && !isThisWeek(e.date)) return false;
@@ -117,7 +124,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                 if (isNaN(timeB)) return -1;
                 return timeA - timeB;
             });
-    }, [events, selectedCategory, dateFilter, maxPrice, showExpensive]);
+    }, [events, selectedCategory, dateFilter, maxPrice, showExpensive, showStarted]);
 
     const hiddenEvents = events.filter(e => {
         const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
@@ -125,16 +132,10 @@ export default function EventFeed({ events }: EventFeedProps) {
     });
 
     const now = new Date();
-    const singleDayEvents = validEvents.filter(e => {
-        if (!isMultiDay(e)) {
-            const eventDate = new Date(e.date);
-            if (dateFilter === 'today') return true;
-            return eventDate >= now;
-        }
-        return false;
-    });
+    const singleDayEvents = validEvents.filter(e => !isMultiDay(e));
     const multiDayEvents = validEvents.filter(e => {
         if (isMultiDay(e)) {
+            // Only show multi-day/festivals that haven't ended yet
             return e.endDate ? new Date(e.endDate) >= now : true;
         }
         return false;
@@ -166,7 +167,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                     />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 justify-center">
                     <button
                         onClick={() => setShowMultiDay(!showMultiDay)}
                         className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${showMultiDay ? 'bg-[var(--pk-500)] text-white' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
@@ -178,6 +179,12 @@ export default function EventFeed({ events }: EventFeedProps) {
                         className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${showExpensive ? 'bg-orange-500 text-white' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
                     >
                         Expensive {showExpensive ? 'Shown' : 'Hidden'}
+                    </button>
+                    <button
+                        onClick={() => setShowStarted(!showStarted)}
+                        className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${showStarted ? 'bg-blue-500 text-white' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
+                    >
+                        Ongoing {showStarted ? 'Shown' : 'Hidden'}
                     </button>
                 </div>
             </div>

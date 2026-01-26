@@ -1,0 +1,42 @@
+name: Scrape and Deploy Toronto Events
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # Run every 6 hours
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node ⚙️
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies 📦
+        run: npm ci
+
+      - name: Run Scraper 🕷️
+        run: npm run scrape
+
+      - name: Commit Updated Data 💾
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add data/events.json data/metadata.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Automated data update: $(date)"
+          git push
+
+      - name: Build 🏗️
+        run: npm run build
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build
+          token: ${{ secrets.GITHUB_TOKEN }}

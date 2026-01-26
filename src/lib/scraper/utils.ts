@@ -63,6 +63,11 @@ export function categorizeEvent(title: string, description: string, existingCate
         'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny']
     };
 
+    const recurringKeywords = ['multiple dates', 'recurring', 'select more dates', 'check availability', 'series'];
+    if (recurringKeywords.some(k => text.includes(k))) {
+        cats.add('Multi-Day');
+    }
+
     for (const [category, keywords] of Object.entries(patterns)) {
         if (keywords.some(k => text.includes(k))) {
             cats.add(category);
