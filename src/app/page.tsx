@@ -6,7 +6,7 @@ import path from 'path';
 // Force static generation
 export const dynamic = 'force-static';
 
-const VERSION = 'v0.4.0';
+const VERSION = 'v0.4.1';
 
 export const metadata = {
   title: `Toronto Events ${VERSION} - Real-Time Event Listings`,
