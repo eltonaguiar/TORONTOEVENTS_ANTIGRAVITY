@@ -111,10 +111,60 @@ export default function EventFeed({ events }: EventFeedProps) {
                     return false;
                 }
 
-                if (dateFilter === 'today' && !isToday(e.date)) return false;
-                if (dateFilter === 'tomorrow' && !isTomorrow(e.date)) return false;
-                if (dateFilter === 'this-week' && !isThisWeek(e.date)) return false;
-                if (dateFilter === 'this-month' && !isThisMonth(e.date)) return false;
+                // Date filtering
+                const eventEndDate = e.endDate ? new Date(e.endDate) : eventStartDate;
+
+                if (dateFilter !== 'all') {
+                    const todayStr = getTorontoDateParts(now);
+                    const [y, m, d] = todayStr.split('-').map(Number);
+                    const todayStart = new Date(y, m - 1, d);
+                    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+
+                    if (dateFilter === 'today') {
+                        // Multi-day: show if overlaps today. Single-day: show if starts today.
+                        if (isMultiDay(e)) {
+                            if (eventEndDate < todayStart || eventStartDate > todayEnd) return false;
+                        } else {
+                            if (!isToday(e.date)) return false;
+                        }
+                    }
+
+                    if (dateFilter === 'tomorrow') {
+                        const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+                        const tomorrowEnd = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000 - 1);
+                        if (isMultiDay(e)) {
+                            if (eventEndDate < tomorrowStart || eventStartDate > tomorrowEnd) return false;
+                        } else {
+                            if (!isTomorrow(e.date)) return false;
+                        }
+                    }
+
+                    if (dateFilter === 'this-week') {
+                        const weekEnd = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+                        if (isMultiDay(e)) {
+                            if (eventEndDate < todayStart || eventStartDate > weekEnd) return false;
+                        } else {
+                            if (!isThisWeek(e.date)) return false;
+                        }
+                    }
+
+                    if (dateFilter === 'this-month') {
+                        if (isMultiDay(e)) {
+                            // Check month overlap
+                            const eventStartParts = getTorontoDateParts(eventStartDate).split('-');
+                            const eventEndParts = getTorontoDateParts(eventEndDate).split('-');
+                            const nowParts = todayStr.split('-');
+                            const currentMonth = `${nowParts[0]}-${nowParts[1]}`;
+
+                            const startMonth = `${eventStartParts[0]}-${eventStartParts[1]}`;
+                            const endMonth = `${eventEndParts[0]}-${eventEndParts[1]}`;
+
+                            if (currentMonth < startMonth || currentMonth > endMonth) return false;
+                        } else {
+                            if (!isThisMonth(e.date)) return false;
+                        }
+                    }
+                }
 
                 return true;
             })

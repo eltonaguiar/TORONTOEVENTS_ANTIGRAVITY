@@ -14,15 +14,18 @@ export class AllEventsScraper implements ScraperSource {
         try {
             console.log(`Scraping ${url}...`);
             const response = await axios.get(url, {
+                responseType: 'arraybuffer',
                 headers: {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                    'Referer': 'https://www.google.com/',
+                    'Accept-Encoding': 'identity',
                 }
             });
-            console.log(`Response status: ${response.status}, length: ${response.data.length}`);
 
-            const $ = cheerio.load(response.data);
+            const html = Buffer.from(response.data).toString('utf8');
+            console.log(`Response status: ${response.status}, length: ${html.length}`);
+
+            const $ = cheerio.load(html);
 
             const elements = $('.event-card, .event-item, [data-event-id], li[itemscope]');
             console.log(`Found ${elements.length} elements matching selectors.`);
@@ -62,6 +65,16 @@ export class AllEventsScraper implements ScraperSource {
 
                     const location = cleanText(card.find('.subtitle, .venue, [itemprop="location"]').text()) || 'Toronto, ON';
 
+                    // Improved image extraction: try data-src (lazy load) then src
+                    let image = card.find('img').first().attr('data-src') ||
+                        card.find('img').first().attr('src') ||
+                        card.find('[itemprop="image"]').attr('content');
+
+                    // If relative URL, make absolute
+                    if (image && !image.startsWith('http')) {
+                        image = `https://allevents.in${image.startsWith('/') ? '' : '/'}${image}`;
+                    }
+
                     const description = cleanText(card.find('.description, .detail').text());
 
                     const event: Event = {
@@ -71,6 +84,7 @@ export class AllEventsScraper implements ScraperSource {
                         location,
                         source: 'AllEvents.in',
                         url: fullUrl,
+                        image,
                         price: 'TBD',
                         isFree: false,
                         description,
@@ -78,6 +92,7 @@ export class AllEventsScraper implements ScraperSource {
                         status: 'UPCOMING',
                         lastUpdated: new Date().toISOString()
                     };
+                    console.log(`Successfully scraped AllEvents item: ${title}`);
                     events.push(event);
 
                 } catch (e) {

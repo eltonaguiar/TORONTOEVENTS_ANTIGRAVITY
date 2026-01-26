@@ -23,21 +23,40 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
     if (!dateInput) return null;
 
     try {
-        const date = new Date(dateInput);
+        let inputStr = typeof dateInput === 'string' ? dateInput.trim() : dateInput.toISOString();
+
+        // Handle various dot characters used as delimiters (•, ·, etc)
+        inputStr = inputStr.replace(/[•·⋅\u2022\u22c5\u00b7]/g, '|').split('|')[0].trim();
+
+        // Try to find a date pattern like "21 Aug" or "Aug 21"
+        const dateMatch = inputStr.match(/(\d{1,2})\s+([a-z]{3,9})|([a-z]{3,9})\s+(\d{1,2})/i);
+
+        let date = new Date(inputStr);
+
+        // If invalid OR if it picked a weird default year like 2001 (Node default for no year)
+        // and it seems to have day/month, try adding current year
+        if ((isNaN(date.getTime()) || date.getFullYear() === 2001) && inputStr.match(/[a-z]{3},\s+\d+\s+[a-z]{3}/i)) {
+            const currentYear = new Date().getFullYear();
+            date = new Date(`${inputStr} ${currentYear}`);
+
+            // If it's in the past by more than 6 months, it's likely for next year
+            if (!isNaN(date.getTime())) {
+                const now = new Date();
+                if (date.getTime() < now.getTime() - (1000 * 60 * 60 * 24 * 30 * 6)) {
+                    date = new Date(`${inputStr} ${currentYear + 1}`);
+                }
+            }
+        }
+
         if (isNaN(date.getTime())) return null;
 
         // CRITICAL FIX: Convert to Eastern Time (Toronto timezone)
-        // The issue: Eventbrite gives us dates like "2026-01-26" which JavaScript
-        // interprets as UTC midnight (2026-01-26T00:00:00.000Z)
-        // In Eastern Time (UTC-5), this becomes Jan 25 at 7:00 PM!
-
-        // Solution: If we have a date-only string (no time), treat it as noon Eastern
-        const inputStr = typeof dateInput === 'string' ? dateInput : dateInput.toISOString();
+        const finalInputStr = date.toISOString();
 
         // 1. Check for exact date format: YYYY-MM-DD
         // 2. Check for UTC midnight: YYYY-MM-DD T00:00:00... Z
-        if (inputStr.match(/^\d{4}-\d{2}-\d{2}$/) || inputStr.match(/^\d{4}-\d{2}-\d{2}T00:00:00/)) {
-            const datePart = inputStr.substring(0, 10);
+        if (typeof dateInput === 'string' && (dateInput.match(/^\d{4}-\d{2}-\d{2}$/) || dateInput.match(/^\d{4}-\d{2}-\d{2}T00:00:00/))) {
+            const datePart = dateInput.substring(0, 10);
             return `${datePart}T12:00:00-05:00`;
         }
 

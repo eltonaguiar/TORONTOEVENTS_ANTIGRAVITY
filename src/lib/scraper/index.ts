@@ -45,6 +45,8 @@ export async function runScraper() {
         }
     }
 
+    console.log(`TOTAL FRESH EVENTS COLLECTED: ${freshEvents.length}`);
+
     // 2. Load existing
     const existingEvents = getEvents();
     const existingMap = new Map(existingEvents.map(e => [e.id, e]));
@@ -56,7 +58,7 @@ export async function runScraper() {
     for (const fresh of freshEvents) {
         // QUALITY GATE: Skip past or low-quality events
         if (!shouldIncludeEvent(fresh)) {
-            console.log(`Skipping low-quality/past event: ${fresh.title}`);
+            console.log(`Skipping low-quality/past event from ${fresh.source}: ${fresh.title}`);
             continue;
         }
 
