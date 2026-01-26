@@ -173,6 +173,52 @@ export default function SettingsManager() {
                                     </button>
                                 </div>
                             )}
+
+                            {/* Keyword Blacklist */}
+                            <div className="space-y-3 pt-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Keyword Blacklist</label>
+                                <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="Add keyword to hide..."
+                                            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--pk-500)]"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    const val = e.currentTarget.value.trim();
+                                                    if (val) {
+                                                        const current = settings.excludedKeywords || [];
+                                                        if (!current.includes(val)) {
+                                                            updateSettings({ excludedKeywords: [...current, val] });
+                                                        }
+                                                        e.currentTarget.value = '';
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
+                                        {(settings.excludedKeywords || []).map(keyword => (
+                                            <span
+                                                key={keyword}
+                                                className="flex items-center gap-1.5 px-2 py-1 bg-[var(--pk-500)]/10 border border-[var(--pk-500)]/20 rounded text-[10px] font-bold text-[var(--pk-200)] group"
+                                            >
+                                                {keyword}
+                                                <button
+                                                    onClick={() => {
+                                                        const current = settings.excludedKeywords || [];
+                                                        updateSettings({ excludedKeywords: current.filter(k => k !== keyword) });
+                                                    }}
+                                                    className="hover:text-white"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <p className="text-[9px] text-[var(--text-3)] italic">Hides events containing these words in title/info.</p>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Tooltips & Color */}

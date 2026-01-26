@@ -145,6 +145,13 @@ export default function EventFeed({ events }: EventFeedProps) {
                     if (isGenderSoldOut) return false;
                 }
 
+                // Keyword Exclusion Filter (User specified)
+                const blockedKeywords = settings.excludedKeywords || [];
+                const fullText = (e.title + ' ' + (e.description || '')).toLowerCase();
+                if (blockedKeywords.some(keyword => fullText.includes(keyword.toLowerCase()))) {
+                    return false;
+                }
+
                 // Started/Ongoing Logic
                 // If the user has a specific date filter (like TODAY), they likely want to see ALL events for that day,
                 // even if they already started OR finished.
@@ -368,6 +375,19 @@ export default function EventFeed({ events }: EventFeedProps) {
                             <button title="Show events happening tomorrow" onClick={() => setDateFilter('tomorrow')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'tomorrow' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>Tomorrow</button>
                             <button title="Show events for the current week (Sun-Sat)" onClick={() => setDateFilter('this-week')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-week' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Week</button>
                             <button title="Show events for the current calendar month" onClick={() => setDateFilter('this-month')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-month' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Month</button>
+                        </div>
+
+                        <div className="h-8 w-px bg-white/10 hidden md:block" />
+
+                        {/* Quick Toggle for Sold Out */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => updateSettings({ hideSoldOut: !settings.hideSoldOut })}
+                                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${settings.hideSoldOut ? 'bg-red-500/20 text-red-200 border border-red-500/50' : 'bg-white/5 text-[var(--text-3)] border border-white/10 hover:bg-white/10'}`}
+                                title="Toggle hiding of sold out events"
+                            >
+                                <span>{settings.hideSoldOut ? '🚫 Sold Out Hidden' : '👁 Show Sold Out'}</span>
+                            </button>
                         </div>
 
                         <div className="h-8 w-px bg-white/10 hidden md:block" />

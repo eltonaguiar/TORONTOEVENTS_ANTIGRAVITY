@@ -71,10 +71,18 @@ export class AllEventsScraper implements ScraperSource {
                             console.log(`Debug Item ${i}: Title="${title}", URL="${urlRaw}"`);
                         }
 
-                        if (!title || !urlRaw) return;
+                        if (!title || !urlRaw || urlRaw === '#' || urlRaw.startsWith('javascript:')) {
+                            console.log(`Skipping event with missing/invalid URL: "${title}"`);
+                            return;
+                        }
 
-                        // Fix URL
-                        const fullUrl = urlRaw.startsWith('http') ? urlRaw : `https://allevents.in${urlRaw}`;
+                        // Fix URL - ensure it is absolute
+                        let fullUrl = urlRaw;
+                        if (!fullUrl.startsWith('http')) {
+                            // Prepend domain if relative
+                            const domain = 'https://allevents.in';
+                            fullUrl = fullUrl.startsWith('/') ? `${domain}${fullUrl}` : `${domain}/${fullUrl}`;
+                        }
 
                         // Date
                         let dateStr = card.find('[itemprop="startDate"]').attr('content') ||

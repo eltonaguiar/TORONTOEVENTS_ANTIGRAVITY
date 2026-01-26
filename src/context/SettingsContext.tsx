@@ -22,6 +22,7 @@ interface Settings {
     hideSoldOut: boolean;
     gender: 'unspecified' | 'male' | 'female';
     hideGenderSoldOut: boolean;
+    excludedKeywords: string[];
     webpageScale: number;
     savedEvents: any[]; // Using any[] to avoid circular dependency issues if Event isn't exported here, but ideally import Event
 }
@@ -45,9 +46,10 @@ const defaultSettings: Settings = {
     detailViewMode: 'popup',
     embedSize: 'md',
     embedPlacement: 'center',
-    hideSoldOut: false,
+    hideSoldOut: true,
     gender: 'unspecified',
     hideGenderSoldOut: false,
+    excludedKeywords: ['50 and Up', '70s', '80s'],
     webpageScale: 1.0,
     savedEvents: [],
 };

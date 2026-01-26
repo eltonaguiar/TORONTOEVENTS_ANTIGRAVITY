@@ -219,7 +219,7 @@ export default function EventCard({ event, onPreview }: EventCardProps) {
                         Preview
                     </button>
                     <a
-                        href={event.url}
+                        href={event.url.startsWith('http') ? event.url : (event.source === 'AllEvents.in' ? `https://allevents.in${event.url.startsWith('/') ? '' : '/'}${event.url}` : event.url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
