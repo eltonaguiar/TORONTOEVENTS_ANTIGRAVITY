@@ -18,6 +18,8 @@ export default function EventFeed({ events }: EventFeedProps) {
     const [dateFilter, setDateFilter] = useState<DateFilter>('all');
     const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
     const [showMultiDay, setShowMultiDay] = useState(false);
+    const [maxPrice, setMaxPrice] = useState<number>(120);
+    const [showExpensive, setShowExpensive] = useState(false);
 
     // Extract unique categories (excluding Multi-Day as it's now a primary filter)
     const allCategories = useMemo(() => {
@@ -96,6 +98,11 @@ export default function EventFeed({ events }: EventFeedProps) {
                     return false;
                 }
 
+                // Price filtering
+                if (!showExpensive && e.priceAmount !== undefined && e.priceAmount > maxPrice) {
+                    return false;
+                }
+
                 if (dateFilter === 'today' && !isToday(e.date)) return false;
                 if (dateFilter === 'tomorrow' && !isTomorrow(e.date)) return false;
                 if (dateFilter === 'this-week' && !isThisWeek(e.date)) return false;
@@ -110,25 +117,18 @@ export default function EventFeed({ events }: EventFeedProps) {
                 if (isNaN(timeB)) return -1;
                 return timeA - timeB;
             });
-    }, [events, selectedCategory, dateFilter]);
+    }, [events, selectedCategory, dateFilter, maxPrice, showExpensive]);
 
     const hiddenEvents = events.filter(e => {
         const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
         return isHidden;
     });
 
-    // Smart time filtering: 
-    // - If "Today" filter is active, show all of today's events (even past ones)
-    // - Otherwise, only show future events
     const now = new Date();
     const singleDayEvents = validEvents.filter(e => {
         if (!isMultiDay(e)) {
             const eventDate = new Date(e.date);
-            // For today filter, show all today events
-            if (dateFilter === 'today') {
-                return true; // Show all today events
-            }
-            // For other filters, only show future events
+            if (dateFilter === 'today') return true;
             return eventDate >= now;
         }
         return false;
@@ -142,23 +142,48 @@ export default function EventFeed({ events }: EventFeedProps) {
 
     return (
         <div className="container max-w-7xl mx-auto px-4">
-            <div className="mb-4 flex flex-wrap gap-2 justify-center">
-                <button onClick={() => setDateFilter('all')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'all' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>All Dates</button>
-                <button onClick={() => setDateFilter('today')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'today' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>🔥 Today</button>
-                <button onClick={() => setDateFilter('tomorrow')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'tomorrow' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>Tomorrow</button>
-                <button onClick={() => setDateFilter('this-week')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-week' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Week</button>
-                <button onClick={() => setDateFilter('this-month')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-month' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Month</button>
-                <button
-                    onClick={() => setShowMultiDay(!showMultiDay)}
-                    className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${showMultiDay ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
-                >
-                    {showMultiDay ? 'Showing Multi-Day' : 'Hide Multi-Day'}
-                    <span className={`w-2 h-2 rounded-full ${showMultiDay ? 'bg-white' : 'bg-gray-500'}`}></span>
-                </button>
+            <div className="mb-6 flex flex-wrap gap-4 items-center justify-center glass-panel p-6 rounded-2xl border border-white/5">
+                <div className="flex flex-wrap gap-2 justify-center">
+                    <button onClick={() => setDateFilter('all')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'all' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>All Dates</button>
+                    <button onClick={() => setDateFilter('today')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'today' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>🔥 Today</button>
+                    <button onClick={() => setDateFilter('tomorrow')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'tomorrow' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>Tomorrow</button>
+                    <button onClick={() => setDateFilter('this-week')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-week' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Week</button>
+                    <button onClick={() => setDateFilter('this-month')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-month' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Month</button>
+                </div>
+
+                <div className="h-8 w-px bg-white/10 hidden md:block" />
+
+                <div className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/10">
+                    <span className="text-xs font-bold text-[var(--text-3)] uppercase">Price Limit: ${maxPrice === 500 ? 'Any' : maxPrice}</span>
+                    <input
+                        type="range"
+                        min="0"
+                        max="500"
+                        step="10"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(parseInt(e.target.value))}
+                        className="w-32 accent-[var(--pk-500)]"
+                    />
+                </div>
+
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowMultiDay(!showMultiDay)}
+                        className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${showMultiDay ? 'bg-[var(--pk-500)] text-white' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
+                    >
+                        Multi-Day {showMultiDay ? 'On' : 'Off'}
+                    </button>
+                    <button
+                        onClick={() => setShowExpensive(!showExpensive)}
+                        className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${showExpensive ? 'bg-orange-500 text-white' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
+                    >
+                        Expensive {showExpensive ? 'Shown' : 'Hidden'}
+                    </button>
+                </div>
             </div>
 
             {allCategories.length > 1 && (
-                <div className="mb-8 flex flex-wrap gap-2 justify-center">
+                <div className="mb-12 flex flex-wrap gap-2 justify-center">
                     <button onClick={() => setSelectedCategory(null)} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${selectedCategory === null ? 'bg-[var(--pk-500)] text-white' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>All Categories</button>
                     {allCategories.map(cat => (
                         <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${selectedCategory === cat ? 'bg-[var(--pk-500)] text-white' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>{cat}</button>

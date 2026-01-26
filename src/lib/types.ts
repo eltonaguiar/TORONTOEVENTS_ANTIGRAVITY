@@ -8,6 +8,7 @@ export interface Event {
   url: string;
   image?: string;
   price: string;
+  priceAmount?: number;
   isFree: boolean;
   description: string;
   categories: string[];

@@ -94,21 +94,33 @@ export class EventbriteScraper implements ScraperSource {
                                             }
                                         }
 
+                                        let priceAmount: number | undefined;
+                                        let isFree = eventItem.isAccessibleForFree || eventItem.offers?.price === 0 || eventItem.offers?.price === '0';
+
+                                        if (isFree) {
+                                            priceAmount = 0;
+                                        } else if (eventItem.offers?.price) {
+                                            priceAmount = parseFloat(eventItem.offers.price);
+                                        }
+
+                                        let isRecurring = eventItem['@type'] === 'EventSeries' ||
+                                            title.toLowerCase().includes('multiple dates') ||
+                                            (eventItem.description || '').toLowerCase().includes('multiple dates');
+
                                         const event: Event = {
                                             id: eventId,
                                             title: cleanText(title),
                                             date,
-                                            endDate: eventItem['@type'] === 'EventSeries' ? (endDate || date) : endDate,
+                                            endDate: isRecurring ? (endDate || date) : endDate,
                                             location: cleanText(location),
                                             source: 'Eventbrite',
                                             url,
                                             image: eventItem.image,
-                                            price: eventItem.offers?.price ? `$${eventItem.offers.price}` :
-                                                (eventItem.isAccessibleForFree || eventItem.offers?.price === 0 || eventItem.offers?.price === '0') ? 'Free' :
-                                                    'See tickets',
-                                            isFree: eventItem.isAccessibleForFree || eventItem.offers?.price === 0 || eventItem.offers?.price === '0',
+                                            price: priceAmount === 0 ? 'Free' : (priceAmount ? `$${priceAmount}` : 'See tickets'),
+                                            priceAmount,
+                                            isFree,
                                             description: cleanText(eventItem.description || ''),
-                                            categories: eventItem['@type'] === 'EventSeries'
+                                            categories: isRecurring
                                                 ? [...new Set([...categorizeEvent(title, eventItem.description || '', categories), 'Multi-Day'])]
                                                 : categorizeEvent(title, eventItem.description || '', categories),
                                             status: 'UPCOMING',
@@ -137,27 +149,36 @@ export class EventbriteScraper implements ScraperSource {
                                     else if (item.location.address?.addressLocality) location = item.location.address.addressLocality;
                                 }
 
-                                let price = 'TBD';
+                                let priceAmount: number | undefined;
                                 let isFree = false;
                                 if (item.offers) {
                                     const offer = Array.isArray(item.offers) ? item.offers[0] : item.offers;
-                                    if (offer.price === '0' || offer.price === 0) { isFree = true; price = 'Free'; }
-                                    else if (offer.price) { price = `$${offer.price}`; }
+                                    if (offer.price === '0' || offer.price === 0) {
+                                        isFree = true;
+                                        priceAmount = 0;
+                                    } else if (offer.price) {
+                                        priceAmount = parseFloat(offer.price);
+                                    }
                                 }
+
+                                let isRecurring = item['@type'] === 'EventSeries' ||
+                                    title.toLowerCase().includes('multiple dates') ||
+                                    (item.description || '').toLowerCase().includes('multiple dates');
 
                                 const event: Event = {
                                     id: eventId,
                                     title: cleanText(title),
                                     date: date || new Date().toISOString(),
-                                    endDate: item['@type'] === 'EventSeries' ? (endDate || date || new Date().toISOString()) : endDate,
+                                    endDate: isRecurring ? (endDate || date || new Date().toISOString()) : endDate,
                                     location: cleanText(location),
                                     source: 'Eventbrite',
                                     url,
                                     image: item.image,
-                                    price,
+                                    price: priceAmount === 0 ? 'Free' : (priceAmount ? `$${priceAmount}` : 'See tickets'),
+                                    priceAmount,
                                     isFree,
                                     description: cleanText(item.description || ''),
-                                    categories: item['@type'] === 'EventSeries'
+                                    categories: isRecurring
                                         ? [...new Set([...categorizeEvent(title, item.description || ''), 'Multi-Day'])]
                                         : categorizeEvent(title, item.description || ''),
                                     status: 'UPCOMING',

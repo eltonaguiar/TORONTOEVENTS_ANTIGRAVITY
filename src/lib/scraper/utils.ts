@@ -10,6 +10,7 @@ export function cleanText(text: string): string {
 }
 
 export function isMultiDay(event: Event): boolean {
+    if (event.categories.includes('Multi-Day')) return true;
     if (!event.endDate) return false;
     const start = new Date(event.date);
     const end = new Date(event.endDate);
