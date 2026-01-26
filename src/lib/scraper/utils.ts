@@ -38,13 +38,12 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
         // Handle various dot characters used as delimiters (•, ·, etc)
         inputStr = inputStr.replace(/[•·⋅\u2022\u22c5\u00b7]/g, '|').split('|')[0].trim();
 
-        // Remove trailing " -" or similar that might appear before time if we are just parsing the date part, 
-        // though usually we want the whole thing. The " - " in "Mon, 20 Apr, 2026 - 07:00 PM" is actually fine for some parsers 
-        // but let's be safe.
-        // If it matches "Date - Time", replace " - " with " " to help Date parser if it fails.
         if (inputStr.includes(' - ')) {
             inputStr = inputStr.replace(' - ', ' ');
         }
+
+        // Check for timezone hints (Z, + offset, - offset, or common TZ names)
+        const hasZone = inputStr.match(/[Z\+\-](?:\d{2}:?\d{2})?$/) || inputStr.match(/(GMT|EST|EDT|UTC)/i);
 
         let date = new Date(inputStr);
 
@@ -54,7 +53,6 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
             date = new Date(`${inputStr} ${currentYear}`);
             if (!isNaN(date.getTime())) {
                 const now = new Date();
-                // If the date parsed is significantly in the past, it's likely for next year
                 if (date.getTime() < now.getTime() - (1000 * 60 * 60 * 24 * 30 * 6)) {
                     date = new Date(`${inputStr} ${currentYear + 1}`);
                 }
@@ -63,37 +61,61 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
 
         if (isNaN(date.getTime())) return null;
 
-        // CRITICAL FIX: Ensure output is always in Toronto timezone format
-        // This handles DST automatically if we use the right library or methods
-        // Since we are likely in a Node environment without heavy libs, we'll use Intl to get current offset for that date
+        // CRITICAL FIX: If no zone provided and it has a time, assume Toronto
+        // This is critical when running on UTC machines (GitHub Actions)
+        if (!hasZone && inputStr.includes(':')) {
+            const torontoOffset = getTorontoOffset(date);
+            // Re-parse with the offset appended
+            const cleaned = inputStr.replace(/ at\s*$/i, '');
+            const adjustedDate = new Date(`${cleaned} ${torontoOffset}`);
+            if (!isNaN(adjustedDate.getTime())) {
+                date = adjustedDate;
+            }
+        }
+
+        // format output safely in Toronto time
         const options: Intl.DateTimeFormatOptions = {
             timeZone: 'America/Toronto',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
             hour12: false
         };
 
-        const formatter = new Intl.DateTimeFormat('sv-SE', options); // sv-SE gives YYYY-MM-DD HH:mm:ss
+        const formatter = new Intl.DateTimeFormat('sv-SE', options);
         const parts = formatter.formatToParts(date);
         const map: { [key: string]: string } = {};
         parts.forEach(p => map[p.type] = p.value);
 
-        // Calculate offset manually to construct a valid ISO-like string with offset
-        const torontoStr = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
-        const torontoDate = new Date(torontoStr);
-        const offsetMinutes = (date.getTime() - torontoDate.getTime()) / 60000;
-        const absOffset = Math.abs(Math.round(offsetMinutes));
-        const hours = Math.floor(absOffset / 60).toString().padStart(2, '0');
-        const mins = (absOffset % 60).toString().padStart(2, '0');
-        const sign = offsetMinutes > 0 ? '-' : '+'; // If UTC is ahead, offset is negative
+        const torontoIso = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
+        const finalOffset = getTorontoOffset(date);
 
-        return `${torontoStr}${sign}${hours}:${mins}`;
+        return `${torontoIso}${finalOffset}`;
     } catch {
         return null;
+    }
+}
+
+function getTorontoOffset(date: Date): string {
+    try {
+        const parts = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Toronto',
+            timeZoneName: 'shortOffset'
+        }).formatToParts(date);
+        const tz = parts.find(p => p.type === 'timeZoneName')?.value; // "GMT-5" or "GMT-4"
+
+        if (!tz || tz === 'GMT') return '-05:00';
+
+        let offset = tz.replace('GMT', '');
+        if (!offset.includes(':')) {
+            const sign = offset.startsWith('+') || offset.startsWith('-') ? '' : '+';
+            const fullSign = offset.startsWith('-') ? '-' : '+';
+            const val = offset.replace(/^[+-]/, '');
+            const padded = val.padStart(2, '0');
+            offset = `${fullSign}${padded}:00`;
+        }
+        return offset;
+    } catch {
+        return '-05:00';
     }
 }
 export function categorizeEvent(title: string, description: string, existingCategories: string[] = []): string[] {
