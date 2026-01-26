@@ -82,6 +82,32 @@ a {
   box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.3);
 }
 
+/* Font Size Variants */
+.font-size-sm { font-size: 14px; }
+.font-size-md { font-size: 16px; }
+.font-size-lg { font-size: 18px; }
+
+/* Density Variants */
+.density-compact .glass-panel { padding: 0.75rem !important; }
+.density-compact h3 { margin-bottom: 0.25rem !important; }
+.density-spacious .glass-panel { padding: 2rem !important; }
+.density-spacious h3 { margin-bottom: 1.5rem !important; }
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(var(--pk-500-rgb, 236, 72, 153), 0.3);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--pk-500-rgb, 236, 72, 153), 0.5);
+}
+
 .glow-text {
   background: linear-gradient(135deg, var(--pk-100), var(--accent-100));
   background-clip: text;
@@ -93,4 +119,14 @@ a {
 .container {
   width: min(100% - 2rem, 1200px);
   margin-inline: auto;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }

@@ -1,12 +1,15 @@
 import Link from 'next/link';
 import { Event } from '../lib/types';
 
+import { useSettings } from '../context/SettingsContext';
+
 interface EventCardProps {
     event: Event;
     onPreview?: () => void;
 }
 
 export default function EventCard({ event, onPreview }: EventCardProps) {
+    const { settings } = useSettings();
     const dateObj = new Date(event.date);
 
     // Use Toronto timezone for display
@@ -22,6 +25,23 @@ export default function EventCard({ event, onPreview }: EventCardProps) {
 
     return (
         <div className="glass-panel p-4 rounded-xl transition-transform hover:-translate-y-1 hover:shadow-lg flex flex-col h-full relative group overflow-hidden">
+            {/* Tooltip (Conditional) */}
+            {settings.showTooltips && (
+                <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-300 bg-[var(--surface-0)]/90 backdrop-blur-md p-6 translate-y-4 group-hover:translate-y-0">
+                    <div className="flex flex-col h-full animate-fade-in">
+                        <span className="text-[10px] font-black uppercase tracking-tighter text-[var(--pk-300)] mb-2">/ Intelligence Summary</span>
+                        <p className="text-xs text-[var(--text-1)] leading-relaxed line-clamp-6 mb-4">
+                            {event.description || 'No detailed intelligence available for this operation.'}
+                        </p>
+                        <div className="mt-auto border-t border-white/10 pt-4">
+                            <div className="flex justify-between items-center text-[10px] text-[var(--text-3)] font-bold uppercase tracking-wider">
+                                <span>Source: {event.source}</span>
+                                <span>Score: 94%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Status Bar */}
             {event.status === 'CANCELLED' && (
                 <div className="absolute top-0 left-0 right-0 bg-red-500/80 text-white text-xs font-bold text-center py-1">

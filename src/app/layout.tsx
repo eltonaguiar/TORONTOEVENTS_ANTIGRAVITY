@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   description: 'The best events in Toronto, curated and refreshed daily.',
 };
 
+import { SettingsProvider } from '../context/SettingsContext';
+import SettingsManager from '../components/SettingsManager';
+
 export default function RootLayout({
   children,
 }: {
@@ -16,7 +19,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <SettingsProvider>
+          {children}
+          <SettingsManager />
+        </SettingsProvider>
+      </body>
     </html>
   );
 }

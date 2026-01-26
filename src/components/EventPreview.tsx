@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { Event } from '../lib/types';
+import { useSettings } from '../context/SettingsContext';
 
 interface EventPreviewProps {
     event: Event;
@@ -11,9 +12,10 @@ type PreviewMode = 'details' | 'live';
 type Placement = 'center' | 'right' | 'left';
 
 export default function EventPreview({ event, onClose }: EventPreviewProps) {
+    const { settings, updateSettings } = useSettings();
     const [mode, setMode] = useState<PreviewMode>('details');
-    const [size, setSize] = useState<'sm' | 'md' | 'lg' | 'full'>('md');
-    const [placement, setPlacement] = useState<Placement>('center');
+    const [size, setSize] = useState<'sm' | 'md' | 'lg' | 'full'>(settings.embedSize);
+    const [placement, setPlacement] = useState<Placement>(settings.embedPlacement);
     const [themeColor, setThemeColor] = useState<string>('var(--pk-500)');
 
     const sizeClasses = {
@@ -31,11 +33,11 @@ export default function EventPreview({ event, onClose }: EventPreviewProps) {
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm p-4 transition-all duration-300 ${placementClasses[placement]}`}
+            className={`fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm p-4 transition-all duration-300 ${placementClasses[placement as keyof typeof placementClasses]}`}
             onClick={onClose}
         >
             <div
-                className={`glass-panel w-full flex flex-col rounded-2xl overflow-hidden transition-all duration-300 ${sizeClasses[size]}`}
+                className={`glass-panel w-full flex flex-col rounded-2xl overflow-hidden transition-all duration-300 ${sizeClasses[size as keyof typeof sizeClasses]}`}
                 style={{ '--pk-500': themeColor } as any}
                 onClick={(e) => e.stopPropagation()}
             >
