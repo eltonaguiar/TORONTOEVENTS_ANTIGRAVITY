@@ -11,6 +11,13 @@ export class EventbriteScraper implements ScraperSource {
     private searchUrls: string[] = [];
 
     constructor() { // Generate URLs dynamically
+        // 1. CRITICAL: Aggressively target "Today" to ensure high volume
+        // The user specifically complained about low "Today" counts.
+        this.searchUrls.push('/d/canada--toronto/events--today/');
+        for (let i = 2; i <= 5; i++) {
+            this.searchUrls.push(`/d/canada--toronto/events--today/?page=${i}`);
+        }
+
         const baseCategories = [
             'events--this-week',
             'food-and-drink--events',
