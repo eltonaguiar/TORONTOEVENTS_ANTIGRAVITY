@@ -9,7 +9,29 @@ export class AllEventsScraper implements ScraperSource {
     async scrape(): Promise<ScraperResult> {
         const events: Event[] = [];
         const errors: string[] = [];
-        const paths = ['/toronto', '/toronto/dating', '/toronto/singles'];
+        const paths: string[] = [];
+        const categories = [
+            'toronto', // General
+            'toronto/dating',
+            'toronto/singles',
+            'toronto/food-drinks',
+            'toronto/music',
+            'toronto/arts',
+            'toronto/workshops',
+            'toronto/business',
+            'toronto/sports',
+            'toronto/comedy',
+            'toronto/parties',
+            'toronto/health-wellness'
+        ];
+
+        // Pagination for volume
+        for (const cat of categories) {
+            paths.push(`/${cat}`);
+            for (let i = 2; i <= 6; i++) {
+                paths.push(`/${cat}?page=${i}`);
+            }
+        }
 
         for (const path of paths) {
             const url = `https://allevents.in${path}`;

@@ -32,8 +32,19 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
     try {
         let inputStr = typeof dateInput === 'string' ? dateInput.trim() : dateInput.toISOString();
 
+        // Robust cleanup for scraping artifacts (newlines, excessive spaces)
+        inputStr = inputStr.replace(/\s+/g, ' ').trim();
+
         // Handle various dot characters used as delimiters (•, ·, etc)
         inputStr = inputStr.replace(/[•·⋅\u2022\u22c5\u00b7]/g, '|').split('|')[0].trim();
+
+        // Remove trailing " -" or similar that might appear before time if we are just parsing the date part, 
+        // though usually we want the whole thing. The " - " in "Mon, 20 Apr, 2026 - 07:00 PM" is actually fine for some parsers 
+        // but let's be safe.
+        // If it matches "Date - Time", replace " - " with " " to help Date parser if it fails.
+        if (inputStr.includes(' - ')) {
+            inputStr = inputStr.replace(' - ', ' ');
+        }
 
         let date = new Date(inputStr);
 

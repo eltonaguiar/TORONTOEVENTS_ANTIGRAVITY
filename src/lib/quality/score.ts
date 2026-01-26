@@ -76,6 +76,26 @@ export function shouldIncludeEvent(event: Event): boolean {
         return false;
     }
 
+    // Reject expensive events (> $150)
+    if (event.priceAmount !== undefined && event.priceAmount > 150) {
+        console.log(`Rejecting expensive event: "${event.title}" ($${event.priceAmount})`);
+        return false;
+    }
+
+    // Reject "garbage" topics (sales seminars, etc.)
+    const spamKeywords = [
+        'sales seminar', 'home buying', 'estate investing',
+        'wealth mastery', 'financial freedom', 'webinar',
+        'timeshare', 'mlm', 'investment strategy',
+        'career fair', 'job fair', 'recruitment',
+        'intro to trading', 'forex'
+    ];
+    const text = (event.title + ' ' + (event.description || '')).toLowerCase();
+    if (spamKeywords.some(k => text.includes(k))) {
+        console.log(`Rejecting spam/low-value event: "${event.title}"`);
+        return false;
+    }
+
     // Require minimum quality score
     if (quality.score < 40) return false;
 

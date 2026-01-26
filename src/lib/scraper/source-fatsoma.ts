@@ -12,6 +12,12 @@ export class FatsomaScraper implements ScraperSource {
         const errors: string[] = [];
 
         for (const profile of this.profiles) {
+            // Fatsoma doesn't have standard page=2 params visible easily, usually infinite scroll API.
+            // But we can try to look for more links on the main profile page.
+            // For now, let's just make sure we are thorough on the main profile.
+            // Actually, we can try to hit the API if possible, but let's stick to HTML for now.
+            // We'll just process the main profile as is, but remove the "thursday |" filter restriction
+            // to catch special events that might not have that prefix.
             try {
                 console.log(`Scraping Fatsoma profile: ${profile}...`);
                 const url = `https://www.fatsoma.com/p/${profile}`;

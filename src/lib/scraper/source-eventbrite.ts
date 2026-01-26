@@ -8,28 +8,55 @@ export class EventbriteScraper implements ScraperSource {
     name = 'Eventbrite';
     private baseUrl = 'https://www.eventbrite.ca';
 
-    private searchUrls = [
-        '/d/canada--toronto/events--today/',
-        '/d/canada--toronto/events--tomorrow/',
-        '/d/canada--toronto/events--this-week/',
-        '/d/canada--toronto/thursday--events/',
-        '/d/canada--toronto/speed-dating--events/',
-        '/d/canada--toronto/singles--events/',
-        '/d/canada--toronto/dating--events/',
-        '/d/canada--toronto/singles-mixer--events/',
-        '/o/toronto-dating-hub-31627918491',
-        '/o/toronto-dating-hub-30693540114',
-        '/o/mycheekydate-speed-dating-toronto-matchmaking-11281652610',
-        '/o/mycheekydate-speed-dating-toronto-matchmaking-11357672223',
-        '/o/flare-events-17849642646',
-        '/o/cityswoon-16812847239',
-        '/o/25datescom-84423023077',
-        '/o/single-in-the-city-107798363',
-        '/o/torontogtasingles-events-matchmaking-41132646217',
-        '/o/torontogtasingles-events-83679246113',
-        '/o/speedtoronto-dating-34887968453',
-        '/o/the-tantra-institute-12791729483',
-    ];
+    private searchUrls: string[] = [];
+
+    constructor() { // Generate URLs dynamically
+        const baseCategories = [
+            'events--this-week',
+            'food-and-drink--events',
+            'arts--events',
+            'music--events',
+            'community--events',
+            'classes--events',
+            'hobbies--events',
+            'health--events',
+            'business--events',
+            'charity-and-causes--events',
+            'film-and-media--events',
+            'fashion--events',
+            'sports-and-fitness--events',
+            'travel-and-outdoor--events',
+            'science-and-tech--events',
+            'performing-arts',
+            'free--events' // Very important for volume
+        ];
+
+        // Deep paging for massive volume (Pages 1-8)
+        // This is aggressive but necessary for "200 events/day"
+        for (const cat of baseCategories) {
+            this.searchUrls.push(`/d/canada--toronto/${cat}/`);
+            for (let i = 2; i <= 8; i++) {
+                this.searchUrls.push(`/d/canada--toronto/${cat}/?page=${i}`);
+            }
+        }
+
+        // Specific niche organizers
+        const organizers = [
+            '/o/toronto-dating-hub-31627918491',
+            '/o/toronto-dating-hub-30693540114',
+            '/o/mycheekydate-speed-dating-toronto-matchmaking-11281652610',
+            '/o/mycheekydate-speed-dating-toronto-matchmaking-11357672223',
+            '/o/flare-events-17849642646',
+            '/o/cityswoon-16812847239',
+            '/o/25datescom-84423023077',
+            '/o/single-in-the-city-107798363',
+            '/o/torontogtasingles-events-matchmaking-41132646217',
+            '/o/torontogtasingles-events-83679246113',
+            '/o/speedtoronto-dating-34887968453',
+            '/o/the-tantra-institute-12791729483',
+        ];
+        this.searchUrls.push(...organizers);
+    }
 
     async scrape(): Promise<ScraperResult> {
         const events: Event[] = [];
