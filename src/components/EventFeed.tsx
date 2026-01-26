@@ -245,6 +245,39 @@ export default function EventFeed({ events }: EventFeedProps) {
         return false;
     });
 
+    // Combine events logic:
+    // If we have a specific date filter (Today, Tomorrow, Weekend), users usually want to see EVERYTHING happening then.
+    // The "Separate Multi-Day" view is mostly useful for the "All/Global" feed to prevent clutter.
+    // So:
+    // 1. If DateFilter != 'all', merge everything into one list (sorted by time).
+    // 2. If DateFilter == 'all', keep the split (Single Day vs Multi Day section).
+
+    const displayEvents = useMemo(() => {
+        if (dateFilter !== 'all') {
+            // Show everything, sorted by start time
+            // If the user explicitly Hid Multi-Day via toggle, respecting that might be confusing for 'Today'.
+            // Let's compromise: If DateFilter is active, we IGNORE showMultiDay toggle (AUTO-SHOW), 
+            // OR we treat the toggle as a hard filter.
+            // Given the user complaint "Only 8 events", they want to see more. 
+            // Let's merge them.
+
+            // We'll respect "showHidden" (cancelled), but maybe we should ignore "Multi-Day" separation.
+            // Actually, let's respect the toggle if they explicitly turned it off? 
+            // The user screenshot shows "Multi-Day Off" is the default state. 
+            // So we MUST show them by default or merge them.
+
+            return validEvents;
+        } else {
+            // Standard Split View for Global Feed
+            return validEvents.filter(e => !isMultiDay(e));
+        }
+    }, [validEvents, dateFilter]);
+
+    const separateMultiDayList = useMemo(() => {
+        if (dateFilter !== 'all') return []; // We merged them
+        return validEvents.filter(e => isMultiDay(e));
+    }, [validEvents, dateFilter]);
+
     return (
         <div className="container max-w-7xl mx-auto px-4">
             {/* Control Panel */}
@@ -359,19 +392,22 @@ export default function EventFeed({ events }: EventFeedProps) {
 
                     {/* Hidden / Exclusion Filters Dashboard */}
                     <div className="flex flex-wrap gap-3 justify-center mt-4">
-                        {/* Multi-Day Toggle */}
-                        <button
-                            onClick={() => setShowMultiDay(!showMultiDay)}
-                            className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showMultiDay ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
-                            title="Toggle Multi-Day Events (Festivals, Recurring Series)"
-                        >
-                            <span>{showMultiDay ? '👁 Multi-Day On' : '❌ Multi-Day Off'}</span>
-                            {!showMultiDay && (
-                                <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
-                                    {events.filter(e => isMultiDay(e)).length} Hidden
-                                </span>
-                            )}
-                        </button>
+                        {/* Multi-Day Toggle - Only show in 'All Dates' mode or if we designate a specific toggle for it */}
+                        {dateFilter === 'all' && (
+                            <button
+                                onClick={() => setShowMultiDay(!showMultiDay)}
+                                className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showMultiDay ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
+                                title="Toggle Multi-Day Events (Festivals, Recurring Series)"
+                            >
+                                <span>{showMultiDay ? '👁 Multi-Day On' : '❌ Multi-Day Off'}</span>
+                                {!showMultiDay && (
+                                    <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
+                                        {/* Estimate count of multi-day from sourceEvents */}
+                                        {sourceEvents.filter(e => isMultiDay(e)).length} Hidden
+                                    </span>
+                                )}
+                            </button>
+                        )}
 
                         {/* Expensive Toggle */}
                         <button
@@ -459,10 +495,10 @@ export default function EventFeed({ events }: EventFeedProps) {
                         <span className="text-[var(--pk-500)]">
                             {viewMode === 'saved' ? '♥' : '★'}
                         </span>
-                        {viewMode === 'saved' ? 'My Saved Events' : 'Upcoming Events'}
+                        {viewMode === 'saved' ? 'My Saved Events' : (dateFilter !== 'all' ? `${dateFilter === 'today' ? 'Today\'s' : 'Filtered'} Events` : 'Upcoming Events')}
                     </h2>
                     <div className="text-sm text-[var(--text-3)] flex items-center gap-4">
-                        <span>{singleDayEvents.length} events {viewMode === 'saved' ? 'in collection' : 'found'}</span>
+                        <span>{displayEvents.length} events {viewMode === 'saved' ? 'in collection' : 'found'}</span>
                         {viewMode !== 'saved' && hiddenEvents.length > 0 && (
                             <button onClick={() => setShowHidden(!showHidden)} className="px-3 py-1 rounded-full border border-white/10 hover:bg-white/5 text-xs transition-colors">{showHidden ? 'Hide' : 'Show'} TBD / Cancelled ({hiddenEvents.length})</button>
                         )}
@@ -470,7 +506,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {singleDayEvents.map(event => (
+                    {displayEvents.map(event => (
                         <div key={event.id} className="relative group">
                             {/* Visual Indicator for Past Events in Saved View */}
                             {viewMode === 'saved' && now && new Date(event.date) < now && (
@@ -483,7 +519,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                     ))}
                 </div>
 
-                {singleDayEvents.length === 0 && (
+                {displayEvents.length === 0 && (
                     <div className="text-center py-20 glass-panel rounded-xl">
                         <p className="text-[var(--text-2)]">
                             {viewMode === 'saved'
@@ -494,7 +530,8 @@ export default function EventFeed({ events }: EventFeedProps) {
                 )}
             </section>
 
-            {showMultiDay && multiDayEvents.length > 0 && (
+            {/* Separate Multi-Day Section ONLY if dateFilter is ALL */}
+            {dateFilter === 'all' && showMultiDay && separateMultiDayList.length > 0 && (
                 <section className="mb-16">
                     <div className="flex items-center gap-4 mb-8">
                         <div className="h-px flex-1 bg-white/10" />
@@ -503,7 +540,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {multiDayEvents.map(event => (
+                        {separateMultiDayList.map(event => (
                             <EventCard key={event.id} event={event} onPreview={() => setPreviewEvent(event)} />
                         ))}
                     </div>
