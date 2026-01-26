@@ -23,7 +23,8 @@ export class EventbriteDetailScraper {
                     if (!jsonText) continue;
 
                     const data = JSON.parse(jsonText);
-                    if (data['@type'] === 'Event' && data.startDate) {
+                    const type = data['@type'];
+                    if (type && typeof type === 'string' && type.includes('Event') && data.startDate) {
                         console.log(`Found real time for ${eventUrl.split('/').pop()}: ${data.startDate}`);
                         return data.startDate;
                     }

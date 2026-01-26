@@ -17,11 +17,14 @@ export default function EventFeed({ events }: EventFeedProps) {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [dateFilter, setDateFilter] = useState<DateFilter>('all');
     const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
+    const [showMultiDay, setShowMultiDay] = useState(false);
 
-    // Extract unique categories
+    // Extract unique categories (excluding Multi-Day as it's now a primary filter)
     const allCategories = useMemo(() => {
         const catSet = new Set<string>();
-        events.forEach(e => e.categories.forEach(cat => catSet.add(cat)));
+        events.forEach(e => e.categories.forEach(cat => {
+            if (cat !== 'Multi-Day') catSet.add(cat);
+        }));
         return Array.from(catSet).sort();
     }, [events]);
 
@@ -145,6 +148,13 @@ export default function EventFeed({ events }: EventFeedProps) {
                 <button onClick={() => setDateFilter('tomorrow')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'tomorrow' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>Tomorrow</button>
                 <button onClick={() => setDateFilter('this-week')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-week' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Week</button>
                 <button onClick={() => setDateFilter('this-month')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-month' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Month</button>
+                <button
+                    onClick={() => setShowMultiDay(!showMultiDay)}
+                    className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${showMultiDay ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
+                >
+                    {showMultiDay ? 'Showing Multi-Day' : 'Hide Multi-Day'}
+                    <span className={`w-2 h-2 rounded-full ${showMultiDay ? 'bg-white' : 'bg-gray-500'}`}></span>
+                </button>
             </div>
 
             {allCategories.length > 1 && (
@@ -183,7 +193,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                 )}
             </section>
 
-            {multiDayEvents.length > 0 && (
+            {showMultiDay && multiDayEvents.length > 0 && (
                 <section className="mb-16">
                     <div className="flex items-center gap-4 mb-8">
                         <div className="h-px flex-1 bg-white/10" />

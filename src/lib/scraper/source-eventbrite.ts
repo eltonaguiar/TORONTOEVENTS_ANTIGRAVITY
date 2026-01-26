@@ -66,8 +66,9 @@ export class EventbriteScraper implements ScraperSource {
                                 console.log(`Found ItemList with ${subItems.length} elements`);
 
                                 for (const sub of subItems) {
-                                    const eventItem = sub.item; // Often structured as { position: 1, item: { @type: 'Event'... } }
-                                    if (eventItem && (eventItem['@type'] === 'Event' || eventItem['@type'] === 'EventSeries')) {
+                                    const eventItem = sub.item;
+                                    const type = eventItem?.['@type'];
+                                    if (eventItem && typeof type === 'string' && type.includes('Event')) {
                                         const title = eventItem.name;
                                         const url = eventItem.url;
                                         if (!title || !url) continue;
@@ -97,7 +98,7 @@ export class EventbriteScraper implements ScraperSource {
                                             id: eventId,
                                             title: cleanText(title),
                                             date,
-                                            endDate,
+                                            endDate: eventItem['@type'] === 'EventSeries' ? (endDate || date) : endDate,
                                             location: cleanText(location),
                                             source: 'Eventbrite',
                                             url,
@@ -107,7 +108,9 @@ export class EventbriteScraper implements ScraperSource {
                                                     'See tickets',
                                             isFree: eventItem.isAccessibleForFree || eventItem.offers?.price === 0 || eventItem.offers?.price === '0',
                                             description: cleanText(eventItem.description || ''),
-                                            categories: categorizeEvent(title, eventItem.description || '', categories),
+                                            categories: eventItem['@type'] === 'EventSeries'
+                                                ? [...new Set([...categorizeEvent(title, eventItem.description || '', categories), 'Multi-Day'])]
+                                                : categorizeEvent(title, eventItem.description || '', categories),
                                             status: 'UPCOMING',
                                             lastUpdated: new Date().toISOString()
                                         };
@@ -116,7 +119,8 @@ export class EventbriteScraper implements ScraperSource {
                                 }
                             }
 
-                            if (item['@type'] === 'Event' || item['@type'] === 'EventSeries') {
+                            const itemType = item['@type'];
+                            if (typeof itemType === 'string' && itemType.includes('Event')) {
                                 // Extract fields
                                 const title = item.name;
                                 const url = item.url;
@@ -145,7 +149,7 @@ export class EventbriteScraper implements ScraperSource {
                                     id: eventId,
                                     title: cleanText(title),
                                     date: date || new Date().toISOString(),
-                                    endDate,
+                                    endDate: item['@type'] === 'EventSeries' ? (endDate || date || new Date().toISOString()) : endDate,
                                     location: cleanText(location),
                                     source: 'Eventbrite',
                                     url,
@@ -153,7 +157,9 @@ export class EventbriteScraper implements ScraperSource {
                                     price,
                                     isFree,
                                     description: cleanText(item.description || ''),
-                                    categories: categorizeEvent(title, item.description || ''),
+                                    categories: item['@type'] === 'EventSeries'
+                                        ? [...new Set([...categorizeEvent(title, item.description || ''), 'Multi-Day'])]
+                                        : categorizeEvent(title, item.description || ''),
                                     status: 'UPCOMING',
                                     lastUpdated: new Date().toISOString()
                                 };
@@ -175,13 +181,12 @@ export class EventbriteScraper implements ScraperSource {
 
         // CRITICAL: Enrich with REAL times from individual event pages
         const today = new Date();
-        const tomorrow = new Date();
-        tomorrow.setDate(today.getDate() + 1);
+        const nextWeek = new Date();
+        nextWeek.setDate(today.getDate() + 7);
 
-        const todayStr = today.toISOString().split('T')[0];
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
         const eventsToEnrich = uniqueEvents.filter(e => {
-            return e.date.startsWith(todayStr) || e.date.startsWith(tomorrowStr);
+            const eventDate = new Date(e.date);
+            return eventDate >= today && eventDate <= nextWeek;
         });
         console.log(`Enriching ${eventsToEnrich.length} today/tomorrow events with real times...`);
         let successCount = 0;
