@@ -12,10 +12,15 @@ export class EventbriteScraper implements ScraperSource {
         '/d/canada--toronto/events--today/',
         '/d/canada--toronto/events--tomorrow/',
         '/d/canada--toronto/events--this-week/',
-        '/d/canada--toronto/free--events/',
         '/d/canada--toronto/thursday--events/',
+        '/d/canada--toronto/speed-dating--events/',
+        '/d/canada--toronto/singles--events/',
+        '/d/canada--toronto/dating--events/',
+        '/o/toronto-dating-hub-31627918491',
         '/o/toronto-dating-hub-30693540114',
+        '/o/mycheekydate-speed-dating-toronto-matchmaking-11281652610',
         '/o/mycheekydate-speed-dating-toronto-matchmaking-11357672223',
+        '/o/flare-events-17849642646',
     ];
 
     async scrape(): Promise<ScraperResult> {

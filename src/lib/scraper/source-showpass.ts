@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export class ShowpassScraper implements ScraperSource {
     name = 'Showpass';
-    private organizations = ['flare-events'];
+    private organizations = ['flare-events', 'single-in-the-city'];
 
     async scrape(): Promise<ScraperResult> {
         const events: Event[] = [];

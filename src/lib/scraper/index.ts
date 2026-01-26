@@ -10,12 +10,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import { ShowpassScraper } from './source-showpass';
+import { FatsomaScraper } from './source-fatsoma';
 
 // Register sources
 const sources: ScraperSource[] = [
     new EventbriteScraper(),
     new AllEventsScraper(),
     new ShowpassScraper(),
+    new FatsomaScraper(),
 ];
 
 async function checkLinkStatus(url: string): Promise<boolean> {
