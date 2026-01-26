@@ -2,6 +2,7 @@ import { getEvents } from '../lib/data';
 import EventFeed from '../components/EventFeed';
 import ChatAssistant from '../components/ChatAssistant';
 import ConfigButton from '../components/ConfigButton';
+import AdUnit from '../components/AdUnit';
 import fs from 'fs';
 import path from 'path';
 
@@ -56,8 +57,18 @@ export default function Home() {
         </p>
       </header>
 
+      {/* Top Banner Ad */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <AdUnit slot="1234567890" format="horizontal" className="mb-8" />
+      </div>
+
       <EventFeed events={allEvents} />
       <ChatAssistant allEvents={allEvents} />
+
+      {/* In-Feed Ad */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <AdUnit slot="0987654321" format="auto" className="my-8" />
+      </div>
 
       <footer className="py-12 text-center text-[var(--text-3)] border-t border-white/5 space-y-4">
         <div className="flex justify-center gap-6">

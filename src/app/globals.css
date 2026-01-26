@@ -255,3 +255,20 @@ a {
   z-index: -20;
   transition: all 1s ease;
 }
+
+/* Ad Container Styling */
+.ad-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 90px;
+  padding: 1rem;
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+  border: 1px solid hsla(0, 0%, 100%, 0.05);
+  overflow: hidden;
+}
+
+.ad-container ins {
+  min-width: 100%;
+}
