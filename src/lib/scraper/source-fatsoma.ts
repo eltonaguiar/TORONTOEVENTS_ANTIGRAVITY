@@ -66,7 +66,7 @@ export class FatsomaScraper implements ScraperSource {
                             price: 'See Tickets',
                             isFree: false,
                             description: description,
-                            categories: ['Dating', 'Thursday'],
+                            categories: categorizeEvent(title, description),
                             status: 'UPCOMING',
                             lastUpdated: new Date().toISOString()
                         };

@@ -100,6 +100,7 @@ export class AllEventsScraper implements ScraperSource {
                             date,
                             location,
                             source: 'AllEvents.in',
+                            host: location.split(',')[0], // Usually the venue/organizer
                             url: fullUrl,
                             image,
                             price,

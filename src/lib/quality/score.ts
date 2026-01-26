@@ -47,6 +47,12 @@ export function gradeEvent(event: Event): QualityProfile {
         score -= 30;
     }
 
+    // SOLD OUT check
+    if (event.title.toLowerCase().includes('sold out')) {
+        console.log(`Rejecting SOLD OUT event: "${event.title}"`);
+        score = 0;
+    }
+
     return {
         score: Math.max(0, Math.min(100, score)),
         hasImage: !!event.image,
@@ -56,11 +62,19 @@ export function gradeEvent(event: Event): QualityProfile {
     };
 }
 
+import { isTorontoEvent } from './filters';
+
 export function shouldIncludeEvent(event: Event): boolean {
     const quality = gradeEvent(event);
 
     // Reject past events
     if (quality.isPast) return false;
+
+    // Reject non-Toronto events
+    if (!isTorontoEvent(event)) {
+        console.log(`Rejecting non-Toronto event: "${event.title}" @ "${event.location}"`);
+        return false;
+    }
 
     // Require minimum quality score
     if (quality.score < 40) return false;

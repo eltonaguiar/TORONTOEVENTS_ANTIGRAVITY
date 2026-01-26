@@ -5,18 +5,32 @@ export type ThemeColor = 'pink' | 'blue' | 'green' | 'amber' | 'purple';
 export type FontSize = 'sm' | 'md' | 'lg';
 export type LayoutDensity = 'compact' | 'normal' | 'spacious';
 
+export type PreviewMode = 'popup' | 'inline';
+
 interface Settings {
     fontSize: FontSize;
     layoutDensity: LayoutDensity;
     themeColor: ThemeColor;
     showTooltips: boolean;
+    tooltipColor: string;
+    eventFontColor: string;
+    tooltipFontColor: string;
+    popupFontColor: string;
+    detailViewMode: PreviewMode;
     embedSize: 'sm' | 'md' | 'lg' | 'full';
     embedPlacement: 'left' | 'center' | 'right';
+    hideSoldOut: boolean;
+    gender: 'unspecified' | 'male' | 'female';
+    hideGenderSoldOut: boolean;
+    webpageScale: number;
+    savedEvents: any[]; // Using any[] to avoid circular dependency issues if Event isn't exported here, but ideally import Event
 }
 
 interface SettingsContextType {
     settings: Settings;
     updateSettings: (newSettings: Partial<Settings>) => void;
+    toggleSavedEvent: (event: any) => void;
+    importEvents: (events: any[]) => void;
 }
 
 const defaultSettings: Settings = {
@@ -24,8 +38,18 @@ const defaultSettings: Settings = {
     layoutDensity: 'normal',
     themeColor: 'pink',
     showTooltips: true,
+    tooltipColor: '#ec4899', // Default to pink
+    eventFontColor: '#ffffff', // Default white
+    tooltipFontColor: '#ffffff', // Default white
+    popupFontColor: '#ffffff', // Default white
+    detailViewMode: 'popup',
     embedSize: 'md',
     embedPlacement: 'center',
+    hideSoldOut: false,
+    gender: 'unspecified',
+    hideGenderSoldOut: false,
+    webpageScale: 1.0,
+    savedEvents: [],
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -71,6 +95,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 return `${r}, ${g}, ${b}`;
             };
             root.style.setProperty('--pk-500-rgb', hexToRgb(colors[settings.themeColor]));
+
+            // Apply webpage scale
+            root.style.setProperty('--webpage-scale', settings.webpageScale.toString());
         }
     }, [settings, isInitialized]);
 
@@ -78,9 +105,33 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setSettings(prev => ({ ...prev, ...newSettings }));
     };
 
+    const toggleSavedEvent = (event: any) => {
+        setSettings(prev => {
+            const exists = prev.savedEvents.find(e => e.id === event.id);
+            let newEvents;
+            if (exists) {
+                newEvents = prev.savedEvents.filter(e => e.id !== event.id);
+            } else {
+                newEvents = [...prev.savedEvents, event];
+            }
+            return { ...prev, savedEvents: newEvents };
+        });
+    };
+
+    const importEvents = (events: any[]) => {
+        setSettings(prev => {
+            const currentIds = new Set(prev.savedEvents.map(e => e.id));
+            const newUnique = events.filter(e => !currentIds.has(e.id));
+            return { ...prev, savedEvents: [...prev.savedEvents, ...newUnique] };
+        });
+    };
+
     return (
-        <SettingsContext.Provider value={{ settings, updateSettings }}>
-            <div className={`font-size-${settings.fontSize} density-${settings.layoutDensity}`}>
+        <SettingsContext.Provider value={{ settings, updateSettings, toggleSavedEvent, importEvents }}>
+            <div
+                className={`font-size-${settings.fontSize} density-${settings.layoutDensity}`}
+                style={{ scale: 'var(--webpage-scale)', transformOrigin: 'top center' }}
+            >
                 {children}
             </div>
         </SettingsContext.Provider>

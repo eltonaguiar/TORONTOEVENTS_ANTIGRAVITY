@@ -90,21 +90,21 @@ export function categorizeEvent(title: string, description: string, existingCate
     const text = (title + ' ' + description).toLowerCase();
 
     const patterns: { [key: string]: string[] } = {
-        'Music': ['concert', 'live music', 'band', 'dj', 'musical', 'karaoke', 'jazz', 'rock', 'hip hop', 'symphony', 'rap'],
-        'Food & Drink': ['food', 'drink', 'tasting', 'wine', 'beer', 'culinary', 'dinner', 'cooking', 'restaurant', 'brunch', 'cafe'],
-        'Arts': ['art', 'exhibition', 'gallery', 'painting', 'museum', 'theatre', 'theater', 'drama', 'film', 'movie', 'screening', 'creative'],
-        'Tech': ['tech', 'software', 'coding', 'ai', 'blockchain', 'startup', 'web', 'developer', 'digital'],
-        'Business': ['networking', 'business', 'workshop', 'seminar', 'conference', 'entrepreneur', 'marketing', 'professional'],
-        'Sports & Fitness': ['gym', 'fitness', 'yoga', 'sports', 'game', 'tournament', 'match', 'running', 'workout'],
-        'Nightlife': ['party', 'club', 'nightlife', 'bar', 'celebration', 'dance', 'rave'],
-        'Community': ['community', 'volunteer', 'local', 'meeting', 'neighborhood', 'town hall'],
-        'Family': ['family', 'kids', 'children', 'toddler', 'school', 'parent'],
-        'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny'],
-        'Dating': ['dating', 'singles', 'matchmaking', 'speed dating', 'mixer', 'blind date', 'romance'],
+        'Music': ['concert', 'live music', 'band', 'dj', 'musical', 'karaoke', 'jazz', 'rock', 'hip hop', 'symphony', 'rap', 'techno', 'house music'],
+        'Food & Drink': ['food', 'drink', 'tasting', 'wine', 'beer', 'culinary', 'dinner', 'cooking', 'restaurant', 'brunch', 'cafe', 'bar crawl'],
+        'Arts': ['art', 'exhibition', 'gallery', 'painting', 'museum', 'theatre', 'theater', 'drama', 'film', 'movie', 'screening', 'creative', 'sculpture'],
+        'Tech': ['tech', 'software', 'coding', 'ai', 'blockchain', 'startup', 'web', 'developer', 'digital', 'saas', 'programming'],
+        'Business': ['networking', 'business', 'workshop', 'seminar', 'conference', 'entrepreneur', 'marketing', 'professional', 'real estate'],
+        'Sports & Fitness': ['gym', 'fitness', 'yoga', 'sports', 'game', 'tournament', 'match', 'running', 'workout', 'hiking', 'soccer', 'basketball'],
+        'Nightlife': ['party', 'club', 'nightlife', 'bar', 'celebration', 'dance', 'rave', 'lounge'],
+        'Community': ['community', 'volunteer', 'local', 'meeting', 'neighborhood', 'town hall', 'social', 'charity'],
+        'Family': ['family', 'kids', 'children', 'toddler', 'school', 'parent', 'youth'],
+        'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny', 'sitcom'],
+        'Dating': ['dating', 'singles', 'matchmaking', 'speed dating', 'mixer', 'blind date', 'romance', 'swoon', 'relationship', 'mingle'],
         'Thursday': ['thursday', 'getthursday']
     };
 
-    const recurringKeywords = ['multiple dates', 'recurring', 'select more dates', 'check availability', 'series'];
+    const recurringKeywords = ['multiple dates', 'recurring', 'select more dates', 'check availability', 'series', 'every week', 'bi-weekly'];
     if (recurringKeywords.some(k => text.includes(k))) {
         cats.add('Multi-Day');
     }
@@ -117,4 +117,97 @@ export function categorizeEvent(title: string, description: string, existingCate
 
     if (cats.size === 0) cats.add('General');
     return Array.from(cats);
+}
+
+export function inferSoldOutStatus(text: string): { isSoldOut: boolean, genderSoldOut: 'male' | 'female' | 'both' | 'none' } {
+    const uc = text.toUpperCase();
+    const isSoldOut = uc.includes('SOLD OUT') && !uc.includes('NOT SOLD OUT');
+
+    let genderSoldOut: 'male' | 'female' | 'both' | 'none' = 'none';
+    const malePatterns = ['MALE TICKETS SOLD OUT', 'MALE SOLD OUT', 'MEN TICKETS SOLD OUT', 'GENTLEMEN SOLD OUT', 'MEN\'S SOLD OUT'];
+    const femalePatterns = ['FEMALE TICKETS SOLD OUT', 'FEMALE SOLD OUT', 'WOMEN TICKETS SOLD OUT', 'LADIES SOLD OUT', 'WOMEN\'S SOLD OUT'];
+
+    const maleOut = malePatterns.some(p => uc.includes(p));
+    const femaleOut = femalePatterns.some(p => uc.includes(p));
+
+    if (maleOut && femaleOut) genderSoldOut = 'both';
+    else if (maleOut) genderSoldOut = 'male';
+    else if (femaleOut) genderSoldOut = 'female';
+
+    return { isSoldOut, genderSoldOut };
+}
+
+export function isEnglish(text: string): boolean {
+    if (!text) return true;
+
+    // Remove clean text of common non-linguistic characters for analysis
+    const clean = text.replace(/[0-9\s\.,!?@#$%^&*()_\-+=<>{}\[\]\/\\|~`"':;]/g, '');
+    if (clean.length === 0) return true;
+
+    // Count Latin characters
+    // \u0041-\u005A is A-Z
+    // \u0061-\u007A is a-z
+    // \u00C0-\u00FF includes basic Latin accents (common in English/French/Spanish context)
+    const latinCount = (clean.match(/[\u0041-\u005A\u0061-\u007A\u00C0-\u00FF]/g) || []).length;
+
+    const ratio = latinCount / clean.length;
+
+    // If less than 70% of the linguistic characters are Latin, it's likely not English/French/Western
+    // (This effectively filters Cyrillic, CJK, Arabic, etc.)
+    return ratio > 0.7;
+}
+
+export function consolidateEvents(events: Event[]): Event[] {
+    const map = new Map<string, Event[]>();
+
+    // Group by Title + Location (normalized)
+    for (const event of events) {
+        const key = `${event.title.toLowerCase().trim()}|${event.location?.toLowerCase().trim() || ''}`;
+        if (!map.has(key)) {
+            map.set(key, []);
+        }
+        map.get(key)!.push(event);
+    }
+
+    const result: Event[] = [];
+
+    for (const group of map.values()) {
+        if (group.length === 1) {
+            result.push(group[0]);
+            continue;
+        }
+
+        // Sort by date
+        group.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        const master = group[0];
+        const last = group[group.length - 1];
+
+        // Update Master with range
+        master.endDate = last.endDate || last.date;
+
+        // Add 'Multi-Day' tag
+        if (!master.categories.includes('Multi-Day')) {
+            master.categories.push('Multi-Day');
+        }
+
+        // Merge categories/tags from all variants
+        const allTags = new Set<string>();
+        if (master.tags) master.tags.forEach(t => allTags.add(t));
+
+        group.forEach(g => {
+            if (g.tags) g.tags.forEach(t => allTags.add(t));
+            // Also check categories if tags missing?
+            g.categories.forEach(c => {
+                if (c !== 'Multi-Day') allTags.add(c);
+            });
+        });
+
+        // Update tags
+        master.tags = Array.from(allTags);
+
+        result.push(master);
+    }
+
+    return result;
 }

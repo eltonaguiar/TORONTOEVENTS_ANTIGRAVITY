@@ -7,6 +7,7 @@ export interface EventEnrichment {
     realTime?: string;
     salesEnded: boolean;
     isRecurring: boolean;
+    fullDescription?: string;
 }
 
 export class EventbriteDetailScraper {
@@ -66,6 +67,24 @@ export class EventbriteDetailScraper {
             result.isRecurring = bodyText.includes('Multiple Dates') ||
                 bodyText.includes('Select more dates') ||
                 bodyText.includes('Check availability');
+
+            // 4. Extract Full Description
+            // Try multiple selectors common on Eventbrite
+            const descriptionSelectors = [
+                '[data-automation="listing-event-description"]',
+                '.event-description__content',
+                '.eds-text--left.eds-text--html', // Common generic text block
+                '#event-page-description'
+            ];
+
+            for (const selector of descriptionSelectors) {
+                const descEl = $(selector);
+                if (descEl.length > 0) {
+                    // Get text with some whitespace preservation
+                    result.fullDescription = cleanText(descEl.text());
+                    if (result.fullDescription.length > 100) break; // Found a good one
+                }
+            }
 
             return result;
         } catch (e: any) {

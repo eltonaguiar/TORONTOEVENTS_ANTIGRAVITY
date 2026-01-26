@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, isEnglish } from './utils';
 import { EventbriteDetailScraper } from './detail-scraper';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -79,15 +79,28 @@ export class EventbriteScraper implements ScraperSource {
                                         const url = eventItem.url;
                                         if (!title || !url) continue;
 
+                                        if (!isEnglish(title)) {
+                                            console.log(`Skipping non-English event: ${title}`);
+                                            continue;
+                                        }
+
                                         const eventId = generateEventId(url);
                                         const date = normalizeDate(eventItem.startDate) || new Date().toISOString();
                                         const endDate = normalizeDate(eventItem.endDate) || undefined;
 
                                         let location = 'Toronto, ON';
+                                        let latitude: number | undefined;
+                                        let longitude: number | undefined;
+
                                         if (eventItem.location) {
                                             if (typeof eventItem.location === 'string') location = eventItem.location;
                                             else if (eventItem.location.name) location = eventItem.location.name;
                                             else if (eventItem.location.address?.addressLocality) location = eventItem.location.address.addressLocality;
+
+                                            if (eventItem.location.geo) {
+                                                latitude = parseFloat(eventItem.location.geo.latitude);
+                                                longitude = parseFloat(eventItem.location.geo.longitude);
+                                            }
                                         }
 
                                         // Extract categories from keywords if available
@@ -120,12 +133,15 @@ export class EventbriteScraper implements ScraperSource {
                                             endDate: isRecurring ? (endDate || date) : endDate,
                                             location: cleanText(location),
                                             source: 'Eventbrite',
+                                            host: eventItem.organizer?.name || 'Various Organizers',
                                             url,
                                             image: eventItem.image,
                                             price: priceAmount === 0 ? 'Free' : (priceAmount ? `$${priceAmount}` : 'See tickets'),
                                             priceAmount,
                                             isFree,
                                             description: cleanText(eventItem.description || ''),
+                                            latitude,
+                                            longitude,
                                             categories: isRecurring
                                                 ? [...new Set([...categorizeEvent(title, eventItem.description || '', categories), 'Multi-Day'])]
                                                 : categorizeEvent(title, eventItem.description || '', categories),
@@ -144,15 +160,28 @@ export class EventbriteScraper implements ScraperSource {
                                 const url = item.url;
                                 if (!title || !url) continue;
 
+                                if (!isEnglish(title)) {
+                                    console.log(`Skipping non-English event: ${title}`);
+                                    continue;
+                                }
+
                                 const eventId = generateEventId(url);
                                 const date = item.startDate ? normalizeDate(item.startDate) : new Date().toISOString();
                                 const endDate = item.endDate ? (normalizeDate(item.endDate) || undefined) : undefined;
 
                                 let location = 'Toronto, ON';
+                                let latitude: number | undefined;
+                                let longitude: number | undefined;
+
                                 if (item.location) {
                                     if (typeof item.location === 'string') location = item.location;
                                     else if (item.location.name) location = item.location.name;
                                     else if (item.location.address?.addressLocality) location = item.location.address.addressLocality;
+
+                                    if (item.location.geo) {
+                                        latitude = parseFloat(item.location.geo.latitude);
+                                        longitude = parseFloat(item.location.geo.longitude);
+                                    }
                                 }
 
                                 let priceAmount: number | undefined;
@@ -178,12 +207,15 @@ export class EventbriteScraper implements ScraperSource {
                                     endDate: isRecurring ? (endDate || date || new Date().toISOString()) : endDate,
                                     location: cleanText(location),
                                     source: 'Eventbrite',
+                                    host: item.organizer?.name || 'Various Organizers',
                                     url,
                                     image: item.image,
                                     price: priceAmount === 0 ? 'Free' : (priceAmount ? `$${priceAmount}` : 'See tickets'),
                                     priceAmount,
                                     isFree,
                                     description: cleanText(item.description || ''),
+                                    latitude,
+                                    longitude,
                                     categories: isRecurring
                                         ? [...new Set([...categorizeEvent(title, item.description || ''), 'Multi-Day'])]
                                         : categorizeEvent(title, item.description || ''),
@@ -225,6 +257,18 @@ export class EventbriteScraper implements ScraperSource {
                 if (normalized) {
                     event.date = normalized;
                     successCount++;
+                }
+            }
+
+            if (enrichment.fullDescription) {
+                if (enrichment.fullDescription.length > (event.description?.length || 0)) {
+                    event.description = enrichment.fullDescription;
+                }
+
+                // Double check language on full description if it wasn't caught by title
+                if (!isEnglish(event.description)) {
+                    event.status = 'CANCELLED'; // Or separate status, but CANCELLED hides it currently
+                    console.log(`  ⚠ Non-English description detected: ${event.title.substring(0, 40)}`);
                 }
             }
 

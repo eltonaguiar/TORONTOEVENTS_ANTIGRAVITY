@@ -2,7 +2,8 @@ import { Event, ScraperSource } from '../types';
 import { EventbriteScraper } from './source-eventbrite';
 import { AllEventsScraper } from './source-allevents';
 import { getEvents, saveEvents } from '../data';
-import { isMultiDay } from './utils';
+import { isMultiDay, consolidateEvents } from './utils';
+import { maximizeCategory } from '../quality/filters';
 import { MockScraper } from './source-mock';
 import { shouldIncludeEvent } from '../quality/score';
 import axios from 'axios';
@@ -78,8 +79,10 @@ export async function runScraper() {
             }
         }
 
-        // Deduplicate categories
-        fresh.categories = Array.from(new Set(fresh.categories));
+        // Standardize categories
+        const originalCategories = Array.from(new Set(fresh.categories));
+        fresh.tags = originalCategories; // Store original tags
+        fresh.categories = maximizeCategory(originalCategories); // Map to high-level
 
         if (existingMap.has(fresh.id)) {
             // Update existing
@@ -113,7 +116,10 @@ export async function runScraper() {
         }
     }
 
-    const finalEvents = Array.from(mergedEventsMap.values());
+    let finalEvents = Array.from(mergedEventsMap.values());
+    console.log(`Before consolidation: ${finalEvents.length} events`);
+    finalEvents = consolidateEvents(finalEvents);
+    console.log(`After consolidation: ${finalEvents.length} events`);
 
     // Sort by date
     finalEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());

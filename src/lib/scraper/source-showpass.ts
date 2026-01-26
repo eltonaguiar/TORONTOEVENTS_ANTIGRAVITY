@@ -38,6 +38,7 @@ export class ShowpassScraper implements ScraperSource {
                             endDate,
                             location: item.location?.name || 'Toronto, ON',
                             source: 'Showpass',
+                            host: item.location?.name || 'Showpass Organizer',
                             url,
                             image: item.image || item.thumbnail,
                             price,

@@ -23,12 +23,10 @@ export class CitySwoonScraper implements ScraperSource {
             const html = response.data;
             const $ = cheerio.load(html);
 
-            // Extract prices from script tags if possible
             const prices: Record<string, number> = {};
             $('script').each((_, script) => {
                 const content = $(script).html() || '';
                 if (content.includes('item_id') && content.includes('price')) {
-                    // Primitive regex to find item_id and price
                     const matches = content.matchAll(/item_id:\s*"(\d+)",\s*item_name:.*,\s*price:\s*(\d+)/g);
                     for (const match of matches) {
                         prices[match[1]] = parseInt(match[2]);
@@ -36,67 +34,69 @@ export class CitySwoonScraper implements ScraperSource {
                 }
             });
 
-            $('.specificEvent').each((_, el) => {
-                try {
-                    const card = $(el);
-                    const title = cleanText(card.find('h4').first().text());
-                    const href = card.attr('href');
-                    if (!title || !href) return;
+            const processedUrls = new Set<string>();
 
-                    const fullUrl = href.startsWith('http') ? href : `https://cityswoon.com/ca/${href.startsWith('/') ? href.substring(1) : href}`;
+            $('.upcoming_event_box').each((_, el) => {
+                const card = $(el);
 
-                    // Extract event ID from URL for price lookup
-                    const eventMatch = href.match(/(\d+)$/);
-                    const eventId = eventMatch ? eventMatch[1] : '';
-                    const priceAmount = prices[eventId] || 69; // Default to 69 if not found
-                    const price = `$${priceAmount}`;
+                // Content is inside this div, so valid HTML structure usually preserved here.
+                const title = cleanText(card.find('h4').text());
+                if (!title) return;
 
-                    const dateText = cleanText(card.find('.date span').text());
-                    // Date format: "Wednesday, 28th Jan - 7:30 pm"
-                    const [dayPart, timePart] = dateText.split(' - ');
-                    const cleanedDayPart = dayPart.replace(/(\d+)(st|nd|rd|th)/, '$1');
+                // Try to get URL from buttons inside
+                let href = card.find('.moreInfo a').attr('href') ||
+                    card.find('.date a').attr('href') ||
+                    card.find('a.specificEvent').attr('href'); // Adjusted to find specificEvent within the card if it exists
 
-                    // Create a cleaner date string: "28 Jan 2026 7:30 pm"
-                    const year = new Date().getFullYear();
-                    // Extract just "28 Jan"
-                    const dateMatch = cleanedDayPart.match(/\d+\s+[a-z]{3}/i);
-                    const formattedDateStr = dateMatch ? `${dateMatch[0]} ${year} ${timePart || ''}` : `${cleanedDayPart} ${year}`;
+                if (!href) return;
 
-                    const date = normalizeDate(formattedDateStr);
+                const fullUrl = href.startsWith('http') ? href : `https://cityswoon.com/ca/${href.startsWith('/') ? href.substring(1) : href}`;
 
-                    if (!date) {
-                        console.log(`CitySwoon: Could not parse date "${dateText}" for event "${title}"`);
-                        return;
-                    }
+                if (processedUrls.has(fullUrl)) return;
+                processedUrls.add(fullUrl);
 
-                    const description = cleanText(card.find('p').first().text());
-                    const ages = cleanText(card.find('span:contains("Ages:")').text());
-                    const fullDescription = `${description} ${ages}`.trim();
+                const eventMatch = href.match(/(\d+)$/);
+                const eventId = eventMatch ? eventMatch[1] : '';
+                const priceAmount = prices[eventId] || 69;
+                const price = `$${priceAmount}`;
 
-                    const image = card.find('img[id^="tessing"]').attr('src');
-                    const fullImage = image && !image.startsWith('http') ? `https://cityswoon.com${image.startsWith('/') ? '' : '/'}${image}` : image;
+                const dateElement = card.find('.date');
+                const dateText = cleanText(dateElement.text());
 
-                    const event: Event = {
-                        id: generateEventId(fullUrl),
-                        title,
-                        date,
-                        location: 'Toronto, ON', // Most are in King West, Fashion District etc.
-                        source: 'CitySwoon',
-                        url: fullUrl,
-                        image: fullImage,
-                        price,
-                        priceAmount,
-                        isFree: false,
-                        description: fullDescription,
-                        categories: categorizeEvent(title, fullDescription, ['Dating', 'Speed Dating']),
-                        status: 'UPCOMING',
-                        lastUpdated: new Date().toISOString()
-                    };
+                if (!dateText) return;
 
-                    events.push(event);
-                } catch (e) {
-                    console.error(`Error parsing CitySwoon item:`, e);
-                }
+                const [dayPart, timePart] = dateText.split(' - ');
+                const cleanedDayPart = (dayPart || '').replace(/(\d+)(st|nd|rd|th)/, '$1');
+                const year = new Date().getFullYear();
+                const dateMatch = cleanedDayPart.match(/\d+\s+[a-z]{3}/i);
+                const formattedDateStr = dateMatch ? `${dateMatch[0]} ${year} ${timePart || ''}` : `${cleanedDayPart} ${year}`;
+
+                const date = normalizeDate(formattedDateStr);
+                if (!date) return;
+
+                const desc = cleanText(card.find('p').first().text());
+                const ages = cleanText(card.find('span:contains("Ages:")').text() || card.find('.upcoming_content_middle span').text());
+                const fullDescription = `${desc || ''} ${ages || ''}`.trim();
+
+                const img = card.find('img').first().attr('src');
+                const fullImage = img && !img.startsWith('http') ? `https://cityswoon.com${img.startsWith('/') ? '' : '/'}${img}` : img;
+
+                events.push({
+                    id: generateEventId(fullUrl),
+                    title: title,
+                    date,
+                    location: 'Toronto, ON',
+                    source: 'CitySwoon',
+                    url: fullUrl,
+                    image: fullImage,
+                    price: price,
+                    priceAmount,
+                    isFree: false,
+                    description: fullDescription,
+                    categories: categorizeEvent(title, fullDescription, ['Dating', 'Speed Dating']),
+                    status: 'UPCOMING',
+                    lastUpdated: new Date().toISOString()
+                });
             });
 
         } catch (e: any) {

@@ -30,12 +30,12 @@ export default function SettingsManager() {
 
             {/* Settings Panel */}
             {isOpen && (
-                <div className="absolute bottom-20 right-0 w-80 glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 animate-fade-in backdrop-blur-2xl">
-                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <div className="absolute bottom-20 right-0 w-85 glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 animate-fade-in backdrop-blur-2xl max-h-[80vh] overflow-y-auto custom-scrollbar">
+                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2 sticky top-0 bg-[#0a0a0b]/80 backdrop-blur-md pb-2 z-10">
                         <span className="text-[var(--pk-500)]">⚙</span> System Config
                     </h3>
 
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         {/* Theme Color */}
                         <div className="space-y-3">
                             <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Aura Color</label>
@@ -49,6 +49,23 @@ export default function SettingsManager() {
                                         title={color.name}
                                     />
                                 ))}
+                            </div>
+                        </div>
+
+                        {/* Page Zoom */}
+                        <div className="space-y-3">
+                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Webpage Scale</label>
+                            <div className="flex items-center gap-4 px-1">
+                                <input
+                                    type="range"
+                                    min="0.75"
+                                    max="1.25"
+                                    step="0.05"
+                                    value={settings.webpageScale}
+                                    onChange={(e) => updateSettings({ webpageScale: parseFloat(e.target.value) })}
+                                    className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--pk-500)]"
+                                />
+                                <span className="text-xs font-mono w-10 text-right text-[var(--text-2)]">{Math.round(settings.webpageScale * 100)}%</span>
                             </div>
                         </div>
 
@@ -84,24 +101,117 @@ export default function SettingsManager() {
                             </div>
                         </div>
 
-                        {/* Tooltips */}
-                        <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
-                            <div className="flex flex-col">
-                                <span className="text-sm font-bold">X-Ray Tooltips</span>
-                                <span className="text-[10px] text-[var(--text-3)]">Show hover intelligence</span>
+                        {/* Detail View Mode */}
+                        <div className="space-y-3">
+                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Detail View Mode</label>
+                            <div className="grid grid-cols-2 gap-2 p-1 bg-black/20 rounded-lg">
+                                {[
+                                    { id: 'popup', label: 'Modal Pop-up' },
+                                    { id: 'inline', label: 'Inline Embed' }
+                                ].map(mode => (
+                                    <button
+                                        key={mode.id}
+                                        onClick={() => updateSettings({ detailViewMode: mode.id as any })}
+                                        className={`py-1.5 text-[10px] font-bold rounded-md transition-all ${settings.detailViewMode === mode.id ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
+                                    >
+                                        {mode.label}
+                                    </button>
+                                ))}
                             </div>
-                            <button
-                                onClick={() => updateSettings({ showTooltips: !settings.showTooltips })}
-                                className={`w-12 h-6 rounded-full transition-all relative ${settings.showTooltips ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.showTooltips ? 'right-1' : 'left-1'}`} />
-                            </button>
                         </div>
 
-                        <div className="pt-4 border-t border-white/5">
+                        {/* Event Filters Section */}
+                        <div className="space-y-4 pt-2 border-t border-white/5">
+                            <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)] opacity-70">Intelligent Filtering</label>
+
+                            {/* Hide Sold Out */}
+                            <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold">Hide Sold Out</span>
+                                    <span className="text-[10px] text-[var(--text-3)]">Remove unavailable events</span>
+                                </div>
+                                <button
+                                    onClick={() => updateSettings({ hideSoldOut: !settings.hideSoldOut })}
+                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.hideSoldOut ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hideSoldOut ? 'right-1' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            {/* Gender Selection */}
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Target Gender</label>
+                                <div className="grid grid-cols-3 gap-2 p-1 bg-black/20 rounded-lg">
+                                    {[
+                                        { id: 'unspecified', label: 'None' },
+                                        { id: 'male', label: 'Male' },
+                                        { id: 'female', label: 'Female' }
+                                    ].map(g => (
+                                        <button
+                                            key={g.id}
+                                            onClick={() => updateSettings({ gender: g.id as any })}
+                                            className={`py-1.5 text-[10px] font-bold rounded-md transition-all ${settings.gender === g.id ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
+                                        >
+                                            {g.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Gender Specific Sold Out */}
+                            {settings.gender !== 'unspecified' && (
+                                <div className="flex items-center justify-between p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 animate-fade-in">
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-blue-100">Gender Filter</span>
+                                        <span className="text-[10px] text-blue-300/70">Hide sold out for {settings.gender}s</span>
+                                    </div>
+                                    <button
+                                        onClick={() => updateSettings({ hideGenderSoldOut: !settings.hideGenderSoldOut })}
+                                        className={`w-12 h-6 rounded-full transition-all relative ${settings.hideGenderSoldOut ? 'bg-blue-500' : 'bg-gray-700'}`}
+                                    >
+                                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hideGenderSoldOut ? 'right-1' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Tooltips & Color */}
+                        <div className="space-y-4 pt-2 border-t border-white/5">
+                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">X-Ray Options</label>
+                            <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold">Tooltips</span>
+                                    <span className="text-[10px] text-[var(--text-3)]">Hover intelligence</span>
+                                </div>
+                                <button
+                                    onClick={() => updateSettings({ showTooltips: !settings.showTooltips })}
+                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.showTooltips ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.showTooltips ? 'right-1' : 'left-1'}`} />
+                                </button>
+                            </div>
+
+                            {settings.showTooltips && (
+                                <div className="space-y-2 px-1">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Tooltip Glow</label>
+                                    <div className="flex gap-2">
+                                        {['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ffffff'].map(color => (
+                                            <button
+                                                key={color}
+                                                onClick={() => updateSettings({ tooltipColor: color })}
+                                                className={`w-6 h-6 rounded-md border transition-all ${settings.tooltipColor === color ? 'border-white scale-110' : 'border-transparent opacity-50'}`}
+                                                style={{ backgroundColor: color }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="pt-4 border-t border-white/5 sticky bottom-0 bg-[#0a0a0b]/80 backdrop-blur-md pb-2 mt-auto">
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold transition-all border border-white/10"
+                                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold transition-all border border-white/10"
                             >
                                 Close & Apply
                             </button>

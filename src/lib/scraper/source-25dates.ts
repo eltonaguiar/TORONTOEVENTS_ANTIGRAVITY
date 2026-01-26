@@ -27,30 +27,24 @@ export class TwentyFiveDatesScraper implements ScraperSource {
                 try {
                     const card = $(el);
                     const titleElement = card.find('.card-title');
-                    const titleText = cleanText(titleElement.text());
 
-                    // The title often contains the age range and the date info
-                    // Example: "Men & Women: 50 and Up Speed Dating Tuesday January 27th, 2026"
-                    // We want the main part as title.
-                    const title = titleText.split('\n')[0].trim() || titleText;
+                    // The title element contains the main title and a span with date info.
+                    // We want only the text that is a direct child of .card-title.
+                    const title = cleanText(titleElement.contents().filter((_, node) => node.type === 'text').text());
 
                     const link = card.find('a').first().attr('href');
                     if (!link) return;
 
                     const fullUrl = link.startsWith('http') ? link : `https://www.25dates.com/${link.startsWith('/') ? link.substring(1) : link}`;
 
-                    // Date extraction
-                    // The span inside .card-title has "Speed Dating Tuesday January 27th, 2026"
                     const dateRaw = cleanText(card.find('.card-title span').text());
                     const dateMatch = dateRaw.match(/(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+(.*)/i);
                     const dateStr = dateMatch ? dateMatch[1] : dateRaw.replace(/Speed Dating/i, '').trim();
 
-                    // Clean "27th" to "27"
                     const cleanedDateStr = dateStr.replace(/(\d+)(st|nd|rd|th)/, '$1');
                     const date = normalizeDate(cleanedDateStr);
 
                     if (!date) {
-                        console.log(`25dates: Could not parse date "${dateRaw}" for event "${title}"`);
                         return;
                     }
 
@@ -60,17 +54,16 @@ export class TwentyFiveDatesScraper implements ScraperSource {
 
                     const description = cleanText(card.find('.card-content p').text());
 
-                    // Price is usually around $50-$60 for 25dates, but not on card.
-                    // We'll use a generic "Sign Up for Price" or check if it's in text.
-                    const price = '$59'; // Common price for 25dates
+                    const price = '$59';
                     const priceAmount = 59;
 
                     const event: Event = {
                         id: generateEventId(fullUrl),
-                        title,
+                        title: title || 'Speed Dating Event',
                         date,
                         location: location || 'Toronto, ON',
                         source: '25dates.com',
+                        host: '25dates.com',
                         url: fullUrl,
                         image: fullImage,
                         price,
