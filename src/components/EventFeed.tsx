@@ -22,7 +22,13 @@ export default function EventFeed({ events }: EventFeedProps) {
     const [now, setNow] = useState<Date | null>(null);
 
     const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
+    const [previewAnchor, setPreviewAnchor] = useState<DOMRect | null>(null);
     const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+
+    const handlePreview = (event: Event, anchor?: DOMRect) => {
+        setPreviewEvent(event);
+        setPreviewAnchor(anchor || null);
+    };
 
     useEffect(() => {
         setNow(new Date());
@@ -345,236 +351,215 @@ export default function EventFeed({ events }: EventFeedProps) {
             {/* Control Panel */}
             <div className="mb-6 flex flex-col gap-6 glass-panel p-6 rounded-2xl border border-white/5">
 
-                {/* Global Search & View Toggle Header */}
-                <div className="flex flex-col md:flex-row items-center gap-6 border-b border-white/5 pb-6 mb-2 w-full">
+                {/* Control Hub: View Switcher + Search + Config */}
+                <div className="flex flex-col xl:flex-row items-center gap-6 flex-1 w-full">
                     {/* View Switcher */}
-                    <div className="flex items-center p-1 bg-black/20 rounded-xl border border-white/5">
-                        <button
-                            onClick={() => setViewMode('feed')}
-                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'feed' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
-                        >
-                            Global Feed
-                        </button>
-                        <button
-                            onClick={() => setViewMode('saved')}
-                            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'saved' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
-                        >
-                            <span>♥ My Events</span>
-                            <span className="bg-black/20 px-1.5 py-0.5 rounded text-[10px]">{settings.savedEvents?.length || 0}</span>
-                        </button>
+                    <div className="flex items-center p-1 bg-black/40 rounded-2xl border border-white/5 shadow-inner shrink-0">
+                        {[
+                            { id: 'feed', label: 'Global Feed', icon: '🌐' },
+                            { id: 'saved', label: 'My Events', icon: '♥' }
+                        ].map(btn => (
+                            <button
+                                key={btn.id}
+                                onClick={() => setViewMode(btn.id as any)}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === btn.id ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
+                            >
+                                <span>{btn.icon}</span>
+                                <span>{btn.label}</span>
+                                {btn.id === 'saved' && <span className="bg-black/20 px-1.5 py-0.5 rounded text-[9px]">{settings.savedEvents?.length || 0}</span>}
+                            </button>
+                        ))}
                     </div>
 
                     {/* Search Bar */}
                     <div className="flex-1 w-full relative group">
-                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-3)]">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                            <span className="text-xl opacity-30 group-focus-within:opacity-100 transition-opacity">🔍</span>
                         </div>
                         <input
                             type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search keywords, hosts, venues..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-sm font-medium text-white placeholder:text-[var(--text-3)] focus:outline-none focus:border-[var(--pk-500)] focus:bg-white/10 transition-all"
-                        />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-3)] font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none hidden md:block">
-                            CTRL+K
-                        </div>
-                    </div>
-
-                    {/* My Events Actions */}
-                    {viewMode === 'saved' && (
-                        <div className="flex items-center gap-2 animate-fade-in">
-                            <button
-                                onClick={handleExport}
-                                className="px-4 py-2 rounded-xl bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-xs font-bold uppercase tracking-wider border border-white/5 transition-colors flex items-center gap-2"
-                                title="Download .txt backup"
-                            >
-                                <span>↓ Export</span>
-                            </button>
-                            <label className="px-4 py-2 rounded-xl bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-xs font-bold uppercase tracking-wider border border-white/5 transition-colors cursor-pointer flex items-center gap-2 text-white">
-                                <span>↑ Import</span>
-                                <input type="file" onChange={handleImport} accept=".txt,.json" className="hidden" />
-                            </label>
-                        </div>
-                    )}
-                    {/* Search Bar */}
-                    <div className="flex-1 w-full relative">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                            <span className="text-xl opacity-30">🔍</span>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Explore events by title, host, or keyword..."
-                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-28 py-4 text-sm focus:outline-none focus:border-[var(--pk-500)] transition-all shadow-inner"
+                            placeholder="Search Toronto events, venues, or organizers..."
+                            className="w-full bg-black/60 border border-white/10 rounded-[1.5rem] pl-14 pr-32 py-4 text-sm font-bold focus:outline-none focus:border-[var(--pk-500)] transition-all shadow-inner placeholder:opacity-30"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <div className="absolute inset-y-0 right-2 flex items-center gap-2">
+                        <div className="absolute inset-y-0 right-3 flex items-center gap-2">
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    className="p-2 hover:bg-white/10 rounded-xl transition-colors text-xs font-bold uppercase tracking-widest opacity-60"
+                                    className="px-3 py-1.5 hover:bg-white/10 rounded-xl transition-colors text-[9px] font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100"
                                 >
                                     Clear
                                 </button>
                             )}
                             <button
-                                onClick={() => {
-                                    // Hacky way to trigger SettingsManager if it's not exported
-                                    // But actually SettingsManager is a sibling.
-                                    // We'll just provide a redundant Cog that looks good.
-                                    const gear = document.querySelector('[title="Configuration Settings"]') as any;
-                                    if (gear) gear.click();
-                                }}
-                                className="p-3 bg-white/5 hover:bg-[var(--pk-500)] hover:text-white rounded-xl transition-all border border-white/10 group"
-                                title="Open System Config"
+                                onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
+                                className="p-3 bg-white/5 hover:bg-[var(--pk-500)] hover:text-white rounded-xl transition-all border border-white/10 group/gear"
+                                title="Open System Architecture"
                             >
-                                <span className="group-hover:rotate-90 transition-transform inline-block">⚙️</span>
+                                <span className="group-hover/gear:rotate-180 transition-transform duration-700 block">⚙️</span>
                             </button>
                         </div>
+                    </div>
+
+                    {/* Saved View Actions (Export/Import) */}
+                    {viewMode === 'saved' && (
+                        <div className="flex items-center gap-3 animate-slide-up shrink-0">
+                            <button
+                                onClick={handleExport}
+                                className="px-5 py-3 rounded-2xl bg-white/5 hover:bg-[var(--pk-500)] hover:text-white text-[10px] font-black uppercase tracking-widest border border-white/10 transition-all flex items-center gap-2"
+                                title="Download local backup"
+                            >
+                                <span>↓ Export</span>
+                            </button>
+                            <label className="px-5 py-3 rounded-2xl bg-white text-black hover:bg-[var(--pk-500)] hover:text-white text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2 shadow-xl">
+                                <span>↑ Import</span>
+                                <input type="file" onChange={handleImport} accept=".txt,.json" className="hidden" />
+                            </label>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Primary Filters (Date & Price) */}
+            <div className={`flex flex-col gap-6 transition-all duration-300 ${viewMode === 'saved' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+                <div className="flex flex-wrap gap-4 items-center justify-center">
+                    <div className="flex flex-wrap gap-2 justify-center">
+                        <button title="Show all upcoming events" onClick={() => setDateFilter('all')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'all' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>All Dates</button>
+                        <button title="Show events happening today" onClick={() => setDateFilter('today')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'today' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>🔥 Today</button>
+                        <button title="Show events happening tomorrow" onClick={() => setDateFilter('tomorrow')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'tomorrow' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>Tomorrow</button>
+                        <button title="Show events for the current week (Sun-Sat)" onClick={() => setDateFilter('this-week')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-week' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Week</button>
+                        <button title="Show events for the current calendar month" onClick={() => setDateFilter('this-month')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-month' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Month</button>
+
+                        <button
+                            title="Show events near your postal code"
+                            onClick={() => {
+                                if (!settings.userPostalCode) {
+                                    alert('Please set your postal code in settings (Gear icon) first!');
+                                } else {
+                                    setDateFilter('nearby' as any);
+                                }
+                            }}
+                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === ('nearby' as any) ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
+                        >
+                            📍 Nearby Me
+                        </button>
+                    </div>
+
+                    <div className="h-8 w-px bg-white/10 hidden md:block" />
+
+                    {/* Quick Toggle for Sold Out */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => updateSettings({ hideSoldOut: !settings.hideSoldOut })}
+                            className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${settings.hideSoldOut ? 'bg-red-500/20 text-red-200 border border-red-500/50' : 'bg-white/5 text-[var(--text-3)] border border-white/10 hover:bg-white/10'}`}
+                            title="Toggle hiding of sold out events"
+                        >
+                            <span>{settings.hideSoldOut ? '🚫 Sold Out Hidden' : '👁 Show Sold Out'}</span>
+                        </button>
+                    </div>
+
+                    <div className="h-8 w-px bg-white/10 hidden md:block" />
+
+                    <div
+                        className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/10"
+                        title="Sets the threshold for what is considered an 'Expensive' event. Events above this price are hidden when 'Expensive Hidden' is active."
+                    >
+                        <span className="text-xs font-bold text-[var(--text-3)] uppercase whitespace-nowrap">Price Limit: ${maxPrice === 500 ? 'Any' : maxPrice}</span>
+                        <input
+                            type="range"
+                            min="0"
+                            max="500"
+                            step="10"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(parseInt(e.target.value))}
+                            className="w-24 md:w-32 accent-[var(--pk-500)]"
+                        />
+                    </div>
+
+                    {/* Source & Host Selectors */}
+                    <div className="flex flex-wrap gap-2 justify-center">
+                        <select
+                            onChange={(e) => setSelectedSource(e.target.value || null)}
+                            value={selectedSource || ''}
+                            className="bg-white/5 text-[var(--text-2)] border border-white/10 rounded-full px-4 py-2 text-sm font-semibold outline-none hover:bg-white/10 cursor-pointer"
+                            title="Filter by event provider"
+                        >
+                            <option value="">All Providers</option>
+                            {allSources.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+
+                        <select
+                            onChange={(e) => setSelectedHost(e.target.value || null)}
+                            value={selectedHost || ''}
+                            className="bg-white/5 text-[var(--text-2)] border border-white/10 rounded-full px-4 py-2 text-sm font-semibold outline-none hover:bg-white/10 cursor-pointer max-w-[150px]"
+                            title="Filter by specific host/organizer"
+                        >
+                            <option value="">All Hosts</option>
+                            {allHosts.map(h => <option key={h} value={h}>{h}</option>)}
+                        </select>
                     </div>
                 </div>
 
-                {/* Primary Filters (Date & Price) */}
-                <div className={`flex flex-col gap-6 transition-all duration-300 ${viewMode === 'saved' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                    <div className="flex flex-wrap gap-4 items-center justify-center">
-                        <div className="flex flex-wrap gap-2 justify-center">
-                            <button title="Show all upcoming events" onClick={() => setDateFilter('all')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'all' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>All Dates</button>
-                            <button title="Show events happening today" onClick={() => setDateFilter('today')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'today' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>🔥 Today</button>
-                            <button title="Show events happening tomorrow" onClick={() => setDateFilter('tomorrow')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'tomorrow' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>Tomorrow</button>
-                            <button title="Show events for the current week (Sun-Sat)" onClick={() => setDateFilter('this-week')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-week' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Week</button>
-                            <button title="Show events for the current calendar month" onClick={() => setDateFilter('this-month')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-month' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Month</button>
-
-                            <button
-                                title="Show events near your postal code"
-                                onClick={() => {
-                                    if (!settings.userPostalCode) {
-                                        alert('Please set your postal code in settings (Gear icon) first!');
-                                    } else {
-                                        setDateFilter('nearby' as any);
-                                    }
-                                }}
-                                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === ('nearby' as any) ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
-                            >
-                                📍 Nearby Me
-                            </button>
-                        </div>
-
-                        <div className="h-8 w-px bg-white/10 hidden md:block" />
-
-                        {/* Quick Toggle for Sold Out */}
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => updateSettings({ hideSoldOut: !settings.hideSoldOut })}
-                                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all flex items-center gap-2 ${settings.hideSoldOut ? 'bg-red-500/20 text-red-200 border border-red-500/50' : 'bg-white/5 text-[var(--text-3)] border border-white/10 hover:bg-white/10'}`}
-                                title="Toggle hiding of sold out events"
-                            >
-                                <span>{settings.hideSoldOut ? '🚫 Sold Out Hidden' : '👁 Show Sold Out'}</span>
-                            </button>
-                        </div>
-
-                        <div className="h-8 w-px bg-white/10 hidden md:block" />
-
-                        <div
-                            className="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-full border border-white/10"
-                            title="Sets the threshold for what is considered an 'Expensive' event. Events above this price are hidden when 'Expensive Hidden' is active."
+                {/* Hidden / Exclusion Filters Dashboard */}
+                <div className="flex flex-wrap gap-3 justify-center mt-4">
+                    {/* Multi-Day Toggle - Only show in 'All Dates' mode or if we designate a specific toggle for it */}
+                    {dateFilter === 'all' && (
+                        <button
+                            onClick={() => setShowMultiDay(!showMultiDay)}
+                            className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showMultiDay ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
+                            title="Toggle Multi-Day Events (Festivals, Recurring Series)"
                         >
-                            <span className="text-xs font-bold text-[var(--text-3)] uppercase whitespace-nowrap">Price Limit: ${maxPrice === 500 ? 'Any' : maxPrice}</span>
-                            <input
-                                type="range"
-                                min="0"
-                                max="500"
-                                step="10"
-                                value={maxPrice}
-                                onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-                                className="w-24 md:w-32 accent-[var(--pk-500)]"
-                            />
-                        </div>
+                            <span>{showMultiDay ? '👁 Multi-Day On' : '❌ Multi-Day Off'}</span>
+                            {!showMultiDay && (
+                                <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
+                                    {/* Estimate count of multi-day from sourceEvents */}
+                                    {sourceEvents.filter(e => isMultiDay(e)).length} Hidden
+                                </span>
+                            )}
+                        </button>
+                    )}
 
-                        {/* Source & Host Selectors */}
-                        <div className="flex flex-wrap gap-2 justify-center">
-                            <select
-                                onChange={(e) => setSelectedSource(e.target.value || null)}
-                                value={selectedSource || ''}
-                                className="bg-white/5 text-[var(--text-2)] border border-white/10 rounded-full px-4 py-2 text-sm font-semibold outline-none hover:bg-white/10 cursor-pointer"
-                                title="Filter by event provider"
-                            >
-                                <option value="">All Providers</option>
-                                {allSources.map(s => <option key={s} value={s}>{s}</option>)}
-                            </select>
-
-                            <select
-                                onChange={(e) => setSelectedHost(e.target.value || null)}
-                                value={selectedHost || ''}
-                                className="bg-white/5 text-[var(--text-2)] border border-white/10 rounded-full px-4 py-2 text-sm font-semibold outline-none hover:bg-white/10 cursor-pointer max-w-[150px]"
-                                title="Filter by specific host/organizer"
-                            >
-                                <option value="">All Hosts</option>
-                                {allHosts.map(h => <option key={h} value={h}>{h}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* Hidden / Exclusion Filters Dashboard */}
-                    <div className="flex flex-wrap gap-3 justify-center mt-4">
-                        {/* Multi-Day Toggle - Only show in 'All Dates' mode or if we designate a specific toggle for it */}
-                        {dateFilter === 'all' && (
-                            <button
-                                onClick={() => setShowMultiDay(!showMultiDay)}
-                                className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showMultiDay ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
-                                title="Toggle Multi-Day Events (Festivals, Recurring Series)"
-                            >
-                                <span>{showMultiDay ? '👁 Multi-Day On' : '❌ Multi-Day Off'}</span>
-                                {!showMultiDay && (
-                                    <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
-                                        {/* Estimate count of multi-day from sourceEvents */}
-                                        {sourceEvents.filter(e => isMultiDay(e)).length} Hidden
-                                    </span>
-                                )}
-                            </button>
+                    {/* Expensive Toggle */}
+                    <button
+                        onClick={() => setShowExpensive(!showExpensive)}
+                        className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showExpensive ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
+                        title={`Toggle Expensive Events (Over $${maxPrice})`}
+                    >
+                        <span>{showExpensive ? '👁 Expensive On' : '❌ Expensive Hidden'}</span>
+                        {!showExpensive && (
+                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
+                                {events.filter(e => e.priceAmount !== undefined && e.priceAmount > maxPrice).length} Hidden
+                            </span>
                         )}
+                    </button>
 
-                        {/* Expensive Toggle */}
-                        <button
-                            onClick={() => setShowExpensive(!showExpensive)}
-                            className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showExpensive ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
-                            title={`Toggle Expensive Events (Over $${maxPrice})`}
-                        >
-                            <span>{showExpensive ? '👁 Expensive On' : '❌ Expensive Hidden'}</span>
-                            {!showExpensive && (
-                                <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
-                                    {events.filter(e => e.priceAmount !== undefined && e.priceAmount > maxPrice).length} Hidden
-                                </span>
-                            )}
-                        </button>
+                    {/* Started/Ongoing Toggle */}
+                    <button
+                        onClick={() => setShowStarted(!showStarted)}
+                        className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showStarted ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
+                        title="Toggle Events that have already started"
+                    >
+                        <span>{showStarted ? '👁 Ongoing On' : '❌ Ongoing Hidden'}</span>
+                        {!showStarted && (
+                            <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
+                                {events.filter(e => now && new Date(e.date) < now && !isMultiDay(e)).length} Hidden
+                            </span>
+                        )}
+                    </button>
+                </div>
 
-                        {/* Started/Ongoing Toggle */}
-                        <button
-                            onClick={() => setShowStarted(!showStarted)}
-                            className={`group flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all ${!showStarted ? 'bg-white/5 border border-white/10 text-[var(--text-3)]' : 'bg-[var(--surface-2)] text-white border border-[var(--pk-500)]'}`}
-                            title="Toggle Events that have already started"
-                        >
-                            <span>{showStarted ? '👁 Ongoing On' : '❌ Ongoing Hidden'}</span>
-                            {!showStarted && (
-                                <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
-                                    {events.filter(e => now && new Date(e.date) < now && !isMultiDay(e)).length} Hidden
-                                </span>
-                            )}
-                        </button>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 justify-center mt-4 border-t border-white/5 pt-4">
-                        <button onClick={() => setSelectedCategory(null)} className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${selectedCategory === null ? 'bg-[var(--pk-500)] text-white' : 'bg-white/5 text-[var(--text-3)] hover:bg-white/10'}`}>All Categories</button>
-                        {allCategories.map(cat => (
-                            <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-[var(--pk-500)] text-white border-transparent' : 'bg-white/5 text-[var(--text-3)] border border-white/5 hover:border-white/10'}`}>{cat}</button>
-                        ))}
-                    </div>
+                <div className="flex flex-wrap gap-2 justify-center mt-4 border-t border-white/5 pt-4">
+                    <button onClick={() => setSelectedCategory(null)} className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${selectedCategory === null ? 'bg-[var(--pk-500)] text-white' : 'bg-white/5 text-[var(--text-3)] hover:bg-white/10'}`}>All Categories</button>
+                    {allCategories.map(cat => (
+                        <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-[var(--pk-500)] text-white border-transparent' : 'bg-white/5 text-[var(--text-3)] border border-white/5 hover:border-white/10'}`}>{cat}</button>
+                    ))}
                 </div>
             </div>
 
             {/* Breadcrumb Trail */}
             {activeFilters.length > 0 && (
-                <div className="mb-8 flex flex-wrap items-center gap-3 animate-fade-in relative z-10 block">
+                <div className="mb-8 flex flex-wrap items-center gap-3 animate-fade-in relative z-10">
                     <span className="text-[10px] font-black uppercase text-[var(--text-3)] tracking-tighter">Current Filter Stream:</span>
                     {activeFilters.map(filter => (
                         <button
@@ -612,7 +597,8 @@ export default function EventFeed({ events }: EventFeedProps) {
                         <EventPreview event={previewEvent} onClose={() => setPreviewEvent(null)} isInline />
                     </div>
                 </div>
-            )}
+            )
+            }
 
             <section className="mb-16">
                 <div className="flex items-center justify-between mb-8">
@@ -640,10 +626,9 @@ export default function EventFeed({ events }: EventFeedProps) {
                                 {/* Visual Indicator for Past Events in Saved View OR Today View */}
                                 {((viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
                                     <div className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20">
-                                        {isEnded ? 'ENDED' : 'PAST EVENT'}
                                     </div>
                                 )}
-                                <EventCard event={event} onPreview={() => setPreviewEvent(event)} />
+                                <EventCard event={event} onPreview={(rect) => handlePreview(event, rect)} />
                             </div>
                         )
                     })}
@@ -661,41 +646,51 @@ export default function EventFeed({ events }: EventFeedProps) {
             </section>
 
             {/* Separate Multi-Day Section ONLY if dateFilter is ALL */}
-            {dateFilter === 'all' && showMultiDay && separateMultiDayList.length > 0 && (
-                <section className="mb-16">
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="h-px flex-1 bg-white/10" />
-                        <h2 className="text-xl font-bold text-[var(--text-2)] uppercase tracking-widest">Multi-Day / Festivals</h2>
-                        <div className="h-px flex-1 bg-white/10" />
-                    </div>
+            {
+                dateFilter === 'all' && showMultiDay && separateMultiDayList.length > 0 && (
+                    <section className="mb-16">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="h-px flex-1 bg-white/10" />
+                            <h2 className="text-xl font-bold text-[var(--text-2)] uppercase tracking-widest">Multi-Day / Festivals</h2>
+                            <div className="h-px flex-1 bg-white/10" />
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {separateMultiDayList.map(event => (
-                            <EventCard key={event.id} event={event} onPreview={() => setPreviewEvent(event)} />
-                        ))}
-                    </div>
-                </section>
-            )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {separateMultiDayList.map(event => (
+                                <EventCard key={event.id} event={event} onPreview={(rect) => handlePreview(event, rect)} />
+                            ))}
+                        </div>
+                    </section>
+                )
+            }
 
-            {showHidden && hiddenEvents.length > 0 && (
-                <section className="opacity-70 grayscale-[0.5] hover:grayscale-0 transition-all duration-500">
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="h-px flex-1 bg-white/10" />
-                        <h2 className="text-xl font-bold text-[var(--text-2)] uppercase tracking-widest">Review Needed (TBD / Cancelled)</h2>
-                        <div className="h-px flex-1 bg-white/10" />
-                    </div>
+            {
+                showHidden && hiddenEvents.length > 0 && (
+                    <section className="opacity-70 grayscale-[0.5] hover:grayscale-0 transition-all duration-500">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="h-px flex-1 bg-white/10" />
+                            <h2 className="text-xl font-bold text-[var(--text-2)] uppercase tracking-widest">Review Needed (TBD / Cancelled)</h2>
+                            <div className="h-px flex-1 bg-white/10" />
+                        </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {hiddenEvents.map(event => (
-                            <EventCard key={event.id} event={event} onPreview={() => setPreviewEvent(event)} />
-                        ))}
-                    </div>
-                </section>
-            )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {hiddenEvents.map(event => (
+                                <EventCard key={event.id} event={event} onPreview={(rect) => handlePreview(event, rect)} />
+                            ))}
+                        </div>
+                    </section>
+                )
+            }
 
-            {previewEvent && settings.detailViewMode === 'popup' && (
-                <EventPreview event={previewEvent} onClose={() => setPreviewEvent(null)} />
-            )}
-        </div>
+            {
+                previewEvent && settings.detailViewMode === 'popup' && (
+                    <EventPreview
+                        event={previewEvent}
+                        onClose={() => { setPreviewEvent(null); setPreviewAnchor(null); }}
+                        anchor={previewAnchor || undefined}
+                    />
+                )
+            }
+        </div >
     );
 }

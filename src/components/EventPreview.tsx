@@ -8,12 +8,13 @@ interface EventPreviewProps {
     event: Event;
     onClose: () => void;
     isInline?: boolean;
+    anchor?: DOMRect;
 }
 
 type PreviewMode = 'details' | 'live' | 'split';
 type Placement = 'center' | 'right' | 'left';
 
-export default function EventPreview({ event, onClose, isInline }: EventPreviewProps) {
+export default function EventPreview({ event, onClose, isInline, anchor }: EventPreviewProps) {
     const { settings, updateSettings, toggleSavedEvent } = useSettings();
     const [mode, setMode] = useState<PreviewMode>('details');
 
@@ -23,6 +24,45 @@ export default function EventPreview({ event, onClose, isInline }: EventPreviewP
     const isChatbox = settings.isChatboxMode;
 
     const isSaved = settings.savedEvents?.some((e) => e.id === event.id) ?? false;
+
+    // Smart Positioning Logic
+    const getSmartPosition = () => {
+        if (!anchor || position === 'center' || isInline) return {};
+
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const modalWidth = isChatbox ? 500 : (mode === 'split' ? 1200 : 896); // Approx max-w-4xl is 896px
+
+        let top = anchor.top;
+        let left = anchor.right + 20;
+
+        // Viewport Collision Detection
+        if (left + modalWidth > vw) {
+            left = anchor.left - modalWidth - 20;
+        }
+
+        if (left < 0) {
+            left = (vw - modalWidth) / 2;
+            top = anchor.bottom + 20;
+        }
+
+        if (top + height > vh) {
+            top = vh - height - 20;
+        }
+
+        if (top < 0) top = 20;
+
+        return {
+            position: 'fixed' as const,
+            top: `${top}px`,
+            left: `${left}px`,
+            width: `${modalWidth}px`,
+            margin: 0,
+            transform: 'none'
+        };
+    };
+
+    const smartStyle = getSmartPosition();
 
     // Fixed absolute URL for iframe - preventing GitHub relative link 404s
     const getAbsoluteUrl = (url: string) => {
@@ -68,17 +108,34 @@ export default function EventPreview({ event, onClose, isInline }: EventPreviewP
     const content = (
         <div
             className={`
-                ${isInline ? 'w-full h-full flex flex-col' : `glass-panel shadow-2xl transition-all duration-500 pointer-events-auto rounded-3xl overflow-hidden flex flex-col ${modalWidthClass}`}
-                ${isChatbox && !isInline ? 'border-2 border-[var(--pk-500)]/30 animate-slide-up ring-4 ring-black/50 mb-4 mr-4' : ''}
+                ${isInline ? 'w-full h-full flex flex-col' : `glass-panel shadow-2xl transition-all duration-500 pointer-events-auto rounded-[2.5rem] overflow-hidden flex flex-col ${modalWidthClass}`}
+                ${isChatbox && !isInline ? 'border-2 border-[var(--pk-500)]/30 animate-slide-up ring-4 ring-black/50' : ''}
+                ${anchor && position !== 'center' ? 'animate-zoom-in' : ''}
                 relative z-[101]
             `}
             style={{
                 height: isInline ? '100%' : `${height}px`,
                 backgroundColor: 'var(--surface-1)',
-                color: settings.popupFontColor
+                color: settings.popupFontColor,
+                ...smartStyle
             } as any}
             onClick={(e) => e.stopPropagation()}
         >
+            {/* Visual Connector Line (Smart Arrow) */}
+            {anchor && position !== 'center' && !isInline && (
+                <div
+                    className="absolute -left-10 top-1/2 -translate-y-1/2 hidden lg:block"
+                    style={{
+                        left: smartStyle.left && parseInt(smartStyle.left) > anchor.right ? '-40px' : 'auto',
+                        right: smartStyle.left && parseInt(smartStyle.left) < anchor.left ? '-40px' : 'auto',
+                        transform: smartStyle.left && parseInt(smartStyle.left) < anchor.left ? 'scaleX(-1) translateY(-50%)' : 'translateY(-50%)'
+                    }}
+                >
+                    <svg width="40" height="20" viewBox="0 0 40 20" fill="none">
+                        <path d="M0 10H40M40 10L30 0M40 10L30 20" stroke="var(--pk-500)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="animate-pulse" />
+                    </svg>
+                </div>
+            )}
             {/* Header / Premium Controls */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40 backdrop-blur-xl z-50 shrink-0">
                 <div className="flex items-center gap-3">

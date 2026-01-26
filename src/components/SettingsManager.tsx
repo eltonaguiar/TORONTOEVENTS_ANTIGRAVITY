@@ -14,333 +14,290 @@ export default function SettingsManager() {
         { name: 'purple', value: '#a855f7' },
     ];
 
+    const toggleOpen = () => setIsOpen(!isOpen);
+
     return (
-        <div className="fixed bottom-8 right-8 z-[100]">
-            {/* Gear Icon Button */}
-            <button
-                onClick={() => setIsOpen(!isOpen)}
-                className={`w-14 h-14 rounded-full glass-panel flex items-center justify-center transition-all duration-500 shadow-2xl ${isOpen ? 'rotate-90 bg-[var(--pk-500)] text-white' : 'hover:scale-110 text-[var(--pk-300)]'}`}
-                title="Configuration Settings"
-            >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </button>
+        <>
+            {/* 1. PRIMARY PERSISTENT GEAR (Top-Right Viewport) */}
+            <div className="fixed top-6 right-6 z-[200] flex gap-3 pointer-events-none">
+                <button
+                    onClick={toggleOpen}
+                    className="pointer-events-auto p-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl hover:bg-[var(--pk-500)] text-white transition-all group overflow-hidden"
+                    title="System Configuration (Top Right)"
+                >
+                    <div className="flex items-center gap-2 px-1">
+                        <span className="text-xl group-hover:rotate-90 transition-transform duration-500">⚙️</span>
+                        <span className="text-[10px] font-black uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-all">Config</span>
+                    </div>
+                </button>
+            </div>
 
-            {/* Settings Panel */}
+            {/* 2. SECONDARY FLOATING GEAR (Bottom-Right Viewport) */}
+            <div className="fixed bottom-6 right-6 z-[200]">
+                <button
+                    onClick={toggleOpen}
+                    className={`w-14 h-14 rounded-full glass-panel flex items-center justify-center transition-all duration-500 shadow-2xl ${isOpen ? 'rotate-90 bg-[var(--pk-500)] text-white' : 'hover:scale-110 text-[var(--pk-300)] animate-pulse'}`}
+                    title="Configuration Settings (Floating)"
+                >
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+            </div>
+
+            {/* SETTINGS MODAL / POPUP */}
             {isOpen && (
-                <div className="absolute bottom-20 right-0 w-85 glass-panel rounded-2xl p-6 shadow-2xl border border-white/10 animate-fade-in backdrop-blur-2xl max-h-[80vh] overflow-y-auto custom-scrollbar">
-                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2 sticky top-0 bg-[#0a0a0b]/80 backdrop-blur-md pb-2 z-10">
-                        <span className="text-[var(--pk-500)]">⚙</span> System Config
-                    </h3>
-
-                    <div className="space-y-8">
-                        {/* Theme Color */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Aura Color</label>
-                            <div className="flex gap-3">
-                                {themeColors.map(color => (
-                                    <button
-                                        key={color.name}
-                                        onClick={() => updateSettings({ themeColor: color.name })}
-                                        className={`w-8 h-8 rounded-full border-2 transition-all ${settings.themeColor === color.name ? 'border-white scale-125 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                                        style={{ backgroundColor: color.value }}
-                                        title={color.name}
-                                    />
-                                ))}
-                            </div>
+                <div
+                    className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+                    onClick={() => setIsOpen(false)}
+                >
+                    <div
+                        className="glass-panel rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/20 flex flex-col overflow-hidden relative"
+                        style={{
+                            width: `${settings.configPanelWidth}px`,
+                            height: `${settings.configPanelHeight}px`,
+                            maxHeight: '90vh',
+                            maxWidth: '95vw',
+                            resize: 'both',
+                            minWidth: '350px',
+                            minHeight: '400px'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        onMouseUp={(e) => {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            updateSettings({
+                                configPanelWidth: Math.round(rect.width),
+                                configPanelHeight: Math.round(rect.height)
+                            });
+                        }}
+                    >
+                        {/* Header */}
+                        <div className="p-8 pb-4 shrink-0 flex items-center justify-between bg-black/40 backdrop-blur-md z-10">
+                            <h3 className="text-2xl font-black flex items-center gap-3">
+                                <span className="p-2 bg-[var(--pk-500)] text-white rounded-xl shadow-lg animate-spin-slow">⚙</span>
+                                <span className="tracking-tight uppercase">System Architect</span>
+                            </h3>
+                            <button onClick={toggleOpen} className="p-2 hover:bg-white/10 rounded-full transition-colors font-bold text-2xl">×</button>
                         </div>
 
-                        {/* Page Zoom */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Webpage Scale</label>
-                            <div className="flex items-center gap-4 px-1">
-                                <input
-                                    type="range"
-                                    min="0.75"
-                                    max="1.25"
-                                    step="0.05"
-                                    value={settings.webpageScale}
-                                    onChange={(e) => updateSettings({ webpageScale: parseFloat(e.target.value) })}
-                                    className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--pk-500)]"
-                                />
-                                <span className="text-xs font-mono w-10 text-right text-[var(--text-2)]">{Math.round(settings.webpageScale * 100)}%</span>
-                            </div>
-                        </div>
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-8 pt-0 space-y-10">
+                            <p className="text-[10px] text-[var(--text-3)] font-black uppercase tracking-widest opacity-50 border-b border-white/5 pb-2">Customization Protocol</p>
 
-                        {/* Font Size */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Visual Scale</label>
-                            <div className="grid grid-cols-3 gap-2 p-1 bg-black/20 rounded-lg">
-                                {(['sm', 'md', 'lg'] as FontSize[]).map(size => (
-                                    <button
-                                        key={size}
-                                        onClick={() => updateSettings({ fontSize: size })}
-                                        className={`py-1.5 text-xs font-bold rounded-md transition-all ${settings.fontSize === size ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
-                                    >
-                                        {size.toUpperCase()}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Layout Density */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Layout Density</label>
-                            <div className="grid grid-cols-3 gap-2 p-1 bg-black/20 rounded-lg">
-                                {(['compact', 'normal', 'spacious'] as LayoutDensity[]).map(density => (
-                                    <button
-                                        key={density}
-                                        onClick={() => updateSettings({ layoutDensity: density })}
-                                        className={`py-1.5 text-[10px] font-bold rounded-md transition-all ${settings.layoutDensity === density ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
-                                    >
-                                        {density.toUpperCase()}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Detail View Mode */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Detail View Mode</label>
-                            <div className="grid grid-cols-2 gap-2 p-1 bg-black/20 rounded-lg">
-                                {[
-                                    { id: 'popup', label: 'Modal Pop-up' },
-                                    { id: 'inline', label: 'Inline Embed' }
-                                ].map(mode => (
-                                    <button
-                                        key={mode.id}
-                                        onClick={() => updateSettings({ detailViewMode: mode.id as any })}
-                                        className={`py-1.5 text-[10px] font-bold rounded-md transition-all ${settings.detailViewMode === mode.id ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
-                                    >
-                                        {mode.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Popup Architect */}
-                        <div className="space-y-4 pt-2 border-t border-white/5">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)] opacity-70">Popup Architect</label>
-
-                            {/* Height Slider */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Preview Height</label>
-                                <div className="flex items-center gap-4 px-1">
-                                    <input
-                                        type="range"
-                                        min="400"
-                                        max="1000"
-                                        step="50"
-                                        value={settings.previewHeight}
-                                        onChange={(e) => updateSettings({ previewHeight: parseInt(e.target.value) })}
-                                        className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--pk-500)]"
-                                    />
-                                    <span className="text-xs font-mono w-10 text-right text-[var(--text-2)]">{settings.previewHeight}px</span>
-                                </div>
-                            </div>
-
-                            {/* Position Selector */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Anchor Position</label>
-                                <div className="grid grid-cols-2 gap-2 p-1 bg-black/20 rounded-lg">
-                                    {[
-                                        { id: 'center', label: 'Center Focus' },
-                                        { id: 'bottom-right', label: 'Bottom Right' },
-                                        { id: 'right', label: 'Right Side' },
-                                        { id: 'left', label: 'Left Side' }
-                                    ].map(pos => (
-                                        <button
-                                            key={pos.id}
-                                            onClick={() => updateSettings({ previewPosition: pos.id as any })}
-                                            className={`py-1.5 text-[10px] font-bold rounded-md transition-all ${settings.previewPosition === pos.id ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
-                                        >
-                                            {pos.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Chatbox Mode Toggle */}
-                            <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-bold">Chatbox Mode</span>
-                                    <span className="text-[10px] text-[var(--text-3)]">Docked & compact style</span>
-                                </div>
-                                <button
-                                    onClick={() => updateSettings({ isChatboxMode: !settings.isChatboxMode })}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.isChatboxMode ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
-                                >
-                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.isChatboxMode ? 'right-1' : 'left-1'}`} />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Event Filters Section */}
-                        <div className="space-y-4 pt-2 border-t border-white/5">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)] opacity-70">Intelligent Filtering</label>
-
-                            {/* Hide Sold Out */}
-                            <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-bold">Hide Sold Out</span>
-                                    <span className="text-[10px] text-[var(--text-3)]">Remove unavailable events</span>
-                                </div>
-                                <button
-                                    onClick={() => updateSettings({ hideSoldOut: !settings.hideSoldOut })}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.hideSoldOut ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
-                                >
-                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hideSoldOut ? 'right-1' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            {/* Gender Selection */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Target Gender</label>
-                                <div className="grid grid-cols-3 gap-2 p-1 bg-black/20 rounded-lg">
-                                    {[
-                                        { id: 'unspecified', label: 'None' },
-                                        { id: 'male', label: 'Male' },
-                                        { id: 'female', label: 'Female' }
-                                    ].map(g => (
-                                        <button
-                                            key={g.id}
-                                            onClick={() => updateSettings({ gender: g.id as any })}
-                                            className={`py-1.5 text-[10px] font-bold rounded-md transition-all ${settings.gender === g.id ? 'bg-[var(--pk-500)] text-white shadow-md' : 'text-gray-400 hover:text-gray-200'}`}
-                                        >
-                                            {g.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Gender Specific Sold Out */}
-                            {settings.gender !== 'unspecified' && (
-                                <div className="flex items-center justify-between p-3 bg-blue-500/10 rounded-xl border border-blue-500/20 animate-fade-in">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-bold text-blue-100">Gender Filter</span>
-                                        <span className="text-[10px] text-blue-300/70">Hide sold out for {settings.gender}s</span>
-                                    </div>
-                                    <button
-                                        onClick={() => updateSettings({ hideGenderSoldOut: !settings.hideGenderSoldOut })}
-                                        className={`w-12 h-6 rounded-full transition-all relative ${settings.hideGenderSoldOut ? 'bg-blue-500' : 'bg-gray-700'}`}
-                                    >
-                                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hideGenderSoldOut ? 'right-1' : 'left-1'}`} />
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Keyword Blacklist */}
-                            <div className="space-y-3 pt-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Keyword Blacklist</label>
-                                <div className="space-y-2">
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="Add keyword to hide..."
-                                            className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--pk-500)]"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    const val = e.currentTarget.value.trim();
-                                                    if (val) {
-                                                        const current = settings.excludedKeywords || [];
-                                                        if (!current.includes(val)) {
-                                                            updateSettings({ excludedKeywords: [...current, val] });
-                                                        }
-                                                        e.currentTarget.value = '';
-                                                    }
-                                                }
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
-                                        {(settings.excludedKeywords || []).map(keyword => (
-                                            <span
-                                                key={keyword}
-                                                className="flex items-center gap-1.5 px-2 py-1 bg-[var(--pk-500)]/10 border border-[var(--pk-500)]/20 rounded text-[10px] font-bold text-[var(--pk-200)] group"
-                                            >
-                                                {keyword}
-                                                <button
-                                                    onClick={() => {
-                                                        const current = settings.excludedKeywords || [];
-                                                        updateSettings({ excludedKeywords: current.filter(k => k !== keyword) });
-                                                    }}
-                                                    className="hover:text-white"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <p className="text-[9px] text-[var(--text-3)] italic">Hides events containing these words in title/info.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Location / Nearby Section */}
-                        <div className="space-y-4 pt-2 border-t border-white/5">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)] opacity-70">Nearby Hub</label>
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Your Postal Code (M5V 1J1)</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Enter postal code..."
-                                        maxLength={7}
-                                        value={settings.userPostalCode}
-                                        onChange={(e) => updateSettings({ userPostalCode: e.target.value.toUpperCase() })}
-                                        className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--pk-500)] font-mono"
-                                    />
-                                </div>
-                                <p className="text-[9px] text-[var(--text-3)] italic">Enables distance calculations and "Nearby Me" filtering.</p>
-                            </div>
-                        </div>
-
-                        {/* Tooltips & Color */}
-                        <div className="space-y-4 pt-2 border-t border-white/5">
-                            <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">X-Ray Options</label>
-                            <div className="flex items-center justify-between p-3 bg-black/20 rounded-xl border border-white/5">
-                                <div className="flex flex-col">
-                                    <span className="text-sm font-bold">Tooltips</span>
-                                    <span className="text-[10px] text-[var(--text-3)]">Hover intelligence</span>
-                                </div>
-                                <button
-                                    onClick={() => updateSettings({ showTooltips: !settings.showTooltips })}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.showTooltips ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
-                                >
-                                    <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.showTooltips ? 'right-1' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            {settings.showTooltips && (
-                                <div className="space-y-2 px-1">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Tooltip Glow</label>
-                                    <div className="flex gap-2">
-                                        {['#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ffffff'].map(color => (
+                            <div className="space-y-8">
+                                {/* Theme Color */}
+                                <div className="space-y-4">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)]">City Aura (Theme)</label>
+                                    <div className="flex flex-wrap gap-4">
+                                        {themeColors.map(color => (
                                             <button
-                                                key={color}
-                                                onClick={() => updateSettings({ tooltipColor: color })}
-                                                className={`w-6 h-6 rounded-md border transition-all ${settings.tooltipColor === color ? 'border-white scale-110' : 'border-transparent opacity-50'}`}
-                                                style={{ backgroundColor: color }}
+                                                key={color.name}
+                                                onClick={() => updateSettings({ themeColor: color.name })}
+                                                className={`w-10 h-10 rounded-2xl border-2 transition-all shadow-xl ${settings.themeColor === color.name ? 'border-white scale-110 ring-4 ring-[var(--pk-500)]/30' : 'border-transparent opacity-40 hover:opacity-100 hover:scale-105'}`}
+                                                style={{ backgroundColor: color.value }}
+                                                title={color.name}
                                             />
                                         ))}
                                     </div>
                                 </div>
-                            )}
+
+                                {/* Resizable UI Indicator */}
+                                <div className="p-4 bg-[var(--pk-500)]/10 border border-[var(--pk-500)]/20 rounded-2xl">
+                                    <p className="text-[10px] font-bold text-[var(--pk-200)] flex items-center gap-2">
+                                        ↔️ Resizable Interface: Drag bottom-right corner to adjust your workspace.
+                                    </p>
+                                </div>
+
+                                {/* Page Zoom */}
+                                <div className="space-y-4">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Intelligence Scale (Zoom)</label>
+                                    <div className="flex items-center gap-6 p-4 bg-black/20 rounded-2xl border border-white/5">
+                                        <input
+                                            type="range"
+                                            min="0.75"
+                                            max="1.25"
+                                            step="0.05"
+                                            value={settings.webpageScale}
+                                            onChange={(e) => updateSettings({ webpageScale: parseFloat(e.target.value) })}
+                                            className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[var(--pk-500)]"
+                                        />
+                                        <span className="text-lg font-black font-mono text-[var(--text-2)] tabular-nums">{Math.round(settings.webpageScale * 100)}%</span>
+                                    </div>
+                                </div>
+
+                                {/* Font / Layout */}
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Text Size</label>
+                                        <div className="grid grid-cols-3 gap-2 p-1.5 bg-black/40 rounded-xl border border-white/5">
+                                            {(['sm', 'md', 'lg'] as FontSize[]).map(size => (
+                                                <button
+                                                    key={size}
+                                                    onClick={() => updateSettings({ fontSize: size })}
+                                                    className={`py-2 text-[10px] font-black uppercase rounded-lg transition-all ${settings.fontSize === size ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    {size}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Density</label>
+                                        <div className="grid grid-cols-3 gap-2 p-1.5 bg-black/40 rounded-xl border border-white/5">
+                                            {(['compact', 'normal', 'spacious'] as LayoutDensity[]).map(density => (
+                                                <button
+                                                    key={density}
+                                                    onClick={() => updateSettings({ layoutDensity: density })}
+                                                    className={`py-2 text-[10px] font-black uppercase rounded-lg transition-all ${settings.layoutDensity === density ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    {density.slice(0, 3)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Detail View Mode */}
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Preview Engine</label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {[
+                                            { id: 'popup', label: 'Tactical Overlay', desc: 'Floating modal window' },
+                                            { id: 'inline', label: 'Embedded Feed', desc: 'Inline expanding section' }
+                                        ].map(mode => (
+                                            <button
+                                                key={mode.id}
+                                                onClick={() => updateSettings({ detailViewMode: mode.id as any })}
+                                                className={`p-4 rounded-2xl border-2 transition-all text-left flex flex-col gap-1 ${settings.detailViewMode === mode.id ? 'border-[var(--pk-500)] bg-[var(--pk-500)]/10 shadow-[0_0_20px_rgba(var(--pk-500-rgb),0.2)]' : 'border-white/5 bg-black/20 opacity-50 hover:opacity-80'}`}
+                                            >
+                                                <span className="text-xs font-black uppercase tracking-tight">{mode.label}</span>
+                                                <span className="text-[9px] opacity-60 font-bold">{mode.desc}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Popup Architect */}
+                                <div className="space-y-6 pt-4 border-t border-white/5 bg-white/5 p-6 rounded-3xl border border-white/5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)]">Overlay Architect</label>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Overlay Height</label>
+                                        <div className="flex items-center gap-4">
+                                            <input
+                                                type="range" min="400" max="1000" step="50"
+                                                value={settings.previewHeight}
+                                                onChange={(e) => updateSettings({ previewHeight: parseInt(e.target.value) })}
+                                                className="flex-1 h-1.5 bg-black/40 rounded-lg appearance-none cursor-pointer accent-[var(--pk-500)]"
+                                            />
+                                            <span className="text-xs font-black font-mono text-[var(--pk-300)]">{settings.previewHeight}px</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Launch Position</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {[
+                                                { id: 'center', label: 'Full Center' },
+                                                { id: 'bottom-right', label: 'Chat Style' },
+                                                { id: 'right', label: 'Right Dock' },
+                                                { id: 'left', label: 'Left Dock' }
+                                            ].map(pos => (
+                                                <button
+                                                    key={pos.id}
+                                                    onClick={() => updateSettings({ previewPosition: pos.id as any })}
+                                                    className={`py-2 text-[10px] font-black uppercase rounded-xl transition-all border ${settings.previewPosition === pos.id ? 'bg-[var(--pk-500)] text-white border-[var(--pk-500)] shadow-lg' : 'bg-black/40 text-gray-500 border-white/5 hover:border-white/20'}`}
+                                                >
+                                                    {pos.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-tight">Chatbox Mode</span>
+                                            <span className="text-[10px] opacity-50 font-bold">Narrow docked overlay</span>
+                                        </div>
+                                        <button
+                                            onClick={() => updateSettings({ isChatboxMode: !settings.isChatboxMode })}
+                                            className={`w-12 h-6 rounded-full transition-all relative ${settings.isChatboxMode ? 'bg-[var(--pk-500)] shadow-[0_0_15px_rgba(var(--pk-500-rgb),0.5)]' : 'bg-gray-700'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${settings.isChatboxMode ? 'right-1' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Intelligent Filtering */}
+                                <div className="space-y-6 pt-4 border-t border-white/5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)]">Neural Filters</label>
+
+                                    <div className="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-white/5">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-tight">Auto-Hide Sold Out</span>
+                                            <span className="text-[10px] opacity-50 font-bold">Clean up the feed automatically</span>
+                                        </div>
+                                        <button
+                                            onClick={() => updateSettings({ hideSoldOut: !settings.hideSoldOut })}
+                                            className={`w-12 h-6 rounded-full transition-all relative ${settings.hideSoldOut ? 'bg-[var(--pk-500)]' : 'bg-gray-700'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hideSoldOut ? 'right-1' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+
+                                    {/* Keyword Blacklist */}
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Term Exclusions</label>
+                                        <div className="space-y-4">
+                                            <input
+                                                type="text"
+                                                placeholder="Enter forbidden keyword..."
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-xs text-white focus:outline-none focus:border-[var(--pk-500)] shadow-inner"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        const val = e.currentTarget.value.trim();
+                                                        if (val) {
+                                                            const current = settings.excludedKeywords || [];
+                                                            if (!current.includes(val)) {
+                                                                updateSettings({ excludedKeywords: [...current, val] });
+                                                            }
+                                                            e.currentTarget.value = '';
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                            <div className="flex flex-wrap gap-2">
+                                                {(settings.excludedKeywords || []).map(keyword => (
+                                                    <span key={keyword} className="flex items-center gap-3 pl-4 pr-3 py-2 bg-[var(--pk-500)] text-white text-[10px] font-black uppercase tracking-tighter rounded-full shadow-lg">
+                                                        {keyword}
+                                                        <button onClick={() => updateSettings({ excludedKeywords: (settings.excludedKeywords || []).filter(k => k !== keyword) })} className="hover:scale-125 transition-transform">✕</button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-10 border-t border-white/10 opacity-30 text-center space-y-2 pb-10">
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em]">Antigravity UI Systems</p>
+                                <p className="text-[10px] font-bold">All parameters synced to local environment.</p>
+                            </div>
                         </div>
 
-                        <div className="pt-4 border-t border-white/5 sticky bottom-0 bg-[#0a0a0b]/80 backdrop-blur-md pb-2 mt-auto">
+                        {/* Footer Buttons */}
+                        <div className="p-8 border-t border-white/10 bg-black/60 backdrop-blur-md shrink-0">
                             <button
-                                onClick={() => setIsOpen(false)}
-                                className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold transition-all border border-white/10"
+                                onClick={toggleOpen}
+                                className="w-full py-5 rounded-2xl bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-[var(--pk-500)] hover:text-white transition-all shadow-xl"
                             >
-                                Close & Apply
+                                Secure Parameters & Close
                             </button>
                         </div>
                     </div>
                 </div>
             )}
-        </div>
+        </>
     );
 }

@@ -28,6 +28,8 @@ interface Settings {
     isChatboxMode: boolean;
     userPostalCode: string;
     webpageScale: number;
+    configPanelWidth: number;
+    configPanelHeight: number;
     savedEvents: any[]; // Using any[] to avoid circular dependency issues if Event isn't exported here, but ideally import Event
 }
 
@@ -59,6 +61,8 @@ const defaultSettings: Settings = {
     isChatboxMode: false,
     userPostalCode: '',
     webpageScale: 1.0,
+    configPanelWidth: 450,
+    configPanelHeight: 800,
     savedEvents: [],
 };
 

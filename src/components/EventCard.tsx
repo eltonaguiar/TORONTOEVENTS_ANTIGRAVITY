@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 interface EventCardProps {
     event: Event;
-    onPreview?: () => void;
+    onPreview?: (rect: DOMRect) => void;
 }
 
 export default function EventCard({ event, onPreview }: EventCardProps) {
@@ -72,7 +72,7 @@ export default function EventCard({ event, onPreview }: EventCardProps) {
                 style={{
                     backdropFilter: isHovered ? 'none' : 'blur(12px)',
                 }}
-                onClick={() => onPreview && onPreview()}
+                onClick={(e) => onPreview && onPreview(e.currentTarget.getBoundingClientRect())}
             >
                 {/* Save Button */}
                 <button
@@ -210,10 +210,9 @@ export default function EventCard({ event, onPreview }: EventCardProps) {
                     )}
                 </div>
 
-                {/* ACTIONS FOOTER */}
                 <div className="p-4 pt-0 mt-auto grid grid-cols-2 gap-2 relative z-20">
                     <button
-                        onClick={(e) => { e.stopPropagation(); if (onPreview) onPreview(); }}
+                        onClick={(e) => { e.stopPropagation(); if (onPreview) onPreview(e.currentTarget.getBoundingClientRect()); }}
                         className="py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 shadow-sm"
                     >
                         Quick View
