@@ -10,15 +10,17 @@ interface EventPreviewProps {
     isInline?: boolean;
 }
 
-type PreviewMode = 'details' | 'live';
+type PreviewMode = 'details' | 'live' | 'split';
 type Placement = 'center' | 'right' | 'left';
 
 export default function EventPreview({ event, onClose, isInline }: EventPreviewProps) {
-    const { settings, updateSettings } = useSettings();
+    const { settings, updateSettings, toggleSavedEvent } = useSettings();
     const [mode, setMode] = useState<PreviewMode>('details');
     const [size, setSize] = useState<'sm' | 'md' | 'lg' | 'full'>(settings.embedSize);
     const [placement, setPlacement] = useState<Placement>(settings.embedPlacement);
     const [themeColor, setThemeColor] = useState<string>('var(--pk-500)');
+
+    const isSaved = settings.savedEvents?.some((e) => e.id === event.id) ?? false;
 
     // Proxy capabilities
     const isAllEvents = event.url.includes('allevents.in');
@@ -78,200 +80,155 @@ export default function EventPreview({ event, onClose, isInline }: EventPreviewP
             {/* Header / Controls */}
             <div className="p-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-4 bg-white/5">
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => setMode('details')}
-                        className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${mode === 'details' ? 'bg-[var(--pk-500)] text-white' : 'hover:bg-white/10 opacity-70'}`}
-                    >
-                        Details
-                    </button>
-                    <button
-                        onClick={() => setMode('live')}
-                        className={`group relative px-4 py-1.5 rounded-full text-xs font-bold transition-all ${mode === 'live' ? 'bg-[var(--pk-500)] text-white' : 'hover:bg-white/10 opacity-70'}`}
-                    >
-                        Live Website
-                        {/* Tooltip for Live Site */}
-                        <div className="absolute top-full left-0 mt-2 w-64 p-2 bg-black/90 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 pointer-events-none">
-                            Best effort embedding. Some sites may block this view.
-                        </div>
-                    </button>
+                    {/* View Modes */}
+                    <div className="flex bg-black/20 p-1 rounded-lg">
+                        <button
+                            onClick={() => setMode('details')}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'details' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/50 hover:text-white'}`}
+                        >
+                            Info
+                        </button>
+                        <button
+                            onClick={() => setMode('split')}
+                            className={`hidden md:block px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'split' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/50 hover:text-white'}`}
+                            title="Side-by-Side View"
+                        >
+                            Split View
+                        </button>
+                        <button
+                            onClick={() => setMode('live')}
+                            className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${mode === 'live' ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/50 hover:text-white'}`}
+                        >
+                            Full Site
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {/* Save Button in Preview */}
+                    <button
+                        onClick={() => {
+                            if (toggleSavedEvent) toggleSavedEvent(event);
+                        }}
+                        className={`p-2 rounded-full transition-all ${isSaved ? 'bg-red-500 text-white shadow-lg' : 'bg-black/20 text-white/50 hover:bg-black/40 hover:text-white'}`}
+                        title={isSaved ? "Remove from My Events" : "Save to My Events"}
+                    >
+                        <svg className="w-5 h-5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                    </button>
+
+                    {/* Apply to All */}
                     {!isInline && (
-                        <>
-                            {/* Apply to All */}
-                            <button
-                                onClick={handleApplyToAll}
-                                className="text-[10px] font-bold uppercase tracking-wider text-[var(--pk-300)] hover:text-[var(--pk-100)] underline"
-                                title="Apply these size and position settings to be the default for all future popups"
-                            >
-                                Apply to All
-                            </button>
-
-                            {/* Size Controls */}
-                            <div className="flex items-center gap-1 bg-black/20 p-1 rounded-lg">
-                                {(['sm', 'md', 'lg', 'full'] as const).map(s => (
-                                    <button
-                                        key={s}
-                                        onClick={() => setSize(s)}
-                                        className={`w-8 h-6 flex items-center justify-center text-[10px] font-bold rounded ${size === s ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-gray-300'}`}
-                                    >
-                                        {s.toUpperCase()}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Placement Controls */}
-                            <div className="flex items-center gap-1 bg-black/20 p-1 rounded-lg">
-                                {(['left', 'center', 'right'] as const).map(p => (
-                                    <button
-                                        key={p}
-                                        onClick={() => setPlacement(p)}
-                                        className={`w-8 h-6 flex items-center justify-center text-[10px] font-bold rounded ${placement === p ? 'bg-white/20 text-white' : 'text-gray-500 hover:text-gray-300'}`}
-                                    >
-                                        {p.charAt(0).toUpperCase()}
-                                    </button>
-                                ))}
-                            </div>
-                        </>
+                        <button
+                            onClick={handleApplyToAll}
+                            className="text-[10px] font-bold uppercase tracking-wider text-[var(--pk-300)] hover:text-[var(--pk-100)] underline hidden md:block"
+                            title="Apply these size and position settings to be the default for all future popups"
+                        >
+                            Save View Defaults
+                        </button>
                     )}
 
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full opacity-70">
+                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full opacity-70 text-white font-bold">
                         ✕
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-                {/* Mode content continues here (Details vs Live) */}
-                {mode === 'details' ? (
-                    <div className="flex flex-col">
+            <div className="flex-1 overflow-hidden relative flex">
+                {/* DETAILS PANE (Left or Full) */}
+                {(mode === 'details' || mode === 'split') && (
+                    <div className={`flex flex-col overflow-y-auto custom-scrollbar ${mode === 'split' ? 'w-1/3 border-r border-white/10 min-w-[320px]' : 'w-full'}`}>
                         {event.image && (
                             <img
                                 src={event.image}
                                 alt={event.title}
-                                className="w-full h-80 object-cover"
+                                className="w-full h-64 object-cover"
                             />
                         )}
-
-                        <div className="p-8">
+                        <div className="p-6">
+                            {/* Status Badges */}
                             {isSoldOut && !genderSoldOutText && (
-                                <div className="mb-6 bg-red-600/20 border border-red-600/30 text-red-200 py-3 rounded-xl text-center font-black uppercase tracking-[0.2em] text-sm animate-pulse">
-                                    Status: Mission Aborted - Sold Out
+                                <div className="mb-4 bg-red-600/20 border border-red-600/30 text-red-200 py-2 rounded-lg text-center font-black uppercase text-xs">
+                                    Sold Out
                                 </div>
                             )}
-                            {genderSoldOutText && (
-                                <div className="mb-6 bg-blue-600/20 border border-blue-600/30 text-blue-200 py-3 rounded-xl text-center font-black uppercase tracking-[0.2em] text-sm animate-pulse">
-                                    {genderSoldOutText}
-                                </div>
-                            )}
-                            <h2 className="text-4xl font-bold mb-6 leading-tight" style={{ color: settings.popupFontColor }}>{event.title}</h2>
+                            <h2 className="text-2xl font-bold mb-4 leading-tight" style={{ color: settings.popupFontColor }}>{event.title}</h2>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" style={{ color: settings.popupFontColor, opacity: 0.8 }}>
-                                <div className="flex flex-col gap-1 glass-panel p-4 rounded-xl border border-white/5">
-                                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-50">Date & Time</span>
-                                    <span className="font-semibold">
-                                        {new Date(event.date).toLocaleDateString('en-US', {
-                                            weekday: 'short',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}
-                                    </span>
-                                    <span className="text-xs">{new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</span>
+                            <div className="flex flex-col gap-3 mb-6 text-sm" style={{ color: settings.popupFontColor, opacity: 0.9 }}>
+                                <div className="flex items-center gap-3">
+                                    <span className="opacity-50 text-lg">📅</span>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold">
+                                            {new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                        </span>
+                                        <span className="opacity-70 text-xs">
+                                            {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                        </span>
+                                    </div>
                                 </div>
-
-                                <div className="flex flex-col gap-1 glass-panel p-4 rounded-xl border border-white/5">
-                                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-50">Location</span>
-                                    <span className="font-semibold truncate">{event.location}</span>
-                                    <span className="text-xs opacity-70">Toronto, ON</span>
+                                <div className="flex items-center gap-3">
+                                    <span className="opacity-50 text-lg">📍</span>
+                                    <span className="truncate">{event.location}</span>
                                 </div>
-
-                                <div className="flex flex-col gap-1 glass-panel p-4 rounded-xl border border-white/5 border-l-4 border-l-[var(--pk-500)]">
-                                    <span className="text-[10px] uppercase tracking-widest font-bold opacity-50">Price</span>
-                                    <span className="font-bold text-[var(--pk-300)] text-xl">{event.price || 'TBD'}</span>
-                                    {event.isFree && <span className="text-[10px] text-green-400 font-bold uppercase">FREE EVENT</span>}
+                                <div className="flex items-center gap-3">
+                                    <span className="opacity-50 text-lg">🎟️</span>
+                                    <span className="font-bold text-[var(--pk-300)]">{event.price || 'Price TBD'}</span>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 mb-8">
+                            <div className="flex flex-wrap gap-2 mb-6">
                                 {event.categories.map((cat) => (
-                                    <span
-                                        key={cat}
-                                        className="px-4 py-1.5 rounded-full bg-[var(--pk-500)]/10 text-[var(--pk-200)] text-[10px] font-black uppercase tracking-widest border border-[var(--pk-500)]/20 shadow-lg shadow-[var(--pk-500)]/5"
-                                    >
+                                    <span key={cat} className="px-2 py-1 rounded-md bg-[var(--pk-500)]/10 text-[var(--pk-200)] text-[10px] font-bold uppercase border border-[var(--pk-500)]/20">
                                         {cat}
                                     </span>
                                 ))}
                             </div>
 
                             {event.description && (
-                                <div className="mb-10 prose prose-invert max-w-none">
-                                    <h3 className="text-xl font-bold mb-4 border-b border-white/10 pb-2 flex items-center gap-2" style={{ color: settings.popupFontColor }}>
-                                        <span className="text-[var(--pk-500)]">/</span> About This Event
-                                    </h3>
-                                    <p className="leading-relaxed whitespace-pre-wrap" style={{ color: settings.popupFontColor, opacity: 0.8 }}>{event.description}</p>
+                                <div className="mb-8 prose prose-sm prose-invert max-w-none opacity-80">
+                                    <p className="whitespace-pre-wrap">{event.description}</p>
                                 </div>
                             )}
 
-                            <div className="sticky bottom-0 bg-gradient-to-t from-[var(--surface-0)] via-[var(--surface-0)] pt-10 pb-6">
-                                <div className="flex gap-4">
-                                    <a
-                                        href={event.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex-1 bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white text-center py-4 rounded-xl font-bold text-lg shadow-xl shadow-[var(--pk-500)]/20 transition-all hover:-translate-y-1 active:scale-[0.98]"
-                                    >
-                                        Secure Your Spot Now
-                                    </a>
-
-                                    <button
-                                        onClick={onClose}
-                                        className="px-8 py-4 rounded-xl border border-white/10 hover:bg-white/5 transition-all font-bold opacity-70"
-                                        style={{ color: settings.popupFontColor }}
-                                    >
-                                        Back
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex flex-col h-full bg-white relative">
-                        {/* Proxy Toggle Banner */}
-                        <div className="bg-gray-100 text-gray-800 px-4 py-2 text-xs flex justify-between items-center border-b border-gray-200">
-                            <div className="flex items-center gap-2">
-                                <span className={isAllEvents ? "text-amber-600 font-bold" : ""}>
-                                    {isAllEvents ? "Embeds from this site are often blocked." : "Viewing Live Site"}
-                                </span>
-                                <span className="opacity-70">
-                                    {useProxy ? "(Using Proxy)" : "(Direct Embed)"}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={useProxy}
-                                        onChange={(e) => setUseProxy(e.target.checked)}
-                                        className="rounded text-[var(--pk-500)]"
-                                    />
-                                    <span>Force Proxy (Best Effort)</span>
-                                </label>
-                                <div className="h-4 w-px bg-gray-300 mx-2"></div>
-                                <a href={event.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                    Open Original ↗
+                            <div className="sticky bottom-0 bg-[var(--surface-0)] pt-4 pb-0 mt-auto">
+                                <a
+                                    href={event.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block w-full bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white text-center py-3 rounded-lg font-bold shadow-lg transition-transform hover:-translate-y-1"
+                                >
+                                    Get Tickets ↗
                                 </a>
                             </div>
                         </div>
+                    </div>
+                )}
 
+                {/* EMBED PANE (Right or Full) */}
+                {(mode === 'live' || mode === 'split') && (
+                    <div className={`flex flex-col bg-white h-full ${mode === 'split' ? 'w-2/3' : 'w-full'}`}>
+                        {/* Proxy Header */}
+                        <div className="bg-gray-100 text-gray-800 px-4 py-2 text-xs flex justify-between items-center border-b border-gray-200 shrink-0">
+                            <span className={isAllEvents ? "text-amber-600 font-bold" : ""}>
+                                {isAllEvents ? "Embed Blocked?" : "Live Site"}
+                            </span>
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={useProxy}
+                                    onChange={(e) => setUseProxy(e.target.checked)}
+                                    className="rounded text-[var(--pk-500)]"
+                                />
+                                <span>Use Proxy</span>
+                            </label>
+                        </div>
                         <iframe
-                            key={useProxy ? 'proxy' : 'direct'}
                             src={useProxy ? `/api/proxy?url=${encodeURIComponent(event.url)}` : event.url}
                             className="w-full flex-1 border-none bg-white"
                             title={`Preview: ${event.title}`}
                             sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
                         />
-                        <div className="absolute inset-y-0 right-0 w-2 bg-black/10 hover:bg-black/30 transition-all cursor-ew-resize" />
                     </div>
                 )}
             </div>
