@@ -1,7 +1,6 @@
 import { getEvents } from '../lib/data';
 import EventFeed from '../components/EventFeed';
 import ChatAssistant from '../components/ChatAssistant';
-import ConfigButton from '../components/ConfigButton';
 import AdUnit from '../components/AdUnit';
 import fs from 'fs';
 import path from 'path';
@@ -72,7 +71,6 @@ export default function Home() {
 
       <footer className="py-12 text-center text-[var(--text-3)] border-t border-white/5 space-y-4">
         <div className="flex justify-center gap-6">
-          <ConfigButton />
           <a href="#" className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-white/10">
             🔝 Back to Top
           </a>
