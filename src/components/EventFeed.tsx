@@ -147,8 +147,11 @@ export default function EventFeed({ events }: EventFeedProps) {
 
                 // Started/Ongoing Logic
                 // If the user has a specific date filter (like TODAY), they likely want to see ALL events for that day,
-                // even if they already started.
-                if (dateFilter === 'all') { // Only apply "Hide Started" logic to the main feed
+                // even if they already started OR finished.
+                // This prevents "Empty Page" syndrome late in the day.
+                const isTargetedDate = dateFilter === 'today' || dateFilter === 'tomorrow';
+
+                if (!isTargetedDate) { // Only apply hide logic if we are browsing the general feed
                     if (viewMode !== 'saved' && !showStarted && now) {
                         const eventStartDate = new Date(e.date);
                         const eventEndDate = e.endDate
@@ -156,11 +159,17 @@ export default function EventFeed({ events }: EventFeedProps) {
                             : new Date(eventStartDate.getTime() + 3 * 60 * 60 * 1000);
 
                         if (!isMultiDay(e)) {
-                            if (eventEndDate < now) return false; // Finished
-                            if (eventStartDate < now) return false; // Started (and not multi-day)
+                            // Standard Feed: Hide things that are over
+                            if (eventEndDate < now) return false;
+                            // Standard Feed: Hide things that started (unless toggle is On)
+                            if (eventStartDate < now) return false;
+                        } else {
+                            // Multi-Day in Feed: Hide if totally over
+                            if (eventEndDate < now) return false;
                         }
                     }
                 }
+                // If isTargetedDate (Today/Tomorrow), we SHOW everything (Started, Finished, etc) so the user sees the full schedule.
 
                 // Date Filtering
                 const eventStartDate = new Date(e.date); // Need local var for date filter block
@@ -519,17 +528,22 @@ export default function EventFeed({ events }: EventFeedProps) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {displayEvents.map(event => (
-                        <div key={event.id} className="relative group">
-                            {/* Visual Indicator for Past Events in Saved View */}
-                            {viewMode === 'saved' && now && new Date(event.date) < now && (
-                                <div className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20">
-                                    PAST EVENT
-                                </div>
-                            )}
-                            <EventCard event={event} onPreview={() => setPreviewEvent(event)} />
-                        </div>
-                    ))}
+                    {displayEvents.map(event => {
+                        const endDate = event.endDate ? new Date(event.endDate) : new Date(new Date(event.date).getTime() + 3 * 60 * 60 * 1000);
+                        const isEnded = now && endDate < now;
+
+                        return (
+                            <div key={event.id} className={`relative group ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                                {/* Visual Indicator for Past Events in Saved View OR Today View */}
+                                {((viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
+                                    <div className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20">
+                                        {isEnded ? 'ENDED' : 'PAST EVENT'}
+                                    </div>
+                                )}
+                                <EventCard event={event} onPreview={() => setPreviewEvent(event)} />
+                            </div>
+                        )
+                    })}
                 </div>
 
                 {displayEvents.length === 0 && (
