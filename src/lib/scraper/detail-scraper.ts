@@ -73,4 +73,26 @@ export class EventbriteDetailScraper {
             return false; // If we can't check, assume it's available
         }
     }
+
+    // Check if event is recurring/multi-day
+    static async checkIsRecurring(eventUrl: string): Promise<boolean> {
+        try {
+            const response = await axios.get(eventUrl, {
+                timeout: 5000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            const $ = cheerio.load(response.data);
+            const bodyText = $('body').text();
+
+            // "Multiple Dates" is the most common indicator
+            // "More options" is sometimes used for recurring events
+            return bodyText.includes('Multiple Dates') ||
+                bodyText.includes('Select more dates') ||
+                bodyText.includes('Check availability');
+        } catch (e) {
+            return false;
+        }
+    }
 }

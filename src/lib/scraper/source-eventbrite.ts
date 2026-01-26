@@ -230,6 +230,16 @@ export class EventbriteScraper implements ScraperSource {
                 console.log(`  ⚠ Sales ended: ${event.title.substring(0, 40)}`);
             }
 
+            // Check if it should be marked as Multi-Day
+            if (!event.categories.includes('Multi-Day')) {
+                const isRecurring = await EventbriteDetailScraper.checkIsRecurring(event.url);
+                if (isRecurring) {
+                    event.categories = [...new Set([...event.categories, 'Multi-Day'])];
+                    if (!event.endDate) event.endDate = event.date;
+                    console.log(`  ℹ Marked as Multi-Day (Recurring): ${event.title.substring(0, 40)}`);
+                }
+            }
+
             await new Promise(resolve => setTimeout(resolve, 300));
         }
         console.log(`✓ Enriched ${successCount}/${eventsToEnrich.length} events with real times`);
