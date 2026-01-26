@@ -104,14 +104,15 @@ export function categorizeEvent(title: string, description: string, existingCate
         'Music': ['concert', 'live music', 'band', 'dj', 'musical', 'karaoke', 'jazz', 'rock', 'hip hop', 'symphony', 'rap', 'techno', 'house music'],
         'Food & Drink': ['food', 'drink', 'tasting', 'wine', 'beer', 'culinary', 'dinner', 'cooking', 'restaurant', 'brunch', 'cafe', 'bar crawl'],
         'Arts': ['art', 'exhibition', 'gallery', 'painting', 'museum', 'theatre', 'theater', 'drama', 'film', 'movie', 'screening', 'creative', 'sculpture'],
-        'Tech': ['tech', 'software', 'coding', 'ai', 'blockchain', 'startup', 'web', 'developer', 'digital', 'saas', 'programming'],
+        'Construction': ['forklift', 'scissor lift', 'elevated work', 'whmis', 'working at heights', 'safety training', 'excavator', 'heavy equipment', 'osha', 'cpo approved'],
+        'Tech': ['tech', 'software', 'coding', 'ai', 'blockchain', 'startup', 'web', 'developer', 'digital', 'saas', 'programming', 'hackathon', 'data science', 'cybersecurity'],
         'Business': ['networking', 'business', 'workshop', 'seminar', 'conference', 'entrepreneur', 'marketing', 'professional', 'real estate'],
         'Sports & Fitness': ['gym', 'fitness', 'yoga', 'sports', 'game', 'tournament', 'match', 'running', 'workout', 'hiking', 'soccer', 'basketball'],
         'Nightlife': ['party', 'club', 'nightlife', 'bar', 'celebration', 'dance', 'rave', 'lounge'],
         'Community': ['community', 'volunteer', 'local', 'meeting', 'neighborhood', 'town hall', 'social', 'charity'],
         'Family': ['family', 'kids', 'children', 'toddler', 'school', 'parent', 'youth'],
         'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny', 'sitcom'],
-        'Dating': ['dating', 'singles', 'matchmaking', 'speed dating', 'mixer', 'blind date', 'romance', 'swoon', 'relationship', 'mingle'],
+        'Dating': ['dating', 'singles', 'matchmaking', 'speed dating', 'mixer', 'blind date', 'romance', 'swoon', 'relationship', 'mingle', 'single in the city', 'flare events', 'cheeky'],
         'Thursday': ['thursday', 'getthursday']
     };
 
