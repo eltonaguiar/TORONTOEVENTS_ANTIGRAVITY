@@ -74,9 +74,30 @@ export default function EventFeed({ events }: EventFeedProps) {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'feed' | 'saved'>('feed');
+    const [sortConfig, setSortConfig] = useState<{ key: keyof Event | 'priceAmount', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
 
     const handleExport = () => {
-        // ... (export logic)
+        const eventsToExport = settings.savedEvents.length > 0 ? settings.savedEvents : validEvents;
+        const headers = ['Title', 'Date', 'Location', 'Host', 'Price', 'URL', 'Categories'];
+        const rows = eventsToExport.map(e => [
+            `"${e.title.replace(/"/g, '""')}"`,
+            `"${e.date}"`,
+            `"${(e.location || '').replace(/"/g, '""')}"`,
+            `"${(e.host || '').replace(/"/g, '""')}"`,
+            `"${(e.price || '').replace(/"/g, '""')}"`,
+            `"${e.url}"`,
+            `"${(e.categories || []).join(', ')}"`
+        ]);
+
+        const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `toronto-events-export-${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
     const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
         // ... (import logic)
@@ -157,9 +178,29 @@ export default function EventFeed({ events }: EventFeedProps) {
         return sourceEvents
             .filter(e => {
                 if (searchQuery) {
-                    const q = searchQuery.toLowerCase();
-                    const text = `${e.title} ${e.description} ${e.host} ${e.source} ${e.tags?.join(' ') || ''}`.toLowerCase();
-                    if (!text.includes(q)) return false;
+                    const fullText = `${e.title} ${e.description} ${e.host} ${e.source} ${e.tags?.join(' ') || ''}`.toLowerCase();
+
+                    // Split by comma for OR logic
+                    const orGroups = searchQuery.split(',').map(s => s.trim()).filter(Boolean);
+
+                    const matchesSearch = orGroups.some(group => {
+                        // Split group by '+' for AND logic, but respect quotes
+                        // Basic regex to split by + while ignoring + inside quotes
+                        const andTerms = group.match(/(".*?"|[^+\s]+)+(?:\s*\+\s*(".*?"|[^+\s]+))*/g);
+
+                        // Refined: split by '+' 
+                        const terms = group.split('+').map(t => t.trim()).filter(Boolean);
+
+                        return terms.every(term => {
+                            if (term.startsWith('"') && term.endsWith('"')) {
+                                const exact = term.slice(1, -1).toLowerCase();
+                                return fullText.includes(exact);
+                            }
+                            return fullText.includes(term.toLowerCase());
+                        });
+                    });
+
+                    if (!matchesSearch) return false;
                 }
 
                 const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
@@ -269,14 +310,22 @@ export default function EventFeed({ events }: EventFeedProps) {
                 return true;
             })
             .sort((a, b) => {
-                if (dateFilter === ('nearby' as any) && userCoords) {
-                    const distA = a.latitude && a.longitude ? calculateDistance(userCoords.lat, userCoords.lng, a.latitude, a.longitude) : 9999;
-                    const distB = b.latitude && b.longitude ? calculateDistance(userCoords.lat, userCoords.lng, b.latitude, b.longitude) : 9999;
-                    return distA - distB;
+                const { key, direction } = sortConfig;
+                let valA: any = a[key as keyof Event];
+                let valB: any = b[key as keyof Event];
+
+                if (key === 'date') {
+                    valA = new Date(valA as string).getTime();
+                    valB = new Date(valB as string).getTime();
                 }
-                return new Date(a.date).getTime() - new Date(b.date).getTime();
+
+                if (direction === 'asc') {
+                    return valA > valB ? 1 : -1;
+                } else {
+                    return valA < valB ? 1 : -1;
+                }
             });
-    }, [sourceEvents, viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, now, userCoords]);
+    }, [sourceEvents, viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, now, userCoords, sortConfig]);
 
     const activeFilters = useMemo(() => {
         const filters = [];
@@ -353,53 +402,82 @@ export default function EventFeed({ events }: EventFeedProps) {
 
                 {/* Control Hub: View Switcher + Search + Config */}
                 <div className="flex flex-col xl:flex-row items-center gap-6 flex-1 w-full">
-                    {/* View Switcher */}
-                    <div className="flex items-center p-1 bg-black/40 rounded-2xl border border-white/5 shadow-inner shrink-0">
-                        {[
-                            { id: 'feed', label: 'Global Feed', icon: '🌐' },
-                            { id: 'saved', label: 'My Events', icon: '♥' }
-                        ].map(btn => (
-                            <button
-                                key={btn.id}
-                                onClick={() => setViewMode(btn.id as any)}
-                                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === btn.id ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
-                            >
-                                <span>{btn.icon}</span>
-                                <span>{btn.label}</span>
-                                {btn.id === 'saved' && <span className="bg-black/20 px-1.5 py-0.5 rounded text-[9px]">{settings.savedEvents?.length || 0}</span>}
-                            </button>
-                        ))}
+                    {/* View Switcher & Layout Switcher */}
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center p-1 bg-black/40 rounded-2xl border border-white/5 shadow-inner shrink-0">
+                            {[
+                                { id: 'feed', label: 'Global Feed', icon: '🌐' },
+                                { id: 'saved', label: 'My Events', icon: '♥' }
+                            ].map(btn => (
+                                <button
+                                    key={btn.id}
+                                    onClick={() => setViewMode(btn.id as any)}
+                                    className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === btn.id ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
+                                >
+                                    <span>{btn.icon}</span>
+                                    <span>{btn.label}</span>
+                                    {btn.id === 'saved' && <span className="bg-black/20 px-1.5 py-0.5 rounded text-[9px]">{settings.savedEvents?.length || 0}</span>}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center p-1 bg-black/40 rounded-2xl border border-white/5 shadow-inner shrink-0">
+                            {[
+                                { id: 'feed', icon: '🎴' },
+                                { id: 'table', icon: '📊' }
+                            ].map(layout => (
+                                <button
+                                    key={layout.id}
+                                    onClick={() => updateSettings({ viewLayout: layout.id as any })}
+                                    className={`p-2.5 rounded-xl transition-all ${settings.viewLayout === layout.id ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
+                                    title={layout.id === 'feed' ? 'Grid View' : 'Table View'}
+                                >
+                                    <span>{layout.icon}</span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Search Bar */}
-                    <div className="flex-1 w-full relative group">
-                        <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-                            <span className="text-xl opacity-30 group-focus-within:opacity-100 transition-opacity">🔍</span>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search Toronto events, venues, or organizers..."
-                            className="w-full bg-black/60 border border-white/10 rounded-[1.5rem] pl-14 pr-32 py-4 text-sm font-bold focus:outline-none focus:border-[var(--pk-500)] transition-all shadow-inner placeholder:opacity-30"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        <div className="absolute inset-y-0 right-3 flex items-center gap-2">
-                            {searchQuery && (
+                    {/* Search Bar & Quick Dating Action */}
+                    <div className="flex-1 w-full flex items-center gap-4">
+                        <div className="flex-1 relative group">
+                            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                                <span className="text-xl opacity-30 group-focus-within:opacity-100 transition-opacity">🔍</span>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search Toronto events, venues, or organizers..."
+                                className="w-full bg-black/60 border border-white/10 rounded-[1.5rem] pl-14 pr-32 py-4 text-sm font-bold focus:outline-none focus:border-[var(--pk-500)] transition-all shadow-inner placeholder:opacity-30"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <div className="absolute inset-y-0 right-3 flex items-center gap-2">
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="px-3 py-1.5 hover:bg-white/10 rounded-xl transition-colors text-[9px] font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100"
+                                    >
+                                        Clear
+                                    </button>
+                                )}
                                 <button
-                                    onClick={() => setSearchQuery('')}
-                                    className="px-3 py-1.5 hover:bg-white/10 rounded-xl transition-colors text-[9px] font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100"
+                                    onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
+                                    className="p-3 bg-white/5 hover:bg-[var(--pk-500)] hover:text-white rounded-xl transition-all border border-white/10 group/gear"
+                                    title="Open System Architecture"
                                 >
-                                    Clear
+                                    <span className="group-hover/gear:rotate-180 transition-transform duration-700 block">⚙️</span>
                                 </button>
-                            )}
-                            <button
-                                onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
-                                className="p-3 bg-white/5 hover:bg-[var(--pk-500)] hover:text-white rounded-xl transition-all border border-white/10 group/gear"
-                                title="Open System Architecture"
-                            >
-                                <span className="group-hover/gear:rotate-180 transition-transform duration-700 block">⚙️</span>
-                            </button>
+                            </div>
                         </div>
+
+                        <button
+                            onClick={() => setSearchQuery('dating, singles')}
+                            className="px-6 py-4 rounded-[1.5rem] bg-pink-500 hover:bg-pink-600 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 shrink-0 animate-pulse"
+                            title="Quick Search: Dating & Singles"
+                        >
+                            <span>💘</span>
+                            <span className="hidden sm:inline">Dating</span>
+                        </button>
                     </div>
 
                     {/* Saved View Actions (Export/Import) */}
@@ -608,39 +686,145 @@ export default function EventFeed({ events }: EventFeedProps) {
             )
             }
 
+            {/* Event Counter & Section Header */}
             <section className="mb-16">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        <span className="text-[var(--pk-500)]">
-                            {viewMode === 'saved' ? '♥' : '★'}
-                        </span>
-                        {viewMode === 'saved' ? 'My Saved Events' : (dateFilter !== 'all' ? `${dateFilter === 'today' ? 'Today\'s' : 'Filtered'} Events` : 'Upcoming Events')}
-                    </h2>
-                    <div className="text-sm text-[var(--text-3)] flex items-center gap-4">
-                        <span>{displayEvents.length} events {viewMode === 'saved' ? 'in collection' : 'found'}</span>
-                        {viewMode !== 'saved' && hiddenEvents.length > 0 && (
-                            <button onClick={() => setShowHidden(!showHidden)} className="px-3 py-1 rounded-full border border-white/10 hover:bg-white/5 text-xs transition-colors">{showHidden ? 'Hide' : 'Show'} TBD / Cancelled ({hiddenEvents.length})</button>
-                        )}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-1.5 bg-[var(--pk-500)] rounded-full shadow-[0_0_15px_rgba(var(--pk-500-rgb),0.5)]" />
+                            <h2 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                <span className="text-[var(--pk-300)] opacity-50 font-mono text-2xl">/</span>
+                                {viewMode === 'saved' ? 'My Collection' : (dateFilter !== 'all' ? `${dateFilter.replace('-', ' ')} events` : 'Global Pulse')}
+                            </h2>
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-3)] ml-5">
+                            Real-time node discovery: Toronto, ON
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-8 bg-black/40 backdrop-blur-xl p-6 rounded-[2rem] border border-white/10 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-[var(--pk-500)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex flex-col">
+                            <span className="text-[4rem] font-black leading-none tracking-tighter text-white tabular-nums glow-text">
+                                {displayEvents.length === events.length ? displayEvents.length : `${displayEvents.length}/${events.length}`}
+                            </span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)] mt-[-0.5rem] ml-1">
+                                Events {viewMode === 'saved' ? 'Saved' : 'Detected'}
+                            </span>
+                        </div>
+                        <div className="h-12 w-px bg-white/10" />
+                        <div className="flex flex-col justify-center">
+                            <span className="text-xs font-bold text-[var(--text-2)] uppercase tracking-tight">System Status</span>
+                            <span className="text-[9px] font-black uppercase text-green-400 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                Optimal Engine
+                            </span>
+                            {viewMode !== 'saved' && hiddenEvents.length > 0 && (
+                                <button
+                                    onClick={() => setShowHidden(!showHidden)}
+                                    className="mt-2 text-[9px] font-black uppercase tracking-widest text-[var(--pk-300)] hover:text-white transition-colors border-b border-white/20 pb-0.5 w-fit"
+                                >
+                                    {showHidden ? 'Hide' : 'Reveal'} {hiddenEvents.length} filtered notes
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {displayEvents.map(event => {
-                        const endDate = event.endDate ? new Date(event.endDate) : new Date(new Date(event.date).getTime() + 3 * 60 * 60 * 1000);
-                        const isEnded = now && endDate < now;
+                {settings.viewLayout === 'feed' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {displayEvents.map(event => {
+                            const endDate = event.endDate ? new Date(event.endDate) : new Date(new Date(event.date).getTime() + 3 * 60 * 60 * 1000);
+                            const isEnded = now && endDate < now;
 
-                        return (
-                            <div key={event.id} className={`relative group ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
-                                {/* Visual Indicator for Past Events in Saved View OR Today View */}
-                                {((viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
-                                    <div className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20">
-                                    </div>
-                                )}
-                                <EventCard event={event} onPreview={(rect) => handlePreview(event, rect)} />
-                            </div>
-                        )
-                    })}
-                </div>
+                            return (
+                                <div key={event.id} className={`relative group ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                                    {/* Visual Indicator for Past Events in Saved View OR Today View */}
+                                    {((viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
+                                        <div className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20">
+                                            PAST
+                                        </div>
+                                    )}
+                                    <EventCard event={event} onPreview={(rect) => handlePreview(event, rect)} />
+                                </div>
+                            )
+                        })}
+                    </div>
+                ) : (
+                    /* Table View */
+                    <div className="glass-panel overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white/5 border-b border-white/10">
+                                    {[
+                                        { label: 'Event Title', key: 'title' },
+                                        { label: 'Date & Time', key: 'date' },
+                                        { label: 'Location', key: 'location' },
+                                        { label: 'Host', key: 'host' },
+                                        { label: 'Price', key: 'priceAmount' },
+                                        { label: 'Source', key: 'source' },
+                                    ].map(col => (
+                                        <th
+                                            key={col.key}
+                                            onClick={() => setSortConfig({
+                                                key: col.key as any,
+                                                direction: sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                                            })}
+                                            className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] cursor-pointer hover:bg-white/5 transition-colors"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {col.label}
+                                                {sortConfig.key === col.key && (
+                                                    <span className="text-[var(--pk-500)]">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                                )}
+                                            </div>
+                                        </th>
+                                    ))}
+                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {displayEvents.map(event => (
+                                    <tr key={event.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col max-w-xs md:max-w-md">
+                                                <span className="font-bold text-sm text-white group-hover:text-[var(--pk-300)] transition-colors line-clamp-1">{event.title}</span>
+                                                <span className="text-[10px] opacity-40 uppercase font-black tracking-tighter truncate">{event.id}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-xs font-bold text-[var(--text-2)] whitespace-nowrap">
+                                                {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-xs font-bold text-[var(--text-3)] line-clamp-1">{event.location}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-xs font-bold text-[var(--pk-300)] whitespace-nowrap">{event.host}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${event.price === 'Free' ? 'bg-green-500/20 text-green-300' : 'bg-white/10 text-white'}`}>
+                                                {event.price}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-xs font-bold text-[var(--text-3)]">{event.source}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <button
+                                                onClick={() => handlePreview(event)}
+                                                className="p-2 bg-[var(--pk-500)] text-white rounded-lg shadow-lg hover:bg-[var(--pk-600)] transition-all transform hover:scale-110"
+                                            >
+                                                👁
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
 
                 {displayEvents.length === 0 && (
                     <div className="text-center py-20 glass-panel rounded-xl">

@@ -109,6 +109,28 @@ export default function SettingsManager() {
                                     </p>
                                 </div>
 
+                                {/* Dynamic Backgrounds */}
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)]">Chrono-Atmosphere (Background)</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { id: 'nebula', label: 'Nebula', class: 'bg-nebula' },
+                                            { id: 'midnight', label: 'Midnight', class: 'bg-midnight' },
+                                            { id: 'forest', label: 'Forest', class: 'bg-forest' },
+                                            { id: 'sunset', label: 'Sunset', class: 'bg-sunset' }
+                                        ].map(bg => (
+                                            <button
+                                                key={bg.id}
+                                                onClick={() => updateSettings({ activeBackground: bg.id })}
+                                                className={`p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${settings.activeBackground === bg.id ? 'border-white bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.2)]' : 'border-white/5 bg-black/40 opacity-60 hover:opacity-100'}`}
+                                            >
+                                                <div className={`w-6 h-6 rounded-lg ${bg.class} border border-white/20`} />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">{bg.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 {/* Page Zoom */}
                                 <div className="space-y-4">
                                     <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">Intelligence Scale (Zoom)</label>
@@ -124,6 +146,20 @@ export default function SettingsManager() {
                                         />
                                         <span className="text-lg font-black font-mono text-[var(--text-2)] tabular-nums">{Math.round(settings.webpageScale * 100)}%</span>
                                     </div>
+                                </div>
+
+                                {/* Intelligence Assistant Toggle */}
+                                <div className="flex items-center justify-between p-4 bg-[var(--pk-500)]/10 border border-[var(--pk-500)]/20 rounded-2xl">
+                                    <div className="flex flex-col">
+                                        <span className="text-xs font-black uppercase tracking-tight text-[var(--pk-200)]">Chat Search Assistant</span>
+                                        <span className="text-[9px] opacity-60 font-bold text-[var(--pk-300)]">Natural language discovery active</span>
+                                    </div>
+                                    <button
+                                        onClick={() => updateSettings({ showChatAssistant: !settings.showChatAssistant })}
+                                        className={`w-12 h-6 rounded-full transition-all relative ${settings.showChatAssistant ? 'bg-[var(--pk-500)] shadow-[0_0_15px_rgba(var(--pk-500-rgb),0.5)]' : 'bg-gray-700'}`}
+                                    >
+                                        <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${settings.showChatAssistant ? 'right-1' : 'left-1'}`} />
+                                    </button>
                                 </div>
 
                                 {/* Font / Layout */}
@@ -244,6 +280,104 @@ export default function SettingsManager() {
                                         >
                                             <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.hideSoldOut ? 'right-1' : 'left-1'}`} />
                                         </button>
+                                    </div>
+
+                                    {/* Location Filter */}
+                                    <div className="space-y-4 p-4 bg-gradient-to-br from-[var(--pk-500)]/10 to-purple-500/10 rounded-2xl border border-[var(--pk-500)]/20">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-black uppercase tracking-tight text-[var(--pk-200)]">📍 Events Near Me</span>
+                                                <span className="text-[10px] opacity-60 font-bold text-[var(--pk-300)]">Filter by proximity to your location</span>
+                                            </div>
+                                            <button
+                                                onClick={() => updateSettings({ enableLocationFilter: !settings.enableLocationFilter })}
+                                                className={`w-12 h-6 rounded-full transition-all relative ${settings.enableLocationFilter ? 'bg-[var(--pk-500)] shadow-[0_0_15px_rgba(var(--pk-500-rgb),0.5)]' : 'bg-gray-700'}`}
+                                            >
+                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${settings.enableLocationFilter ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        {settings.enableLocationFilter && (
+                                            <div className="space-y-4 pt-4 border-t border-white/10">
+                                                {/* Location Source */}
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Location Source</label>
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        {[
+                                                            { id: 'browser', label: 'Browser', icon: '🌐' },
+                                                            { id: 'postal-code', label: 'Postal', icon: '📮' },
+                                                            { id: 'address', label: 'Address', icon: '🏠' }
+                                                        ].map(source => (
+                                                            <button
+                                                                key={source.id}
+                                                                onClick={() => updateSettings({ locationSource: source.id as any })}
+                                                                className={`py-2 px-3 text-[10px] font-black uppercase rounded-xl transition-all border ${settings.locationSource === source.id ? 'bg-[var(--pk-500)] text-white border-[var(--pk-500)] shadow-lg' : 'bg-black/40 text-gray-500 border-white/5 hover:border-white/20'}`}
+                                                            >
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <span>{source.icon}</span>
+                                                                    <span>{source.label}</span>
+                                                                </div>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Postal Code Input */}
+                                                {settings.locationSource === 'postal-code' && (
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Postal Code</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="M5V 3A8"
+                                                            value={settings.userPostalCode}
+                                                            onChange={(e) => updateSettings({ userPostalCode: e.target.value.toUpperCase() })}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono focus:outline-none focus:border-[var(--pk-500)] shadow-inner"
+                                                            maxLength={7}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {/* Address Input */}
+                                                {settings.locationSource === 'address' && (
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Address</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="123 Queen St W, Toronto"
+                                                            value={settings.userPostalCode}
+                                                            onChange={(e) => updateSettings({ userPostalCode: e.target.value })}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[var(--pk-500)] shadow-inner"
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {/* Distance Radius */}
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Max Distance</label>
+                                                    <div className="flex items-center gap-4">
+                                                        <input
+                                                            type="range"
+                                                            min="1"
+                                                            max="50"
+                                                            step="1"
+                                                            value={settings.maxDistanceKm}
+                                                            onChange={(e) => updateSettings({ maxDistanceKm: parseInt(e.target.value) })}
+                                                            className="flex-1 h-1.5 bg-black/40 rounded-lg appearance-none cursor-pointer accent-[var(--pk-500)]"
+                                                        />
+                                                        <span className="text-xs font-black font-mono text-[var(--pk-300)] min-w-[60px]">{settings.maxDistanceKm} km</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Current Location Status */}
+                                                {settings.userLatitude && settings.userLongitude && (
+                                                    <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                                                        <p className="text-[10px] font-bold text-green-400 flex items-center gap-2">
+                                                            ✓ Location set: {settings.userLatitude.toFixed(4)}, {settings.userLongitude.toFixed(4)}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Keyword Blacklist */}

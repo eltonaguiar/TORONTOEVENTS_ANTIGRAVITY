@@ -30,7 +30,16 @@ interface Settings {
     webpageScale: number;
     configPanelWidth: number;
     configPanelHeight: number;
-    savedEvents: any[]; // Using any[] to avoid circular dependency issues if Event isn't exported here, but ideally import Event
+    savedEvents: any[];
+    activeBackground: string;
+    viewLayout: 'feed' | 'table';
+    showChatAssistant: boolean;
+    // Location filtering
+    enableLocationFilter: boolean;
+    userLatitude: number | null;
+    userLongitude: number | null;
+    maxDistanceKm: number;
+    locationSource: 'browser' | 'postal-code' | 'address';
 }
 
 interface SettingsContextType {
@@ -64,6 +73,15 @@ const defaultSettings: Settings = {
     configPanelWidth: 450,
     configPanelHeight: 800,
     savedEvents: [],
+    activeBackground: 'nebula',
+    viewLayout: 'feed',
+    showChatAssistant: false,
+    // Location filtering defaults
+    enableLocationFilter: false,
+    userLatitude: null,
+    userLongitude: null,
+    maxDistanceKm: 10, // Default to 10km radius
+    locationSource: 'browser',
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -142,8 +160,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     return (
         <SettingsContext.Provider value={{ settings, updateSettings, toggleSavedEvent, importEvents }}>
+            <div className={`app-bg-wrapper bg-${settings.activeBackground}`} />
             <div
-                className={`font-size-${settings.fontSize} density-${settings.layoutDensity}`}
+                className={`font-size-${settings.fontSize} density-${settings.layoutDensity} relative z-0`}
                 style={{ scale: 'var(--webpage-scale)', transformOrigin: 'top center' }}
             >
                 {children}

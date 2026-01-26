@@ -93,7 +93,7 @@ export class CitySwoonScraper implements ScraperSource {
                     priceAmount,
                     isFree: false,
                     description: fullDescription,
-                    categories: categorizeEvent(title, fullDescription, ['Dating', 'Speed Dating']),
+                    categories: categorizeEvent(title, fullDescription),
                     status: 'UPCOMING',
                     lastUpdated: new Date().toISOString()
                 });

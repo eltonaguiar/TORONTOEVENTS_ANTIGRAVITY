@@ -118,7 +118,7 @@ function getTorontoOffset(date: Date): string {
     }
 }
 
-export function inferCategory(title: string, description: string): string[] {
+export function categorizeEvent(title: string, description: string): string[] {
     const text = (title + ' ' + (description || '')).toLowerCase();
     const cats = new Set<string>();
 
@@ -133,7 +133,7 @@ export function inferCategory(title: string, description: string): string[] {
         'Community': ['community', 'volunteer', 'local', 'meeting', 'neighborhood', 'town hall', 'social', 'charity'],
         'Family': ['family', 'kids', 'children', 'toddler', 'school', 'parent', 'youth'],
         'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny', 'sitcom'],
-        'Dating': ['dating', 'singles', 'matchmaking', 'speed dating', 'mixer', 'blind date', 'romance', 'swoon', 'relationship', 'mingle', 'single in the city', 'flare events', 'cheeky'],
+        'Dating': ['dating', 'singles', 'matchmaking', 'speed dating', 'mixer', 'blind date', 'romance', 'swoon', 'relationship', 'mingle', 'single in the city', 'flare events', 'cheeky', 'matrimonial', 'for single men', 'for single women'],
         'Thursday': ['thursday', 'getthursday']
     };
 
@@ -178,3 +178,54 @@ export function isEnglish(text: string): boolean {
     if (totalChars === 0) return true;
     return (latinChars.length / totalChars) > 0.5;
 }
+
+export function consolidateEvents(events: Event[]): Event[] {
+    // Group events by normalized title and date
+    const groups = new Map<string, Event[]>();
+
+    for (const event of events) {
+        // Create a key based on normalized title and date (within same day)
+        const normalizedTitle = event.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const eventDate = new Date(event.date);
+        const dateKey = `${eventDate.getFullYear()}-${eventDate.getMonth()}-${eventDate.getDate()}`;
+        const key = `${normalizedTitle}-${dateKey}`;
+
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+        groups.get(key)!.push(event);
+    }
+
+    // For each group, keep the best version
+    const consolidated: Event[] = [];
+    for (const group of groups.values()) {
+        if (group.length === 1) {
+            consolidated.push(group[0]);
+        } else {
+            // Pick the event with the most complete information
+            const best = group.reduce((prev, curr) => {
+                let prevScore = 0;
+                let currScore = 0;
+
+                if (prev.description && prev.description.length > 50) prevScore += 2;
+                if (curr.description && curr.description.length > 50) currScore += 2;
+
+                if (prev.image) prevScore += 1;
+                if (curr.image) currScore += 1;
+
+                if (prev.latitude && prev.longitude) prevScore += 1;
+                if (curr.latitude && curr.longitude) currScore += 1;
+
+                if (prev.priceAmount !== undefined) prevScore += 1;
+                if (curr.priceAmount !== undefined) currScore += 1;
+
+                return currScore > prevScore ? curr : prev;
+            });
+
+            consolidated.push(best);
+        }
+    }
+
+    return consolidated;
+}
+

@@ -83,27 +83,49 @@ a {
 }
 
 /* Font Size Variants */
-.font-size-sm { font-size: 14px; }
-.font-size-md { font-size: 16px; }
-.font-size-lg { font-size: 18px; }
+.font-size-sm {
+  font-size: 14px;
+}
+
+.font-size-md {
+  font-size: 16px;
+}
+
+.font-size-lg {
+  font-size: 18px;
+}
 
 /* Density Variants */
-.density-compact .glass-panel { padding: 0.75rem !important; }
-.density-compact h3 { margin-bottom: 0.25rem !important; }
-.density-spacious .glass-panel { padding: 2rem !important; }
-.density-spacious h3 { margin-bottom: 1.5rem !important; }
+.density-compact .glass-panel {
+  padding: 0.75rem !important;
+}
+
+.density-compact h3 {
+  margin-bottom: 0.25rem !important;
+}
+
+.density-spacious .glass-panel {
+  padding: 2rem !important;
+}
+
+.density-spacious h3 {
+  margin-bottom: 1.5rem !important;
+}
 
 /* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(var(--pk-500-rgb, 236, 72, 153), 0.3);
   border-radius: 10px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(var(--pk-500-rgb, 236, 72, 153), 0.5);
 }
@@ -123,23 +145,49 @@ a {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(40px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes zoomIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-fade-in {
@@ -156,4 +204,54 @@ a {
 
 .animate-spin-slow {
   animation: spinSlow 8s linear infinite;
+}
+
+/* Animated Gradients */
+@keyframes nebulaMove {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-nebula {
+  background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #ec489922) !important;
+  background-size: 400% 400% !important;
+  animation: nebulaMove 15s ease infinite !important;
+}
+
+.bg-midnight {
+  background: linear-gradient(-45deg, #000000, #0f172a, #1e1b4b, #000000) !important;
+  background-size: 400% 400% !important;
+  animation: nebulaMove 20s ease infinite !important;
+}
+
+.bg-forest {
+  background: linear-gradient(-45deg, #064e3b, #022c22, #065f46, #064e3b) !important;
+  background-size: 400% 400% !important;
+  animation: nebulaMove 18s ease infinite !important;
+}
+
+.bg-sunset {
+  background: linear-gradient(-45deg, #450a0a, #7c2d12, #4c1d95, #450a0a) !important;
+  background-size: 400% 400% !important;
+  animation: nebulaMove 12s ease infinite !important;
+}
+
+/* Background Wrapper */
+.app-bg-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -20;
+  transition: all 1s ease;
 }

@@ -70,7 +70,7 @@ export class TwentyFiveDatesScraper implements ScraperSource {
                         priceAmount,
                         isFree: false,
                         description,
-                        categories: categorizeEvent(title, description, ['Dating', 'Speed Dating']),
+                        categories: categorizeEvent(title, description),
                         status: 'UPCOMING',
                         lastUpdated: new Date().toISOString()
                     };

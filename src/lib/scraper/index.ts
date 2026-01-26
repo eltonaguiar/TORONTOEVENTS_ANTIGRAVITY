@@ -14,6 +14,11 @@ import { ShowpassScraper } from './source-showpass';
 import { FatsomaScraper } from './source-fatsoma';
 import { CitySwoonScraper } from './source-cityswoon';
 import { TwentyFiveDatesScraper } from './source-25dates';
+import { ThursdayScraper } from './source-thursday';
+import { TorontoDatingHubScraper } from './source-torontodatinghub';
+import { WaterworksScraper } from './source-waterworks';
+import { BlogTOScraper } from './source-blogto';
+import { NarcityScraper } from './source-narcity';
 
 // Register sources
 const sources: ScraperSource[] = [
@@ -23,6 +28,11 @@ const sources: ScraperSource[] = [
     new FatsomaScraper(),
     new CitySwoonScraper(),
     new TwentyFiveDatesScraper(),
+    new ThursdayScraper(),
+    new TorontoDatingHubScraper(),
+    new WaterworksScraper(),
+    new BlogTOScraper(),
+    new NarcityScraper(),
 ];
 
 async function checkLinkStatus(url: string): Promise<boolean> {

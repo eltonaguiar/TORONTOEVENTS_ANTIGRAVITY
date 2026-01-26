@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, inferCategory, isEnglish } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, isEnglish } from './utils';
 import { EventbriteDetailScraper } from './detail-scraper';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -53,7 +53,8 @@ export class EventbriteScraper implements ScraperSource {
         const hubQueries = [
             'd/canada--toronto/toronto-dating-hub/',
             'd/canada--toronto/dating-hub/',
-            'o/toronto-dating-hub-31627918491/'
+            'o/toronto-dating-hub-31627918491/',
+            'o/mohan-matchmaking-63764588373/'
         ];
         for (const query of hubQueries) {
             this.searchUrls.push(`/${query}`);
@@ -175,8 +176,8 @@ export class EventbriteScraper implements ScraperSource {
                                             latitude,
                                             longitude,
                                             categories: isRecurring
-                                                ? [...new Set([...inferCategory(title, eventItem.description || ''), 'Multi-Day'])]
-                                                : inferCategory(title, eventItem.description || ''),
+                                                ? [...new Set([...categorizeEvent(title, eventItem.description || ''), 'Multi-Day'])]
+                                                : categorizeEvent(title, eventItem.description || ''),
                                             status: 'UPCOMING',
                                             lastUpdated: new Date().toISOString()
                                         };
@@ -249,8 +250,8 @@ export class EventbriteScraper implements ScraperSource {
                                     latitude,
                                     longitude,
                                     categories: isRecurring
-                                        ? [...new Set([...inferCategory(title, item.description || ''), 'Multi-Day'])]
-                                        : inferCategory(title, item.description || ''),
+                                        ? [...new Set([...categorizeEvent(title, item.description || ''), 'Multi-Day'])]
+                                        : categorizeEvent(title, item.description || ''),
                                     status: 'UPCOMING',
                                     lastUpdated: new Date().toISOString()
                                 };

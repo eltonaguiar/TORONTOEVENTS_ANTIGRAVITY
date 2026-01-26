@@ -1,12 +1,14 @@
 import { getEvents } from '../lib/data';
 import EventFeed from '../components/EventFeed';
+import ChatAssistant from '../components/ChatAssistant';
+import ConfigButton from '../components/ConfigButton';
 import fs from 'fs';
 import path from 'path';
 
 // Force static generation
 export const dynamic = 'force-static';
 
-const VERSION = 'v0.4.1';
+const VERSION = 'v0.5.0';
 
 export const metadata = {
   title: `Toronto Events ${VERSION} - Real-Time Event Listings`,
@@ -55,15 +57,11 @@ export default function Home() {
       </header>
 
       <EventFeed events={allEvents} />
+      <ChatAssistant allEvents={allEvents} />
 
       <footer className="py-12 text-center text-[var(--text-3)] border-t border-white/5 space-y-4">
         <div className="flex justify-center gap-6">
-          <button
-            onClick={() => (document.querySelector('[title="Configuration Settings"]') as any)?.click()}
-            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
-          >
-            ⚙️ System Config
-          </button>
+          <ConfigButton />
           <a href="#" className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-white/10">
             🔝 Back to Top
           </a>
