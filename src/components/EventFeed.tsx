@@ -16,6 +16,7 @@ export default function EventFeed({ events }: EventFeedProps) {
     const [showHidden, setShowHidden] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+    const now = useMemo(() => new Date(), []); // Stable reference for a single render
     const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
     const [showMultiDay, setShowMultiDay] = useState(false);
     const [maxPrice, setMaxPrice] = useState<number>(120);
@@ -131,7 +132,6 @@ export default function EventFeed({ events }: EventFeedProps) {
         return isHidden;
     });
 
-    const now = new Date();
     const singleDayEvents = validEvents.filter(e => !isMultiDay(e));
     const multiDayEvents = validEvents.filter(e => {
         if (isMultiDay(e)) {
