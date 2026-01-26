@@ -64,9 +64,18 @@ export class EventbriteDetailScraper {
             result.salesEnded = directSalesEnded && !hasTicketButton;
 
             // 3. Check Recurring Status
-            result.isRecurring = bodyText.includes('Multiple Dates') ||
-                bodyText.includes('Select more dates') ||
-                bodyText.includes('Check availability');
+            // 3. Check Recurring Status
+            // 'Check availability' often appears for single day events with multiple ticket tiers, causing false positives. 
+            // 'Multiple dates' is the gold standard for Eventbrite series.
+            const recurringIndicators = [
+                'Multiple Dates',
+                'Event Series',
+                'Select a date' // specific to series picker
+            ];
+
+            // Search in specific areas first to avoid footer matches
+            const heroText = $('.eds-layout__body').text() || bodyText;
+            result.isRecurring = recurringIndicators.some(indicator => heroText.includes(indicator));
 
             // 4. Extract Full Description
             // Try multiple selectors common on Eventbrite
