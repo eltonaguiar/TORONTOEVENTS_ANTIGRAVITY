@@ -29,6 +29,9 @@ jobs:
       - name: Install Dependencies 📦
         run: npm ci
 
+      - name: Run Diagnostics 🔍
+        run: npx tsx scripts/diagnose-eventbrite-block.ts
+
       - name: Run Scraper 🕷️
         env:
           EVENTBRITE_PRIVATE_TOKEN: ${{ secrets.EVENTBRITE_PRIVATE_TOKEN }}
