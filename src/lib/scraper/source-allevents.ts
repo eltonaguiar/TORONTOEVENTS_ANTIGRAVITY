@@ -76,6 +76,21 @@ export class AllEventsScraper implements ScraperSource {
                     }
 
                     const description = cleanText(card.find('.description, .detail').text());
+                    const combinedText = `${title} ${description} ${card.text()}`;
+
+                    let price = 'See Tickets';
+                    let priceAmount: number | undefined;
+                    let isFree = false;
+
+                    const priceMatch = combinedText.match(/\$\s?(\d+(?:\.\d{2})?)/);
+                    if (priceMatch) {
+                        priceAmount = parseFloat(priceMatch[1]);
+                        price = `$${priceAmount}`;
+                    } else if (combinedText.toLowerCase().includes('free')) {
+                        isFree = true;
+                        price = 'Free';
+                        priceAmount = 0;
+                    }
 
                     const event: Event = {
                         id: generateEventId(fullUrl),
@@ -85,10 +100,11 @@ export class AllEventsScraper implements ScraperSource {
                         source: 'AllEvents.in',
                         url: fullUrl,
                         image,
-                        price: 'TBD',
-                        isFree: false,
+                        price,
+                        priceAmount,
+                        isFree,
                         description,
-                        categories: categorizeEvent(title, description),
+                        categories: categorizeEvent(title, description, ['Dating']),
                         status: 'UPCOMING',
                         lastUpdated: new Date().toISOString()
                     };

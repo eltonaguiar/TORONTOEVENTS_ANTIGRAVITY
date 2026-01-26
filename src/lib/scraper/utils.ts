@@ -79,7 +79,9 @@ export function categorizeEvent(title: string, description: string, existingCate
         'Nightlife': ['party', 'club', 'nightlife', 'bar', 'celebration', 'dance', 'rave'],
         'Community': ['community', 'volunteer', 'local', 'meeting', 'neighborhood', 'town hall'],
         'Family': ['family', 'kids', 'children', 'toddler', 'school', 'parent'],
-        'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny']
+        'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny'],
+        'Dating': ['dating', 'singles', 'matchmaking', 'speed dating', 'mixer', 'blind date', 'romance'],
+        'Thursday': ['thursday', 'getthursday']
     };
 
     const recurringKeywords = ['multiple dates', 'recurring', 'select more dates', 'check availability', 'series'];

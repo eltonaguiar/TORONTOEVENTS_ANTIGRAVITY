@@ -10,19 +10,12 @@ export class EventbriteScraper implements ScraperSource {
 
     private searchUrls = [
         '/d/canada--toronto/events--today/',
-        '/d/canada--toronto/events--today/?page=2',
-        '/d/canada--toronto/events--today/?page=3',
         '/d/canada--toronto/events--tomorrow/',
-        '/d/canada--toronto/events--tomorrow/?page=2',
-        '/d/canada--toronto/events--tomorrow/?page=3',
-        '/d/canada--toronto/events--this-weekend/',
         '/d/canada--toronto/events--this-week/',
-        '/d/canada--toronto/music--events/',
-        '/d/canada--toronto/business--events/',
-        '/d/canada--toronto/food-and-drink--events/',
-        '/d/canada--toronto/arts--events/',
-        '/d/canada--toronto/nightlife--events/',
         '/d/canada--toronto/free--events/',
+        '/d/canada--toronto/thursday--events/',
+        '/o/toronto-dating-hub-30693540114',
+        '/o/mycheekydate-speed-dating-toronto-matchmaking-11357672223',
     ];
 
     async scrape(): Promise<ScraperResult> {

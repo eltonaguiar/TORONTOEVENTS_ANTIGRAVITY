@@ -4,7 +4,7 @@ export interface Event {
   date: string; // ISO 8601
   endDate?: string; // ISO 8601
   location: string;
-  source: 'Eventbrite' | 'City of Toronto' | 'Destination Toronto' | 'AllEvents.in' | 'Other';
+  source: 'Eventbrite' | 'City of Toronto' | 'Destination Toronto' | 'AllEvents.in' | 'Showpass' | string;
   url: string;
   image?: string;
   price: string;

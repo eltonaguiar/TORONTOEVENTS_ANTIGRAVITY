@@ -30,8 +30,8 @@ if (cards.length > 0) {
     console.log('Date:', first.find('.date').text().trim());
     console.log('Img src:', first.find('img').attr('src') || first.find('img').attr('data-src'));
     console.log('Img thumb:', first.find('.thumb').attr('src') || first.find('.thumb').attr('data-src'));
-    console.log('Meta itemprop image:', first.find('[itemprop="image"]').attr('content'));
-    console.log('Background-image:', first.find('.event-card-image').css('background-image'));
+    console.log('Price/Tickets info:', first.find('.price').text().trim() || first.find('.tickets').text().trim() || first.find('.fee').text().trim());
+    console.log('Book button text:', first.find('.book-button-left, .buy-tickets, .get-tickets').text().trim());
 }
 
 const itemscopes = $('li[itemscope]');

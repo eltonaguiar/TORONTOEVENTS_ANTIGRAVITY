@@ -9,10 +9,13 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { ShowpassScraper } from './source-showpass';
+
 // Register sources
 const sources: ScraperSource[] = [
     new EventbriteScraper(),
     new AllEventsScraper(),
+    new ShowpassScraper(),
 ];
 
 async function checkLinkStatus(url: string): Promise<boolean> {
@@ -84,9 +87,9 @@ export async function runScraper() {
     // 4. Handle Stale/Cancelled events
     for (const [id, existing] of existingMap) {
         if (!mergedEventsMap.has(id)) {
-            // Check if past (auto-prune)
-            if (new Date(existing.date) < new Date()) {
-                console.log(`Pruning past event: ${existing.title}`);
+            // Verify it still meets quality/date standards (auto-prune past)
+            if (!shouldIncludeEvent(existing)) {
+                console.log(`Pruning past or low-quality existing event: ${existing.title}`);
                 continue;
             }
 
