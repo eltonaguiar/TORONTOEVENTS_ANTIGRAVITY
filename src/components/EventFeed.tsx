@@ -412,10 +412,17 @@ export default function EventFeed({ events }: EventFeedProps) {
                             >
                                 <span>↓ Export</span>
                             </button>
-                            <label className="px-5 py-3 rounded-2xl bg-white text-black hover:bg-[var(--pk-500)] hover:text-white text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer flex items-center gap-2 shadow-xl">
+                            <label className="px-4 py-2 rounded-xl bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-xs font-bold uppercase tracking-wider border border-white/5 transition-colors cursor-pointer flex items-center gap-2 text-white">
                                 <span>↑ Import</span>
                                 <input type="file" onChange={handleImport} accept=".txt,.json" className="hidden" />
                             </label>
+                            <button
+                                onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
+                                className="p-3 bg-white/5 hover:bg-[var(--pk-500)] text-white/40 hover:text-white rounded-xl transition-all border border-white/10 group/savedgear"
+                                title="System Preferences"
+                            >
+                                <span className="group-hover/savedgear:rotate-90 transition-transform block text-lg leading-none">⚙️</span>
+                            </button>
                         </div>
                     )}
                 </div>

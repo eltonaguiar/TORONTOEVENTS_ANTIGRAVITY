@@ -67,11 +67,23 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
     // Fixed absolute URL for iframe - preventing GitHub relative link 404s
     const getAbsoluteUrl = (url: string) => {
         if (!url) return '';
-        if (url.startsWith('http')) return url;
+        if (url.startsWith('http')) {
+            // SNEAKY EMBED: For AllEvents.in, try using the /amp/ version which is more iframe-friendly
+            if (url.includes('allevents.in/event/')) {
+                return url.replace('allevents.in/event/', 'allevents.in/amp/event/');
+            }
+            return url;
+        }
+
         // If relative, assume source domain
         if (event.source === 'AllEvents.in' || url.includes('allevents.in')) {
             const path = url.startsWith('/') ? url : `/${url}`;
-            return `https://allevents.in${path}`;
+            let full = `https://allevents.in${path}`;
+            // SNEAKY EMBED fallback for relative paths
+            if (full.includes('/event/')) {
+                full = full.replace('/event/', '/amp/event/');
+            }
+            return full;
         }
         if (event.source === 'Eventbrite' || url.includes('eventbrite')) {
             const path = url.startsWith('/') ? url : `/${url}`;
@@ -81,6 +93,11 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
     };
 
     const absoluteUrl = getAbsoluteUrl(event.url);
+
+    // Toronto Dating Hub Priority Check
+    const isTDH = event.title.toLowerCase().includes('toronto dating hub') || (event.description || '').toLowerCase().includes('toronto dating hub');
+    const isTDHBypassed = isTDH && event.source !== 'Eventbrite';
+    const hubEventbriteUrl = isTDHBypassed ? `https://www.eventbrite.ca/o/toronto-dating-hub-31627918491` : null;
 
     const bodyText = (event.title + ' ' + (event.description || ''));
     const { isSoldOut: inferredSoldOut, genderSoldOut: inferredGenderOut } = inferSoldOutStatus(bodyText);
@@ -182,6 +199,14 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                         </svg>
                     </button>
 
+                    <button
+                        onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
+                        className="p-2 bg-white/5 hover:bg-[var(--pk-500)] text-white/40 hover:text-white rounded-xl transition-all border border-white/10 group/pg"
+                        title="Tweak Global Settings"
+                    >
+                        <span className="group-hover/pg:rotate-90 transition-transform block text-lg leading-none">⚙️</span>
+                    </button>
+
                     <button onClick={onClose} className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-colors text-white font-bold text-xl">
                         ×
                     </button>
@@ -204,96 +229,117 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             </div>
                         )}
 
-                        <div className="p-8 space-y-8 max-w-4xl mx-auto w-full">
-                            <div>
-                                <h2 className="text-4xl font-black mb-6 leading-[1.1] tracking-tight" style={{ color: 'var(--pk-300)' }}>{event.title}</h2>
-                                <div className="flex flex-wrap gap-2">
-                                    {event.categories.map((cat) => (
-                                        <span key={cat} className="px-4 py-1.5 rounded-full bg-[var(--pk-500)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--pk-500)]/20">
-                                            {cat}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Core Info Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white/5 rounded-3xl border border-white/5">
-                                <div className="space-y-1">
-                                    <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📅 Date & Time</span>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-white">
-                                            {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                        </span>
-                                        <span className="text-[var(--pk-300)] text-sm font-bold">
-                                            {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📍 Location</span>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-white truncate">{event.location}</span>
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">💰 Price</span>
-                                    <div className="flex flex-col underline decoration-[var(--pk-500)]/50">
-                                        <span className="font-bold text-white">{event.price || 'Free'}</span>
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📰 Source</span>
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-white">{event.source}</span>
+                        {/* Toronto Dating Hub Priority Notice */}
+                        {isTDHBypassed && (
+                            <div className="p-6 bg-red-600/20 border-2 border-red-600 rounded-[2rem] animate-pulse-slow">
+                                <div className="flex items-start gap-4">
+                                    <span className="text-3xl">⚠️</span>
+                                    <div className="space-y-2">
+                                        <h4 className="text-lg font-black uppercase text-red-400 tracking-tight">Source Priority Conflict</h4>
+                                        <p className="text-sm font-bold text-white/80 leading-relaxed">
+                                            This event is tagged as <span className="text-[var(--pk-300)]">Toronto Dating Hub</span>.
+                                            For the best experience and guaranteed ticketing, we recommend viewing this directly on Eventbrite.ca.
+                                        </p>
+                                        <a
+                                            href={hubEventbriteUrl || '#'}
+                                            target="_blank"
+                                            className="inline-block mt-2 px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-red-700 transition-colors"
+                                        >
+                                            Switch to Eventbrite Source →
+                                        </a>
                                     </div>
                                 </div>
                             </div>
+                        )}
 
-                            {/* About Section */}
-                            <div className="space-y-4">
-                                <h3 className="text-xl font-bold text-white">Description</h3>
-                                <div className="prose prose-sm prose-invert max-w-none opacity-80 leading-relaxed text-base">
-                                    <p className="whitespace-pre-wrap">{event.description || "No further details provided by the host."}</p>
+                        <div>
+                            <h2 className="text-4xl font-black mb-6 leading-[1.1] tracking-tight" style={{ color: 'var(--pk-300)' }}>{event.title}</h2>
+                            <div className="flex flex-wrap gap-2">
+                                {event.categories.map((cat) => (
+                                    <span key={cat} className="px-4 py-1.5 rounded-full bg-[var(--pk-500)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--pk-500)]/20">
+                                        {cat}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Core Info Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white/5 rounded-3xl border border-white/5">
+                            <div className="space-y-1">
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📅 Date & Time</span>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-white">
+                                        {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </span>
+                                    <span className="text-[var(--pk-300)] text-sm font-bold">
+                                        {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                    </span>
                                 </div>
                             </div>
-
-                            {/* Footer Actions */}
-                            <div className="flex flex-wrap gap-4 pt-8 border-t border-white/5 sticky bottom-0 bg-[#0a0a0b]/90 backdrop-blur-md pb-4">
-                                <a
-                                    href={absoluteUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex-1 min-w-[200px] bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white text-center py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-[var(--pk-500)]/30 transition-all hover:-translate-y-1"
-                                >
-                                    View Full Event Page →
-                                </a>
-                                <button
-                                    onClick={onClose}
-                                    className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-colors border border-white/10"
-                                >
-                                    Close
-                                </button>
-                            </div>
-
-                            {/* Live Site Preview Area */}
-                            <div className="mt-12 pt-8 border-t-2 border-white/10 space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-xl font-bold text-white">Event Page Preview</h3>
-                                    <div className="text-[10px] uppercase font-black text-white/30">Interactive IFrame</div>
+                            <div className="space-y-1">
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📍 Location</span>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-white truncate">{event.location}</span>
                                 </div>
-
-                                <iframe
-                                    src={absoluteUrl}
-                                    className="w-full bg-white rounded-3xl border-4 border-white/5 shadow-inner"
-                                    style={{ height: `${Math.max(400, height - 200)}px`, transition: 'height 0.3s ease' }}
-                                    title={`Preview: ${event.title}`}
-                                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                                />
-
-                                <p className="text-sm text-white/40 italic">
-                                    If the preview doesn't load, <a href={absoluteUrl} target="_blank" className="text-[var(--pk-300)] underline hover:text-white transition-colors">click here to open the event page</a>.
-                                </p>
                             </div>
+                            <div className="space-y-1">
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">💰 Price</span>
+                                <div className="flex flex-col underline decoration-[var(--pk-500)]/50">
+                                    <span className="font-bold text-white">{event.price || 'Free'}</span>
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📰 Source</span>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-white">{event.source}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* About Section */}
+                        <div className="space-y-4">
+                            <h3 className="text-xl font-bold text-white">Description</h3>
+                            <div className="prose prose-sm prose-invert max-w-none opacity-80 leading-relaxed text-base">
+                                <p className="whitespace-pre-wrap">{event.description || "No further details provided by the host."}</p>
+                            </div>
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div className="flex flex-wrap gap-4 pt-8 border-t border-white/5 sticky bottom-0 bg-[#0a0a0b]/90 backdrop-blur-md pb-4">
+                            <a
+                                href={absoluteUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 min-w-[200px] bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white text-center py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-[var(--pk-500)]/30 transition-all hover:-translate-y-1"
+                            >
+                                View Full Event Page →
+                            </a>
+                            <button
+                                onClick={onClose}
+                                className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-colors border border-white/10"
+                            >
+                                Close
+                            </button>
+                        </div>
+
+                        {/* Live Site Preview Area */}
+                        <div className="mt-12 pt-8 border-t-2 border-white/10 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-bold text-white">Event Page Preview</h3>
+                                <div className="text-[10px] uppercase font-black text-white/30">Interactive IFrame</div>
+                            </div>
+
+                            <iframe
+                                src={absoluteUrl}
+                                className="w-full bg-white rounded-3xl border-4 border-white/5 shadow-inner"
+                                style={{ height: `${Math.max(400, height - 200)}px`, transition: 'height 0.3s ease' }}
+                                title={`Preview: ${event.title}`}
+                                sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                            />
+
+                            <p className="text-sm text-white/40 italic">
+                                If the preview doesn't load, <a href={absoluteUrl} target="_blank" className="text-[var(--pk-300)] underline hover:text-white transition-colors">click here to open the event page</a>.
+                            </p>
                         </div>
                     </div>
                 )}

@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent, isEnglish } from './utils';
+import { generateEventId, cleanText, normalizeDate, inferCategory, isEnglish } from './utils';
 import { EventbriteDetailScraper } from './detail-scraper';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -49,13 +49,18 @@ export class EventbriteScraper implements ScraperSource {
             }
         }
 
-        // Specific niche organizers
-        // Note: Many specifics change IDs frequenttly. Categories are more robust.
-        // Keeping only highly stable ones if any.
-        const organizers: string[] = [
-            // '/o/toronto-dating-hub-31627918491', // Broken
+        // Specific targeted searches for "Toronto Dating Hub" as requested
+        const hubQueries = [
+            'd/canada--toronto/toronto-dating-hub/',
+            'd/canada--toronto/dating-hub/',
+            'o/toronto-dating-hub-31627918491/'
         ];
-        this.searchUrls.push(...organizers);
+        for (const query of hubQueries) {
+            this.searchUrls.push(`/${query}`);
+            for (let i = 2; i <= 5; i++) {
+                this.searchUrls.push(`/${query}?page=${i}`);
+            }
+        }
     }
 
     async scrape(): Promise<ScraperResult> {
@@ -170,8 +175,8 @@ export class EventbriteScraper implements ScraperSource {
                                             latitude,
                                             longitude,
                                             categories: isRecurring
-                                                ? [...new Set([...categorizeEvent(title, eventItem.description || '', categories), 'Multi-Day'])]
-                                                : categorizeEvent(title, eventItem.description || '', categories),
+                                                ? [...new Set([...inferCategory(title, eventItem.description || ''), 'Multi-Day'])]
+                                                : inferCategory(title, eventItem.description || ''),
                                             status: 'UPCOMING',
                                             lastUpdated: new Date().toISOString()
                                         };
@@ -244,8 +249,8 @@ export class EventbriteScraper implements ScraperSource {
                                     latitude,
                                     longitude,
                                     categories: isRecurring
-                                        ? [...new Set([...categorizeEvent(title, item.description || ''), 'Multi-Day'])]
-                                        : categorizeEvent(title, item.description || ''),
+                                        ? [...new Set([...inferCategory(title, item.description || ''), 'Multi-Day'])]
+                                        : inferCategory(title, item.description || ''),
                                     status: 'UPCOMING',
                                     lastUpdated: new Date().toISOString()
                                 };
