@@ -171,9 +171,27 @@ export function isEnglish(text: string): boolean {
 export function consolidateEvents(events: Event[]): Event[] {
     const map = new Map<string, Event[]>();
 
-    // Group by Title + Location (normalized)
+    // Group by Title + Location + DATE
+    // Update: If we group by date too, we won't consolidate same-day recurring sessions (good!)
+    // but we will still consolidate mutli-day festivals that span days? No.
+    // The goal of consolidateEvents is specifically to prevent "Music Festival Day 1", "Music Festival Day 2" clutter.
+    // BUT for "Yoga Class 10am" and "Yoga Class 2pm" on the SAME DAY, we want BOTH to show.
+    // Current bug: It merges EVERYTHING with same title.
+
+    // Fix: Key should be Title + Location + Day
+    // Wait, if we do that, then "Festival Day 1" and "Festival Day 2" are separate. That MIGHT be what we want for volume?
+    // User complaint: "Only 8 events". If we have 5 yoga classes today, we want 5 cards, not 1 "Multi-Day Yoga".
+
+    // So let's change grouping to be Title + Location + DATE-STRING.
+    // This effectively DISABLES the "Consolidation into Multi-Day ranges" for different days.
+    // It basically blindly removes duplicates (exact same time/title), but keeps same-title different-time.
+
+    // Actually, let's keep it simple: ONLY consolidate if start times are identical.
     for (const event of events) {
-        const key = `${event.title.toLowerCase().trim()}|${event.location?.toLowerCase().trim() || ''}`;
+        // Key = Title + Location + Date + Time
+        // This essentially acts as a pure duplicate remover, not a "range creator".
+        // The user WANTS to see volume. 
+        const key = `${event.title.toLowerCase().trim()}|${event.location?.toLowerCase().trim() || ''}|${event.date}`;
         if (!map.has(key)) {
             map.set(key, []);
         }
