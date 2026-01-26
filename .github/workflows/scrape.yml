@@ -30,6 +30,8 @@ jobs:
         run: npm ci
 
       - name: Run Scraper 🕷️
+        env:
+          EVENTBRITE_PRIVATE_TOKEN: ${{ secrets.EVENTBRITE_PRIVATE_TOKEN }}
         run: npm run scrape
 
       - name: Commit Updated Data 💾
