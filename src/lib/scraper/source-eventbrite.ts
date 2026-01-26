@@ -35,7 +35,9 @@ export class EventbriteScraper implements ScraperSource {
             'travel-and-outdoor--events',
             'science-and-tech--events',
             'performing-arts',
-            'free--events' // Very important for volume
+            'free--events', // Very important for volume
+            'dating--events',
+            'singles--events'
         ];
 
         // Deep paging for massive volume (Pages 1-8)
@@ -48,19 +50,10 @@ export class EventbriteScraper implements ScraperSource {
         }
 
         // Specific niche organizers
-        const organizers = [
-            '/o/toronto-dating-hub-31627918491',
-            '/o/toronto-dating-hub-30693540114',
-            '/o/mycheekydate-speed-dating-toronto-matchmaking-11281652610',
-            '/o/mycheekydate-speed-dating-toronto-matchmaking-11357672223',
-            '/o/flare-events-17849642646',
-            '/o/cityswoon-16812847239',
-            '/o/25datescom-84423023077',
-            '/o/single-in-the-city-107798363',
-            '/o/torontogtasingles-events-matchmaking-41132646217',
-            '/o/torontogtasingles-events-83679246113',
-            '/o/speedtoronto-dating-34887968453',
-            '/o/the-tantra-institute-12791729483',
+        // Note: Many specifics change IDs frequenttly. Categories are more robust.
+        // Keeping only highly stable ones if any.
+        const organizers: string[] = [
+            // '/o/toronto-dating-hub-31627918491', // Broken
         ];
         this.searchUrls.push(...organizers);
     }
