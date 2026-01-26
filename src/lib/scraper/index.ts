@@ -11,6 +11,8 @@ import * as path from 'path';
 
 import { ShowpassScraper } from './source-showpass';
 import { FatsomaScraper } from './source-fatsoma';
+import { CitySwoonScraper } from './source-cityswoon';
+import { TwentyFiveDatesScraper } from './source-25dates';
 
 // Register sources
 const sources: ScraperSource[] = [
@@ -18,6 +20,8 @@ const sources: ScraperSource[] = [
     new AllEventsScraper(),
     new ShowpassScraper(),
     new FatsomaScraper(),
+    new CitySwoonScraper(),
+    new TwentyFiveDatesScraper(),
 ];
 
 async function checkLinkStatus(url: string): Promise<boolean> {

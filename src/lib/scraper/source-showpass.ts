@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export class ShowpassScraper implements ScraperSource {
     name = 'Showpass';
-    private organizations = ['flare-events', 'single-in-the-city'];
+    private organizations = ['flare-events', 'single-in-the-city', '25datescom'];
 
     async scrape(): Promise<ScraperResult> {
         const events: Event[] = [];
@@ -44,7 +44,7 @@ export class ShowpassScraper implements ScraperSource {
                             priceAmount,
                             isFree: priceAmount === 0,
                             description: cleanText(item.description || ''),
-                            categories: [...new Set([...categorizeEvent(title, item.description || ''), 'Dating'])],
+                            categories: categorizeEvent(title, item.description || ''),
                             status: 'UPCOMING',
                             lastUpdated: new Date().toISOString()
                         };

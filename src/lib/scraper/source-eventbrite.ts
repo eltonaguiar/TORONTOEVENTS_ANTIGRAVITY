@@ -16,11 +16,19 @@ export class EventbriteScraper implements ScraperSource {
         '/d/canada--toronto/speed-dating--events/',
         '/d/canada--toronto/singles--events/',
         '/d/canada--toronto/dating--events/',
+        '/d/canada--toronto/singles-mixer--events/',
         '/o/toronto-dating-hub-31627918491',
         '/o/toronto-dating-hub-30693540114',
         '/o/mycheekydate-speed-dating-toronto-matchmaking-11281652610',
         '/o/mycheekydate-speed-dating-toronto-matchmaking-11357672223',
         '/o/flare-events-17849642646',
+        '/o/cityswoon-16812847239',
+        '/o/25datescom-84423023077',
+        '/o/single-in-the-city-107798363',
+        '/o/torontogtasingles-events-matchmaking-41132646217',
+        '/o/torontogtasingles-events-83679246113',
+        '/o/speedtoronto-dating-34887968453',
+        '/o/the-tantra-institute-12791729483',
     ];
 
     async scrape(): Promise<ScraperResult> {
@@ -210,37 +218,30 @@ export class EventbriteScraper implements ScraperSource {
         console.log(`Enriching ${eventsToEnrich.length} today/tomorrow events with real times...`);
         let successCount = 0;
         for (const event of eventsToEnrich) {
-            const realTime = await EventbriteDetailScraper.fetchRealEventTime(event.url);
-            if (realTime) {
-                const normalized = normalizeDate(realTime);
+            const enrichment = await EventbriteDetailScraper.enrichEvent(event.url);
+
+            if (enrichment.realTime) {
+                const normalized = normalizeDate(enrichment.realTime);
                 if (normalized) {
                     event.date = normalized;
                     successCount++;
-                } else {
-                    console.log(`  ⚠ Invalid real time format: ${realTime} for ${event.title}`);
                 }
             }
 
-            // Check if sales have ended
-            const salesEnded = await EventbriteDetailScraper.checkSalesStatus(event.url);
-            if (salesEnded) {
-                event.status = 'CANCELLED'; // Mark as cancelled so it gets filtered
+            if (enrichment.salesEnded) {
+                event.status = 'CANCELLED';
                 console.log(`  ⚠ Sales ended: ${event.title.substring(0, 40)}`);
             }
 
-            // Check if it should be marked as Multi-Day
-            if (!event.categories.includes('Multi-Day')) {
-                const isRecurring = await EventbriteDetailScraper.checkIsRecurring(event.url);
-                if (isRecurring) {
-                    event.categories = [...new Set([...event.categories, 'Multi-Day'])];
-                    if (!event.endDate) event.endDate = event.date;
-                    console.log(`  ℹ Marked as Multi-Day (Recurring): ${event.title.substring(0, 40)}`);
-                }
+            if (enrichment.isRecurring && !event.categories.includes('Multi-Day')) {
+                event.categories = [...new Set([...event.categories, 'Multi-Day'])];
+                if (!event.endDate) event.endDate = event.date;
+                console.log(`  ℹ Marked as Multi-Day: ${event.title.substring(0, 40)}`);
             }
 
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
-        console.log(`✓ Enriched ${successCount}/${eventsToEnrich.length} events with real times`);
+        console.log(`✓ Enriched ${successCount}/${eventsToEnrich.length} events with details`);
 
         return {
             events: uniqueEvents,

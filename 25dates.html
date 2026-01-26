@@ -1,0 +1,745 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<title>In-Person Speed Dating - 25dates.com</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="BBE">
+<meta name="description" content="25Dates.com is North America's Speed Dating Service Serving Singles Since 2002. Speed Dating Toronto, Vancouver, Calgary, Ottawa, Mississauga.">
+<meta name="keywords" content="Speed Dating, 25dates.com, Singles Events, Speed Date, Dating, Singles, Events, Toronto, Vancouver, Ottawa, Calgary, Mississauga, single professionals.">
+<base href="https://www.25dates.com/">
+
+   
+		<noscript><link rel="stylesheet" href="https://www.25dates.com/styles.css?v=23"></noscript>
+	
+
+<link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicons/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicons/favicon-16x16.png">
+<!-- <link rel="manifest" href="/site.webmanifest"> -->
+<link rel="shortcut icon" href="https://www.25dates.com/favicon.ico">
+
+<script defer src="javascripts/alpine.js"></script>
+<script src="javascripts/jquery-3.6.0.min.js"></script>
+<style>
+.vwrap, .vitem {height: 30px;line-height: 30px; color:white;}.vwrap { overflow: hidden; }.vitem {text-align: center;font-size:16px;}.vmove {position: relative;}@keyframes tickerv {0% {bottom: 0;}30% {bottom: 30px;}60% {bottom: 60px;}90% {bottom: 90px;}100% {bottom: 0;}}.vmove {animation-name: tickerv;animation-duration: 12s;animation-iteration-count: infinite;animation-timing-function: cubic-bezier(1, 0, .5, 0);}.vmove:hover {animation-play-state: paused;}.list {position: relative;width: 100%;height: 40px;}.list .item {position: absolute;top: 0;left: 0;opacity: 0;transform: translateY(10px);text-align: center;width: 100%;padding-left: 10px;padding-right: 10px;}.list .ticker_1 {animation: appear 15s 0s infinite ease;}.list .ticker_2 {animation: appear 15s 2.5s infinite ease;}.list .ticker_3 {animation: appear 15s 5s infinite ease;}.list .ticker_4 {animation: appear 15s 7.5s infinite ease;}.list .ticker_5 {animation: appear 15s 10s infinite ease;}.list .ticker_6 {animation: appear 15s 12.5s infinite ease;}.list .ticker_7 {animation: appear 15s 15s infinite ease;}@keyframes appear {0% {opacity: 0;}7% {opacity: 1;transform: translateY(0);}10% {opacity: 1;transform: translateY(0);}14% {opacity: 0;transform: translateY(-10px);}100% {opacity: 0;transform: translateY(0);}}
+.noScroll { overflow: hidden; }
+.bs-mediabar{display:flex;align-items:center;justify-content:center;padding:1px;background-color:#FFF}
+.bs-h-mediabar{height:24px;}
+.bs-ticker{display:flex;align-items:center;justify-content:center;height:24px;background-color:rgba(175, 11, 11);color:#000;}
+.bs-font{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"!important;line-height:1.5;}
+.tw-shadow{box-shadow:0 1px 3px 0 rgba(0,0,0,0.1),0 1px 2px 0 rgba(0,0,0,0.06);}
+.bs-menu{height:64px;width:100%;position:fixed;top:0;z-index:50;}
+.bs-grid{height:64px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:white;}
+.bs-column-one{display:flex;align-items:center;justify-content:flex-start;height:64px;}
+.bs-column-two{display:flex;align-items:center;justify-content:center;height:64px;grid-column: span 2 / span 2}
+.bs-column-three{display:flex;align-items:center;justify-content:flex-end;height:64px;}
+.bs-wrap-one{display:flex;align-items:center;justify-content:flex-start;height:64px;}
+.bs-menu-item{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;height:56px;margin-left:4px;margin-right:4px;}
+.bs-menu-icon{display:block;height:28px;width:28px;margin-left:auto;margin-right:auto;color: rgba(55, 65, 81);}
+.bs-fb{margin-left:5px;color:rgba(69,165,250);}
+.bs-logo-img{width:176px;}
+.bs-logo{display:flex;justify-content:center;}
+.bs-button{font-family:inherit;text-transform:none;font-size:100%;-webkit-appearance:button;line-height:1.15;margin-left:6px;margin-right:4px;background-color:transparent;background-image:none;cursor:pointer;padding:0;line-height:inherit;color:inherit;border:none;}
+.bs-button:focus{border:none;box-shadow:none;}
+.menutext{font-size:20px;line-height:28px;color:rgba(55,65,81);text-transform:uppercase;letter-spacing:-0.025em;margin-left:5px;margin-right:5px;text-decoration:none;border-bottom:2px solid #fff;cursor: pointer;}
+.menutext:hover{color: rgba(175, 11, 11); border-bottom: 2px solid rgba(175, 11, 11);text-decoration:none;}
+.menutext:visited{color:rgba(55,65,81);}
+.bs-panel-in{display:flex;flex-direction:column;padding:16px;}
+.menu-panel{background-color:rgb(243,244,246);height:100%;overflow-y:auto;position:fixed;top:89px;width:80%;z-index:50;font-size:20px;line-height:28px;margin:0;padding:0;border-right:1px solid rgba(229,231,235);transition:transform 0.5s cubic-bezier(0.4,0.0,0.2,1);}
+.menu-panel-right{border-left:1px solid rgba(229,231,235);border-right:none;}
+.menu-panel ul{list-style:none;margin:0;padding:0;}
+.menu-acc-main:hover{background-color:rgba(229,231,235);}
+.menu-acc-main{cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid rgba(229,231,235);color: rgba(55, 65, 81)}
+.menu-acc-sub:hover{background-color:rgba(229,231,235);text-decoration:none;color:rgba(55,65,81)!important;transition: 2s;}
+.menu-acc-sub:visited{text-decoration:none !important;cursor:pointer !important;color:rgba(55,65,81);}
+.menu-acc-sub{display:flex;padding:8px;color:rgba(55,65,81);text-decoration:none;border-bottom:1px solid rgba(229,231,235);}
+.menu-acc-active{;color:rgba(175, 11, 11);border-left: 2px solid rgba(175, 11, 11);}
+.menu-active{color: rgb(175, 11, 11); border-bottom: 2px solid rgba(175, 11, 11)}
+.bs-wrap-one,.bs-column-one,.bs-column-two,.bs-column-three{height:64px;}
+.bs-px2{padding-left:10px;padding-right:8px;background:#fff;}
+.bs-lh {height: 30px; line-height: 28px;}
+.bsf-footer{display:flex;align-items:center;justify-content:center;width:100%;margin-top:80px;font-size:12px;}
+.bsf-inner {display:flex;flex-wrap:wrap;flex-direction:row;text-align:center;
+   margin-left:auto;margin-right:auto;font-size:12px;width:100%;padding:12px;
+   align-items:center;justify-content:center;color:#466289;
+   font: inherit;
+   }
+.bsf-inner a {
+   color:#466289;
+   text-decoration:none;
+}
+.bsf-inner a:visited{color:#466289;}
+.bsf-inner p {
+   margin-bottom:4px;  
+   width:100%;
+}
+
+@media (min-width:640px)
+{
+   .bs-logo-img{width:256px;}
+}
+@media (max-width:768px){
+   .bsf-footer{font-size:12px;}
+   .bs-hidden-xs{display:none!important;}
+   .bs-hidden{display:none!important;}
+}
+
+@media (min-width:768px){.bs-menu,.bs-grid,.bs-column-one,.bs-column-two,.bs-column-three,.bs-wrap-one{height:96px;}
+.menu-panel,.bs-search-panel{top:96px;}
+.menu-panel{width:33.333337%;top:146px;}
+.bsf-inner{font-size:14px;width:60%;}
+.bs-button{margin-left:5px;margin-right:3px;}
+.bs-logo-img{width:384px;}
+}
+@media (min-width:768px) and (max-width:991px){.bs-hidden-sm{display:none !important;}
+}
+@media (min-width:992px) and (max-width:1199px){.bs-hidden-md{display:none !important;}
+}
+@media (min-width:1200px){
+.bs-hidden-lg{display:none !important;}
+}
+.chevron-down{width:20px;height:20px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20class%3D%22h-5%20w-5%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22currentColor%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E");background-repeat:no-repeat no-repeat;background-position:center center;background-size:contain;}
+.chevron-up{width:20px;height:20px;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20class%3D%22h-5%20w-5%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22currentColor%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M14.707%2012.707a1%201%200%2001-1.414%200L10%209.414l-3.293%203.293a1%201%200%2001-1.414-1.414l4-4a1%201%200%20011.414%200l4%204a1%201%200%20010%201.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E");background-repeat:no-repeat no-repeat;background-position:center center;background-size:contain;}
+</style><style>
+/* start tailwind classes */
+.border-l-2{border-left:2px solid #e3e3e3;}
+.border-r-2{border-right-width:2px;}
+.pl-4{padding-left:16px;}
+.relative{position:relative;}
+.top-0{top:0px;}
+.right-0{right:0px;}
+.left-0{left:0px;}
+.transition{transition-property:background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:background-color,border-color,color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4,0,0.2,1);transition-duration:150ms;}
+.ease-in-out{transition-timing-function:cubic-bezier(0.4,0,0.2,1);}
+.duration-300{transition-duration:300ms;}
+.opacity-0{opacity:0;}
+.transform{--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;transform:translateX(var(--tw-translate-x)) translateY(var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));}
+.scale-x-0{--tw-scale-x:0;}
+.scale-x-100{--tw-scale-x:1;}
+.translate-x-1\/2{--tw-translate-x:50%;}
+.-translate-x-1\/2{--tw-translate-x:-50%;}
+.translate-x-0{--tw-translate-x:0px;}
+.translate-x-0 .-translate-x-0{--tw-translate-x:0px;}
+.scale-y-0{--tw-scale-y:0;}
+.scale-y-100{--tw-scale-y:1;}
+.translate-y-1\/2{--tw-translate-y:50%;}
+.-translate-y-1\/2{--tw-translate-y:-50%;}
+.translate-y-0{--tw-translate-y:0px;}
+.translate-y-0 .-translate-y-0{--tw-translate-y:0px;}
+.opacity-100{opacity:1;}
+/* end tailwind classes */
+</style></head>
+<body class="mt-16 bg-white md:mt-24">
+    <div id="navbar" class="fixed top-0 w-full h-16 bg-white z-5000 bs-menu bs-font md:h-24">
+      <div class="bs-hidden md:flex justify-center p-[1px] bs-mediabar bs-hidden-xs w-[900px] mx-auto">
+         <picture>
+				<!-- webp -->
+				<source type="image/webp" srcset="/tf/images/speed-dating-news-events-publications.webp">
+				<!-- jpg fallback -->
+				<source type="image/jpeg" srcset="/tf/images/speed-dating-news-events-publications.jpg">
+				<!-- img container -->
+				<img loading="lazy" class="h-6 mx-auto bs-h-mediabar" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Speed dating news events publications">
+			</picture>
+      </div>
+      
+      <div class="px-2 mx-auto bg-white bs-px2">
+         <div class="grid h-16 grid-cols-4 bs-grid md:h-24">
+
+            <div class="flex items-center justify-start bg-white bs-column-one md:h-24"> 
+               <div class="flex items-center justify-start w-full bs-wrap-one md:pt-3">
+
+                  <div data-xdata="menu" class="relative ease-in">
+                                          <button aria-label="Menu" name="Menu" data-xclick="menu_toggle"  data-xclass="menu? 'bs-active' : ''" class="m-2 text-sm text-gray-700 bs-button focus:outline-bs-hidden">
+                        <svg class="w-6 h-6 mx-auto bs-menu-icon xl:bs-hidden bs-hidden-lg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path data-xshow="!menu" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                                      <path data-xshow="menu" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" style="display:none" />
+                        </svg>
+                        <span class="bs-hidden md:inline-flex menutext bs-lh" data-xclass="menu? 'menu-active' : ''">Menu</span>
+                     </button>
+                     <div data-xshow="menu" style="display: none;" data-xclick.away="menu_away" class="left-0 border-r-2 menu-panel" >
+   <div class="flex flex-col h-full p-4 bs-panel-in">
+
+      <div><a href="" class="menu-acc-sub">Home</a></div>
+      <div>
+
+            <a class="menu-acc-sub" href="events/search/male-female-1">Events</a>
+      </div>
+      <div><a href="blog" class="menu-acc-sub">Blog</a></div>
+
+      <div data-xdata="{ open: false }">
+                  <div data-xclick="open = !open" class="menu-acc-main" data-xclass="open? 'menu-acc-active' : ''">
+            Success
+            <span data-xclass="open ? 'chevron-up' : 'chevron-down'" class="w-5 h-5"></span>
+         </div>
+         <div data-xshow="open" class="pl-4 menu-acc-active">
+            
+	            <!-- <li><a href="reviews" class="menu-acc-sub">Reviews</a></li> -->
+	            <div><a href="success_stories/ragna_aaron_shane" class="menu-acc-sub">Success Stories</a></div>
+	            <div><a href="testimonials" class="menu-acc-sub">Testimonials</a></div>
+	            <div><a href="dating_coach" class="menu-acc-sub">Dating Coach</a></div>
+	            <div><a href="media" class="menu-acc-sub">25 in the press</a></div>
+           
+         </div>
+      </div>
+      <div data-xdata="{ open: false }">
+         <div data-xclick="open = !open" class="menu-acc-main" data-xclass="open? 'menu-acc-active' : ''">
+            More!
+            <span data-xclass="open ? 'chevron-up' : 'chevron-down'" class="w-5 h-5"></span>
+         </div>
+         <div data-xshow="open" class="pl-4 menu-acc-active">
+            
+               <div><a href="how_it_works" class="menu-acc-sub">How it Works</a></div>
+               <div><a href="about" class="menu-acc-sub">About Us</a></div>
+               <div><a href="movie" class="menu-acc-sub">Event Videos</a></div>
+               <div><a href="photos" class="menu-acc-sub">Event Photos</a></div>
+               <div><a href="faq" class="menu-acc-sub">FAQ's</a></div>
+               <div><a href="event_tips" class="menu-acc-sub">Dating Tips</a></div>
+               <div><a href="dating_questions" class="menu-acc-sub">Dating Questions</a></div>
+               <div><a href="dating_tips/current_article" class="menu-acc-sub">Dating Articles</a></div>
+               <div><a href="certificate" class="menu-acc-sub">Gift Certificate</a></div>
+          
+         </div>
+      </div>
+      <div data-xdata="{ open: false }">
+         <div data-xclick="open = !open" class="menu-acc-main" data-xclass="open? 'menu-acc-active' : ''">
+            Contact/Help
+            <span data-xclass="open ? 'chevron-up' : 'chevron-down'" class="w-5 h-5"></span>
+         </div>
+         <div data-xshow="open" class="pl-4 menu-acc-active">
+      
+		         <div><a href="contact" class="menu-acc-sub">Contact 25dates</a></div>
+		         <div><a href="venues" class="menu-acc-sub">Become a Venue</a></div>
+		         <div><a href="jobs" class="menu-acc-sub">Jobs at 25dates</a></div>
+		         <div><a href="event_planning" class="menu-acc-sub">Event Planning</a></div>
+		         <div><a href="sponsors" class="menu-acc-sub">Sponsorship</a></div>
+        
+         </div>
+      </div>
+
+
+
+   </div>
+</div>                  </div>
+
+                                    <div class="bs-hidden menu-item bs-menu-item"><a href="events/search/male-female-1" class="cursor-pointer menutext">Events</a></div>
+                         
+               </div> 
+            </div> 
+            <div class="flex items-center justify-center col-span-2 bg-white bs-column-two"> 
+
+                  <a href='https://www.25dates.com'>                      <div class="flex justify-center w-full bs-logo">
+                     
+                           <svg class="w-44 sm:w-64 md:w-96 bs-logo-img" viewBox="0 0 1000 222"><title>25dates.com Canada's Speed Dating Company</title><path fill="#fefefe" d="M0 0h1000v222H0z"/><path fill="#000" d="M198 34h49c36 0 50 38 50 69 0 43-14 72-61 72h-38v-3c5 0 8-2 8-7V43c0-4-4-6-8-6v-3zm226 1c2 11 1 29 0 33h19v6h-19c1 4 1 7 1 11v64c0 9 5 20 15 20 5 0 11-6 13-4 4 4-11 11-19 11-16 0-28-14-28-30V85c0-4 0-7 1-11h-14c0-2 0-3 2-4 20-10 27-24 29-35zm-200 3v127c0 4 1 6 5 6h14c28 0 35-46 35-68 0-26-13-65-45-65h-9zm449 24c10 0 28 7 28 17 0 3-2 5-6 5-7 0-9-15-20-15-23 0-28 35-28 52s5 48 28 48c10 0 16-7 21-15 2 2 2 2 4 3-8 12-19 19-33 19-29 0-40-29-40-54 0-27 15-60 46-60zm75 114c-34 0-39-31-39-60 0-31 11-54 46-54s38 40 36 68c-2 27-14 46-43 46zm169-86v78c0 3 3 4 6 4v3c-11-1-20-1-31 0v-3c3 0 6-1 6-4V95c0-13-3-26-14-26-9 0-12 12-12 21v78c0 3 3 4 6 4v3c-11-1-20-1-31 0v-3c3 0 6-1 6-4V95c0-19-6-26-13-26s-14 9-14 21c0 5 1 10 1 15v63c0 3 3 4 6 4v3c-11-1-20-1-31 0v-3c3 0 6-1 6-4V77c0-6-6-2-9-5 3-3 19-7 28-9 0 3-1 9-1 13 0-6 11-14 19-14 10 0 19 5 22 14 3-9 13-14 23-14 15 0 27 13 27 28zm-384 22h-60c0 19 0 57 27 57 11 0 20-5 26-14l4 2c-8 13-22 19-37 19-27 0-40-28-40-52 0-26 14-62 45-62 28 0 34 27 35 50zm45-50c8 0 16 2 21 4l2 23h-3c-2-12-4-20-18-20-12 0-19 8-19 19 0 29 47 21 47 54 0 19-17 34-36 34-11 0-19-3-28-8l-1-20h3c1 14 8 21 22 21 12 0 21-8 21-20 0-26-46-19-46-54 0-19 16-33 35-33zm-226 0c18 0 31 13 31 31v64c0 10 7 8 13 2-7 21-30 24-30-1-4 11-17 18-29 18-16 0-28-12-28-28 0-35 44-27 56-45 0-12-2-34-20-34-14 0-12 19-23 19-3 0-6-2-6-6 0-11 24-20 36-20zm402 107c19 0 20-26 20-42s-4-58-26-58c-19 0-20 35-20 48 0 17 3 52 26 52zm-281-64h48c0-13-7-36-23-36s-24 23-25 36zm470-37h3l4 11 4-11h3v14h-2V71l-4 11h-2l-4-11v11h-2V68zm-12 0h10v2h-4v12h-2V70h-4v-2zm-604 80c0 32 38 25 38-2v-36c-13 19-38 8-38 38zm293 10c13 0 13 21 0 21-15 0-14-21 0-21z"/><path fill="#b00f0e" d="M867 54c37-100 215-8 62 104v-12c117-92-9-175-62-81-20-41-78-61-105-16h-14c22-50 99-53 119 5zM62 46c19 0 38 11 38 32 0 34-36 60-60 79 22-1 44-1 66-1l-5 18H13c22-20 65-59 65-91 0-15-17-37-31-27-4 3-5 8-8 14-7 14-21 0-11-10 9-9 22-14 34-14zm129 5-6 18c-17 0-33 1-50-1l-4 8c20 9 39 24 51 43 19 30 4 66-25 82-7 4-13 7-17 7-2 0-3-2-1-3 31-16 47-42 26-76-11-18-31-34-48-39l21-39h53z"/></svg>
+                                       
+                     </div>
+                  </a>
+      
+
+            </div> 
+            <div class="flex items-center justify-end bg-white bs-column-three"> 
+               <div class="flex flex-row items-center bs-menu-item md:pt-3">
+
+
+                  <div class="admin_item" style="display:none">
+                                    <div class="bs-hidden menu-item bs-menu-item"><a href="https://www.25dates.com/admin/index.php?dig=128" class="cursor-pointer menutext">Admin</a></div>
+                  </div>
+                  
+                  <div data-xdata="menu" class="relative">
+                    
+                     <button aria-label="Login" name="Login" data-xclick="menu_toggle" data-xclass="menu? 'bs-active' : ''" class="m-2 text-xs text-gray-700 bs-button focus:outline-bs-hidden">
+     
+                        <svg class="mx-auto w-7 h-7 bs-menu-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+
+                        <span class="bs-hidden md:inline-flex menutext bs-lh bs-hidden-xs" data-xclass="menu? 'menu-active' : ''">
+                                       <span class="logout_item" style="display:none">Member</span>
+                                       <span class="login_item" >Login</span>
+                                    </span>
+                     </button>
+                    
+                     <div data-xshow="menu" style="display:none;" data-xclick.away="menu_away" class="right-0 border-l-2 menu-panel">
+   <div class="flex flex-col p-4 bs-panel-in">
+      
+             
+
+            <div class="admin_item" style="display:none;">
+                              <div><a href="https://www.25dates.com/admin/index.php?dig=128" class="menu-acc-sub">Admin</a></div>
+            </div>
+            
+            <div class="logout_item" style="display:none">
+               
+                              <div><a href="member/matches" class="menu-acc-sub">My Matches / Events</a></div>
+               
+                     <div data-xdata="{ open: true }">
+                                                <div data-xclick="open = !open" class="menu-acc-main" data-xclass="open? 'menu-acc-active' : ''">
+                           My Profile
+                           <span data-xclass="open ? 'chevron-up' : 'chevron-down'" class="w-5 h-5"></span>
+                        </div>
+                        <div data-xshow="open" class="pl-4 menu-acc-active">
+                       
+                              <div><a href="member/profile" class="menu-acc-sub">Profile</a></div>
+                              <div><a href="member/change_email" class="menu-acc-sub">Change e-mail</a></div>
+                              <div><a href="member/change_password" class="menu-acc-sub">Change password</a></div>
+                              <div><a href="member/info/edit" class="menu-acc-sub">Edit your info</a></div>
+                              <div><a href="member/profile/edit" class="menu-acc-sub">Edit profile</a></div>
+                              <div><a href="member/profile_image" class="menu-acc-sub">Profile image</a></div>
+                  
+                        </div>
+                     </div>
+
+               <div><a href="login/logout" class="menu-acc-sub">Logout</a></div>
+            </div>
+         
+            <div class="login_item">
+               <div><a href="login" class="menu-acc-sub">Login</a></div>
+               <div><a href="signup_member" class="menu-acc-sub">Free to Join!</a></div>
+            </div>
+       
+   </div>
+</div>                  </div>
+                  
+               
+
+                  
+                                         
+               </div> 
+            
+
+               
+            </div> 
+            
+
+
+         </div> 
+         
+      </div>
+
+     
+
+      
+      
+      <div class="flex items-center justify-center h-6 text-white bg-speech bs-ticker">
+
+      <div class="vwrap">
+         <div class="vmove">
+            <div class="vitem">In-Person Speed Dating <span>•</span> Est. 2002</div> 
+            <div class="vitem">Find Love Now</div>
+            <div class="vitem">Real In-Person Dating!</div>
+            <div class="vitem">76% Match Rate.</div>
+         </div>
+      </div>
+      
+      </div>
+      
+
+      <div class="slogan bs-hidden-xs bs-hidden-sm"></div>
+
+
+   </div>
+
+<script>
+
+
+
+</script>
+   <div class="container tf-margin-top">
+<script defer src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js" integrity="sha384-vhJnz1OVIdLktyixHY4Uk3OHEwdQqPppqYR8+5mjsauETgLOcEynD9oPHhhz18Nw" crossorigin="anonymous"></script>
+
+<link href="/bootstrap/css/bootstrap.css?v=1.3" rel="stylesheet" media="screen">
+
+<link rel="stylesheet" href="/tf/css/tfdates.min.css?=63.7" type="text/css"><link rel="stylesheet" href="/tf/css/eventlist.css" type="text/css"> 
+<script src="/javascripts/overlib_mini.js"></script>
+
+<script>
+	overlib_pagedefaults(
+		BGCLASS,'olbgdash', 
+		BORDER,0,
+		TEXTFONTCLASS,'oltxt'
+	);
+</script>
+
+<style>
+	.olbgdash {
+	 border: 2px solid #335577;
+	}
+	.oltxt {
+	  font-family: Arial, Helvetica, sans-serif; 
+	  font-size: 16px; 
+	  color: #0F3031;
+	  /* background-color: #C6CFD1;*/
+	  padding: .5em 1em .5em 1em; 
+	}
+</style>
+
+<div class="row">
+	<div style="width: 100%;margin-top:40px;">
+
+
+
+
+
+<html>
+<body>
+	<div style="float:right;margin:5px 0 5px 0;" class="hidden-xs">
+	<form action="https://www.25dates.com/event_find/search" accept-charset="utf-8" method="post">
+<input type="hidden" name="lookingfor" value="male-female-1">
+
+<select class="minimal" name="region" id="region" style="width: 200px;" onchange="submit();">
+
+
+		<option value="">Change City</option>
+		<option value="1.1">Toronto</option>
+		<option value="1.2">Mississauga</option>
+		<option value="8">Vancouver</option>
+					
+</select>
+</form>	</div>
+	<div class="clearfix"></div>
+			<a name="speeddating"></a>
+				<span style="color: #AF0B0B; font-size:20px;">Speed Dating Toronto and Other Singles Events</span>						
+			 	<div class="blurb"></div>
+
+		<section class="cards">
+
+												 
+								<article class="card">
+					<a href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11181/male-female-1">
+						<picture class="card-picture">
+													   <div class="calendar">
+								Jan<br>
+								27							</div>
+							<div class="in-person">
+								In-Person Speed Dating							</div>
+														<figure class="card-figure">
+								<div class="img-container">
+									<img class="cropped" src="https://www.25dates.com/images/venue/1_450.jpg" alt="The Elephant and Castle">							   </div>
+							   <figcaption>The Elephant and Castle<br>Toronto</figcaption>							</figure>
+						</picture>
+
+						<div class="card-content">
+						    <h5 class="card-title">Men & Women: 50 and Up<br><span>Speed Dating<br>Tuesday January 27th, 2026</span></h5>
+								
+
+
+
+						    <p class="topline">Women - SOLD OUT!<br />
+Men - 2 Spots Just Opened Up!</p>
+
+						</div><!-- .card-content -->
+
+					<div style="width:100%;position: absolute;bottom:10px;">
+						<a style="color:white;margin-right:10px;float:right;" href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11181/male-female-1" class="btn btn-custom btn-lg " role="button">Sign Up / INFO</a>
+					</div>
+
+					</a>
+				</article><!-- .card -->
+				
+		
+							 
+								<article class="card">
+					<a href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11182/male-female-1">
+						<picture class="card-picture">
+													   <div class="calendar">
+								Jan<br>
+								28							</div>
+							<div class="in-person">
+								In-Person Speed Dating							</div>
+														<figure class="card-figure">
+								<div class="img-container">
+									<img class="cropped" src="https://www.25dates.com/images/venue/1_450.jpg" alt="The Elephant and Castle">							   </div>
+							   <figcaption>The Elephant and Castle<br>Toronto</figcaption>							</figure>
+						</picture>
+
+						<div class="card-content">
+						    <h5 class="card-title">Men: 35-45 / Women: 30-45<br><span>Speed Dating<br>Wednesday January 28th, 2026</span></h5>
+								
+
+
+
+						    <p class="topline">Men - Only 2 Spots Left!<br />
+Women - Only 3 Spots Left!<br />
+<br />
+Ladies, grab your bestie! Sign up together and get half off the second spot!</p>
+
+						</div><!-- .card-content -->
+
+					<div style="width:100%;position: absolute;bottom:10px;">
+						<a style="color:white;margin-right:10px;float:right;" href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11182/male-female-1" class="btn btn-custom btn-lg " role="button">Sign Up / INFO</a>
+					</div>
+
+					</a>
+				</article><!-- .card -->
+				
+		
+				
+												 
+								<article class="card">
+					<a href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11184/male-female-1">
+						<picture class="card-picture">
+													   <div class="calendar">
+								Feb<br>
+								18							</div>
+							<div class="in-person">
+								In-Person Speed Dating							</div>
+														<figure class="card-figure">
+								<div class="img-container">
+									<img class="cropped" src="https://www.25dates.com/images/venue/1_450.jpg" alt="The Elephant and Castle">							   </div>
+							   <figcaption>The Elephant and Castle<br>Toronto</figcaption>							</figure>
+						</picture>
+
+						<div class="card-content">
+						    <h5 class="card-title">Men: 40-55 / Women: 39-49<br><span>Speed Dating<br>Wednesday February 18th, 2026</span></h5>
+								
+
+
+
+						    <p></p>
+
+						</div><!-- .card-content -->
+
+					<div style="width:100%;position: absolute;bottom:10px;">
+						<a style="color:white;margin-right:10px;float:right;" href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11184/male-female-1" class="btn btn-custom btn-lg " role="button">Sign Up / INFO</a>
+					</div>
+
+					</a>
+				</article><!-- .card -->
+				
+		
+							 
+								<article class="card">
+					<a href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11186/male-female-1">
+						<picture class="card-picture">
+													   <div class="calendar">
+								Feb<br>
+								25							</div>
+							<div class="in-person">
+								In-Person Speed Dating							</div>
+														<figure class="card-figure">
+								<div class="img-container">
+									<img class="cropped" src="https://www.25dates.com/images/venue/1_450.jpg" alt="The Elephant and Castle">							   </div>
+							   <figcaption>The Elephant and Castle<br>Toronto</figcaption>							</figure>
+						</picture>
+
+						<div class="card-content">
+						    <h5 class="card-title">Men & Women: 50 and Up<br><span>Speed Dating<br>Wednesday February 25th, 2026</span></h5>
+								
+
+
+
+						    <p></p>
+
+						</div><!-- .card-content -->
+
+					<div style="width:100%;position: absolute;bottom:10px;">
+						<a style="color:white;margin-right:10px;float:right;" href="https://www.25dates.com/speed_dating/toronto-the-elephant-and-castle-11186/male-female-1" class="btn btn-custom btn-lg " role="button">Sign Up / INFO</a>
+					</div>
+
+					</a>
+				</article><!-- .card -->
+				
+		
+				
+		
+		
+		
+	
+
+		</section>
+	
+	
+</body>
+</html>
+
+</div> 
+</div> 
+<script>
+$(function ()  
+{ 
+	$(".status").popover({trigger: 'hover', placement: 'right'});
+}); 
+</script>
+
+<div class="row">
+		<div class="footerbar">&nbsp;</div>
+</div>
+</div> 
+
+
+<script async src="https://www.25dates.com/tfjavascripts/anylink.js"></script>
+
+<link rel="stylesheet" type="text/css" href="https://www.25dates.com/fancybox/jquery.fancybox.min.css?v=" media="screen">
+<script src="https://www.25dates.com/fancybox/jquery.fancybox.min.js?v="></script>
+
+<script>
+$(document).ready(function() {
+  
+  	$('ul.list li:first-child').remove();
+
+	$("a.fancybox").fancybox();
+	
+	$("#iframe_profile_image").fancybox({
+		'width'				: '75%',
+		'height'			: '75%',
+		'autoScale'			: true,
+		'transitionIn'		: 'none',
+		'transitionOut'		: 'none',
+		'type'				: 'iframe'
+	});
+	
+	$("#iframe_no_match").fancybox({
+		'width'				: '50%',
+		'height'			: '50%',
+		'autoScale'			: false,
+		'transitionIn'		: 'none',
+		'transitionOut'		: 'none',
+		'type'				: 'iframe'
+	});
+	
+	$(".target_link").click(function(){
+    window.location=$(this).find("a").attr("href");
+    return false;
+  	});
+
+  	$('.carousel').carousel({
+  		interval: 5000
+	});
+
+});
+</script>
+
+<footer>
+<div class="flex justify-center w-full mt-20 bsf-footer">
+
+	<div class="flex-row justify-center w-full p-3 mx-auto text-xs text-center md:text-sm md:w-3/5 text-horizon bsf-inner">
+
+		<p class="mb-2">
+			<a href="/speed_dating_toronto">Speed Dating Toronto</a>&nbsp;|&nbsp;
+			<a href="/speed_dating_mississauga">Speed Dating Mississauga</a>&nbsp;|&nbsp;
+			<a href="/speed_dating_vancouver">Speed Dating Vancouver</a>&nbsp;|&nbsp;
+			<a href="/speed_dating_ottawa">Speed Dating Ottawa</a>&nbsp;|&nbsp;
+			<a href="/speed_dating_calgary">Speed Dating Calgary</a>
+		</p>
+		
+		<p>
+		Copyright &copy; 2002 - 2026, 25dates.com Inc. All rights reserved.
+		</p>
+		
+		<p class="mb-2">
+			All material, including text and artwork, is a registered copyright of 25dates.com Inc. and may not be used<br>in any circumstances without prior written permission from	25dates.com.
+		</p>
+		
+		<p>
+			<a href="/sitemap">sitemap</a>&nbsp;|&nbsp;
+			<a href="/privacy_policy">privacy policy</a>&nbsp;|&nbsp;
+			<a href="/terms">terms</a>
+		</p>
+
+	</div>
+
+</div>
+</footer>
+<link rel="stylesheet" type="text/css" href="https://www.25dates.com/fancybox/jquery.fancybox.min.css" media="screen">
+<script src="https://www.25dates.com/fancybox/jquery.fancybox.min.js"></script>
+<!-- <script src="ci/javascripts/animations/aos.js"></script> -->
+<!-- <script src="/ci/javascripts/js.cookie.min.js"></script> -->
+<script>
+
+function gotoid(nameID,afstand=0,snelheid=1000) { 
+	$("html, body").animate({scrollTop: $('#' + nameID).offset().top-afstand}, snelheid);
+}
+
+// AOS.init( {
+// 	duration: 1000
+// });
+
+/** make alpine W3C complient start */
+const startingWith = (subject, replacement) => ({ name, value }) => {
+	if (name.startsWith(subject)) {
+		name = name.replace(subject, replacement);
+	}
+	return { name, value };
+};
+/** make alpine W3C complient end */
+document.addEventListener('alpine:init', () => {
+	Alpine.data('menu', () => ({
+			menu: false,
+			menu_toggle() {
+				this.menu = ! this.menu;
+				if(this.menu)
+				{
+					document.body.classList.add("noScroll");
+				} else {
+					document.body.classList.remove("noScroll");
+				}
+			},
+			menu_away() {
+				this.menu = false;
+				document.body.classList.remove("noScroll");
+			}
+	}));
+	/** make alpine W3C complient start */
+	Alpine.prefix("data-x");
+	Alpine.mapAttributes(startingWith("data-xon.", Alpine.prefixed("on:")));
+	Alpine.mapAttributes(startingWith("data-xclick", Alpine.prefixed("on:click")));
+	/* Alpine.mapAttributes(startingWith("data-xbind.", Alpine.prefixed("bind:"))); */
+	Alpine.mapAttributes(startingWith("data-xclass", Alpine.prefixed("bind:class")));
+	Alpine.mapAttributes(startingWith("data-xtype", Alpine.prefixed("bind:type")));
+	/* Alpine.mapAttributes(startingWith("data-xkeydown", Alpine.prefixed("on:keydown"))); */
+	/** make alpine W3C complient end */
+})
+
+//$(document).ready(function() {
+window.onload = function() {
+
+	$.getJSON('https://www.25dates.com/user_status', function(data) {
+		if (data.loggedin || data.loggedin_admin) {
+			$('.login_item').css('display', 'none');
+			$('.logout_item').css('display', 'inline');
+		} else {
+			$('.login_item').css('display', 'inline');
+			$('.logout_item').css('display', 'none');
+		};
+		if (data.loggedin_admin) {
+			$('.admin_item').css('display', 'inline');
+		} else {
+			$('.admin_item').css('display', 'none');
+		};
+	});
+	
+	var videos = $(".embed-responsive").map(function(){return $(this).attr("video_id");}).get();
+	if(videos.length){
+
+		videos.forEach(function (video, index) {
+		
+			var video_wrapper = $('.youtube-video-place-'+video);
+			if(video_wrapper.length){
+				// If user clicks on the video wrapper load the video.
+				var video_url = '<iframe name="youtube" allowfullscreen frameborder="0" class="embed-responsive-item" src="' + video_wrapper.data('yt-url') + '"></iframe>';
+				$('.play-youtube-video-'+video).on('click', function(){ video_wrapper.html(video_url);});
+				$('.play-button-'+video).on('click', function(){video_wrapper.html(video_url);});
+				/* $('.play-youtube-video').hover(function(){ $('.play-button').css('background', 'red'); }); */
+				$('.play-youtube-video-'+video).hover(function(){  
+		        	$('.play-button-'+video).css('background', 'red');
+		        	$('.play-button-'+video).css('transition', 'background-color 0.3s ease');
+			    },     
+			    function(){    
+			        $('.play-button-'+video).css('background', '');
+			    });
+			}
+		});
+	} 
+
+	$("[data-fancybox]").fancybox({
+		mobile: {
+         clickSlide : "close"
+      },
+		fullscreen : {
+			autoStart : true
+		}
+			});
+		
+// });
+};
+</script>
+</body>
+</html>
