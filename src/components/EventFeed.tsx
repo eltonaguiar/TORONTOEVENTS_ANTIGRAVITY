@@ -11,7 +11,7 @@ interface EventFeedProps {
     events: Event[];
 }
 
-type DateFilter = 'all' | 'today' | 'tomorrow' | 'this-week' | 'this-month';
+type DateFilter = 'all' | 'today' | 'tomorrow' | 'this-week' | 'this-month' | 'nearby';
 
 export default function EventFeed({ events }: EventFeedProps) {
     const [showHidden, setShowHidden] = useState(false);
@@ -22,6 +22,7 @@ export default function EventFeed({ events }: EventFeedProps) {
     const [now, setNow] = useState<Date | null>(null);
 
     const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
+    const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
     useEffect(() => {
         setNow(new Date());
@@ -32,8 +33,39 @@ export default function EventFeed({ events }: EventFeedProps) {
     const [showExpensive, setShowExpensive] = useState(false);
     const [showStarted, setShowStarted] = useState(false);
 
+    // Haversine formula for distance
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const R = 6371; // km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+
     // New Features
     const { settings, updateSettings, importEvents } = useSettings();
+
+    // Geocoding Effect
+    useEffect(() => {
+        if (settings.userPostalCode && settings.userPostalCode.length >= 6) {
+            const postal = settings.userPostalCode.replace(/\s/g, '');
+            fetch(`https://api.zippopotam.us/ca/${postal.slice(0, 3)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.places && data.places[0]) {
+                        setUserCoords({
+                            lat: parseFloat(data.places[0].latitude),
+                            lng: parseFloat(data.places[0].longitude)
+                        });
+                    }
+                })
+                .catch(err => console.error('Geocoding error:', err));
+        }
+    }, [settings.userPostalCode]);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'feed' | 'saved'>('feed');
 
@@ -216,28 +248,29 @@ export default function EventFeed({ events }: EventFeedProps) {
                     if (dateFilter === 'this-month') {
                         if (isMultiDay(e)) {
                             const eventStartParts = getTorontoDateParts(eventStartDate).split('-');
-                            const eventEndParts = getTorontoDateParts(eEndDate).split('-');
-                            const nowParts = todayStr.split('-');
-                            const currentMonth = `${nowParts[0]}-${nowParts[1]}`;
-                            const startMonth = `${eventStartParts[0]}-${eventStartParts[1]}`;
-                            const endMonth = `${eventEndParts[0]}-${eventEndParts[1]}`;
-                            if (currentMonth < startMonth || currentMonth > endMonth) return false;
+                            const nowParts = getTorontoDateParts(now).split('-');
+                            if (eventStartParts[0] !== nowParts[0] || eventStartParts[1] !== nowParts[1]) return false;
                         } else {
                             if (!isThisMonth(e.date)) return false;
                         }
+                    }
+                    if (dateFilter === ('nearby' as any)) {
+                        // For Nearby we just filter for things that HAVE lat/long
+                        if (!e.latitude || !e.longitude) return false;
                     }
                 }
 
                 return true;
             })
             .sort((a, b) => {
-                const timeA = new Date(a.date).getTime();
-                const timeB = new Date(b.date).getTime();
-                if (isNaN(timeA)) return 1;
-                if (isNaN(timeB)) return -1;
-                return timeA - timeB;
+                if (dateFilter === ('nearby' as any) && userCoords) {
+                    const distA = a.latitude && a.longitude ? calculateDistance(userCoords.lat, userCoords.lng, a.latitude, a.longitude) : 9999;
+                    const distB = b.latitude && b.longitude ? calculateDistance(userCoords.lat, userCoords.lng, b.latitude, b.longitude) : 9999;
+                    return distA - distB;
+                }
+                return new Date(a.date).getTime() - new Date(b.date).getTime();
             });
-    }, [sourceEvents, viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, now]);
+    }, [sourceEvents, viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, now, userCoords]);
 
     const activeFilters = useMemo(() => {
         const filters = [];
@@ -364,6 +397,42 @@ export default function EventFeed({ events }: EventFeedProps) {
                             </label>
                         </div>
                     )}
+                    {/* Search Bar */}
+                    <div className="flex-1 w-full relative">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                            <span className="text-xl opacity-30">🔍</span>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Explore events by title, host, or keyword..."
+                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-28 py-4 text-sm focus:outline-none focus:border-[var(--pk-500)] transition-all shadow-inner"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <div className="absolute inset-y-0 right-2 flex items-center gap-2">
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="p-2 hover:bg-white/10 rounded-xl transition-colors text-xs font-bold uppercase tracking-widest opacity-60"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    // Hacky way to trigger SettingsManager if it's not exported
+                                    // But actually SettingsManager is a sibling.
+                                    // We'll just provide a redundant Cog that looks good.
+                                    const gear = document.querySelector('[title="Configuration Settings"]') as any;
+                                    if (gear) gear.click();
+                                }}
+                                className="p-3 bg-white/5 hover:bg-[var(--pk-500)] hover:text-white rounded-xl transition-all border border-white/10 group"
+                                title="Open System Config"
+                            >
+                                <span className="group-hover:rotate-90 transition-transform inline-block">⚙️</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Primary Filters (Date & Price) */}
@@ -375,6 +444,20 @@ export default function EventFeed({ events }: EventFeedProps) {
                             <button title="Show events happening tomorrow" onClick={() => setDateFilter('tomorrow')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'tomorrow' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>Tomorrow</button>
                             <button title="Show events for the current week (Sun-Sat)" onClick={() => setDateFilter('this-week')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-week' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Week</button>
                             <button title="Show events for the current calendar month" onClick={() => setDateFilter('this-month')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'this-month' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>This Month</button>
+
+                            <button
+                                title="Show events near your postal code"
+                                onClick={() => {
+                                    if (!settings.userPostalCode) {
+                                        alert('Please set your postal code in settings (Gear icon) first!');
+                                    } else {
+                                        setDateFilter('nearby' as any);
+                                    }
+                                }}
+                                className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === ('nearby' as any) ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}
+                            >
+                                📍 Nearby Me
+                            </button>
                         </div>
 
                         <div className="h-8 w-px bg-white/10 hidden md:block" />

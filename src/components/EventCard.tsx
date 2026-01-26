@@ -214,18 +214,18 @@ export default function EventCard({ event, onPreview }: EventCardProps) {
                 <div className="p-4 pt-0 mt-auto grid grid-cols-2 gap-2 relative z-20">
                     <button
                         onClick={(e) => { e.stopPropagation(); if (onPreview) onPreview(); }}
-                        className="py-2 rounded-lg bg-[var(--surface-3)] hover:bg-[var(--surface-4)] text-[var(--text-1)] font-bold text-xs transition-colors border border-white/5"
+                        className="py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 shadow-sm"
                     >
-                        Preview
+                        Quick View
                     </button>
                     <a
-                        href={event.url.startsWith('http') ? event.url : (event.source === 'AllEvents.in' ? `https://allevents.in${event.url.startsWith('/') ? '' : '/'}${event.url}` : event.url)}
+                        href={event.url.startsWith('http') ? event.url : (event.source === 'AllEvents.in' || event.url.includes('allevents.in') ? `https://allevents.in${event.url.startsWith('/') ? '' : '/'}${event.url}` : (event.source === 'Eventbrite' ? `https://www.eventbrite.ca${event.url.startsWith('/') ? '' : '/'}${event.url}` : event.url))}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="block text-center py-2 rounded-lg bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white font-bold text-xs transition-colors shadow-lg shadow-[var(--pk-500)]/20"
+                        className="block text-center py-2.5 rounded-xl bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-[var(--pk-500)]/20"
                     >
-                        Tickets
+                        Tickets ↗
                     </a>
                 </div>
             </div>

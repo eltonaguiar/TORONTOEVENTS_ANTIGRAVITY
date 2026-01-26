@@ -26,6 +26,7 @@ interface Settings {
     previewHeight: number;
     previewPosition: 'center' | 'bottom-right' | 'right' | 'left';
     isChatboxMode: boolean;
+    userPostalCode: string;
     webpageScale: number;
     savedEvents: any[]; // Using any[] to avoid circular dependency issues if Event isn't exported here, but ideally import Event
 }
@@ -56,6 +57,7 @@ const defaultSettings: Settings = {
     previewHeight: 600,
     previewPosition: 'center',
     isChatboxMode: false,
+    userPostalCode: '',
     webpageScale: 1.0,
     savedEvents: [],
 };

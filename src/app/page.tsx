@@ -56,9 +56,22 @@ export default function Home() {
 
       <EventFeed events={allEvents} />
 
-      <footer className="py-8 text-center text-xs text-[var(--text-3)] border-t border-white/5">
-        <p>Built with ❤️ for Toronto</p>
-        <p className="mt-2 opacity-50">{VERSION}-scraper-filter-fixed</p>
+      <footer className="py-12 text-center text-[var(--text-3)] border-t border-white/5 space-y-4">
+        <div className="flex justify-center gap-6">
+          <button
+            onClick={() => (document.querySelector('[title="Configuration Settings"]') as any)?.click()}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-white/10"
+          >
+            ⚙️ System Config
+          </button>
+          <a href="#" className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border border-white/10">
+            🔝 Back to Top
+          </a>
+        </div>
+        <div className="opacity-50 text-xs">
+          <p>Built with ❤️ for Toronto</p>
+          <p className="mt-1">{VERSION}-tactical-geotime-fixed</p>
+        </div>
       </footer>
     </main>
   );

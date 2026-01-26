@@ -42,9 +42,6 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
             inputStr = inputStr.replace(' - ', ' ');
         }
 
-        // Check for timezone hints (Z, + offset, - offset, or common TZ names)
-        const hasZone = inputStr.match(/[Z\+\-](?:\d{2}:?\d{2})?$/) || inputStr.match(/(GMT|EST|EDT|UTC)/i);
-
         let date = new Date(inputStr);
 
         // Handle year-less dates (e.g., "Aug 21")
@@ -59,11 +56,15 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
             }
         }
 
+        // Toronto timezone for display
+        const hasZone = /GMT|UTC|[-+]\d{2}:?\d{2}|EST|EDT/i.test(inputStr);
+        const hasTime = /[:\d]+ ?(am|pm)/i.test(inputStr) || inputStr.includes(':');
+
         if (isNaN(date.getTime())) return null;
 
         // CRITICAL FIX: If no zone provided and it has a time, assume Toronto
         // This is critical when running on UTC machines (GitHub Actions)
-        if (!hasZone && inputStr.includes(':')) {
+        if (!hasZone && hasTime) {
             const torontoOffset = getTorontoOffset(date);
             // Re-parse with the offset appended
             const cleaned = inputStr.replace(/ at\s*$/i, '');
@@ -108,29 +109,27 @@ function getTorontoOffset(date: Date): string {
         let offset = tz.replace('GMT', '');
         if (!offset.includes(':')) {
             const sign = offset.startsWith('+') || offset.startsWith('-') ? '' : '+';
-            const fullSign = offset.startsWith('-') ? '-' : '+';
-            const val = offset.replace(/^[+-]/, '');
-            const padded = val.padStart(2, '0');
-            offset = `${fullSign}${padded}:00`;
+            const val = offset.replace(/[+-]/, '');
+            offset = `${sign}${val.padStart(2, '0')}:00`;
         }
         return offset;
     } catch {
         return '-05:00';
     }
 }
-export function categorizeEvent(title: string, description: string, existingCategories: string[] = []): string[] {
-    const cats = new Set<string>(existingCategories.filter(c => c !== 'General'));
-    const text = (title + ' ' + description).toLowerCase();
 
-    const patterns: { [key: string]: string[] } = {
-        'Music': ['concert', 'live music', 'band', 'dj', 'musical', 'karaoke', 'jazz', 'rock', 'hip hop', 'symphony', 'rap', 'techno', 'house music'],
-        'Food & Drink': ['food', 'drink', 'tasting', 'wine', 'beer', 'culinary', 'dinner', 'cooking', 'restaurant', 'brunch', 'cafe', 'bar crawl'],
-        'Arts': ['art', 'exhibition', 'gallery', 'painting', 'museum', 'theatre', 'theater', 'drama', 'film', 'movie', 'screening', 'creative', 'sculpture'],
-        'Construction': ['forklift', 'scissor lift', 'elevated work', 'whmis', 'working at heights', 'safety training', 'excavator', 'heavy equipment', 'osha', 'cpo approved'],
-        'Tech': ['tech', 'software', 'coding', 'ai', 'blockchain', 'startup', 'web', 'developer', 'digital', 'saas', 'programming', 'hackathon', 'data science', 'cybersecurity'],
-        'Business': ['networking', 'business', 'workshop', 'seminar', 'conference', 'entrepreneur', 'marketing', 'professional', 'real estate'],
-        'Sports & Fitness': ['gym', 'fitness', 'yoga', 'sports', 'game', 'tournament', 'match', 'running', 'workout', 'hiking', 'soccer', 'basketball'],
-        'Nightlife': ['party', 'club', 'nightlife', 'bar', 'celebration', 'dance', 'rave', 'lounge'],
+export function inferCategory(title: string, description: string): string[] {
+    const text = (title + ' ' + (description || '')).toLowerCase();
+    const cats = new Set<string>();
+
+    const patterns = {
+        'Arts': ['art', 'gallery', 'museum', 'exhibition', 'painting', 'drawing', 'sculpture', 'photography', 'theatre', 'theater', 'dance', 'opera', 'ballet'],
+        'Music': ['music', 'concert', 'live band', 'show', 'gig', 'orchestra', 'symphony', 'dj', 'performance', 'musical', 'cassette'],
+        'Nightlife': ['party', 'club', 'bar', 'drinks', 'social', 'mixer', 'dating', 'singles', 'dance party', 'dj', 'crawl', 'cassette'],
+        'Food & Drink': ['food', 'drink', 'tasting', 'dinner', 'lunch', 'brunch', 'festival', 'market', 'wine', 'beer', 'culinary', 'matty matheson'],
+        'Sports': ['sports', 'game', 'match', 'tournament', 'fitness', 'yoga', 'running', 'basketball', 'hockey', 'baseball', 'soccer', 'football', 'marathon'],
+        'Tech': ['tech', 'technology', 'web', 'ai', 'artificial intelligence', 'coding', 'software', 'programming', 'startup', 'innovation', 'workshop'],
+        'Business': ['business', 'networking', 'seminar', 'conference', 'professional', 'startup', 'entrepreneur', 'workshop'],
         'Community': ['community', 'volunteer', 'local', 'meeting', 'neighborhood', 'town hall', 'social', 'charity'],
         'Family': ['family', 'kids', 'children', 'toddler', 'school', 'parent', 'youth'],
         'Comedy': ['comedy', 'standup', 'improv', 'laugh', 'funny', 'sitcom'],
@@ -173,93 +172,9 @@ export function inferSoldOutStatus(text: string): { isSoldOut: boolean, genderSo
 
 export function isEnglish(text: string): boolean {
     if (!text) return true;
-
-    // Remove clean text of common non-linguistic characters for analysis
-    const clean = text.replace(/[0-9\s\.,!?@#$%^&*()_\-+=<>{}\[\]\/\\|~`"':;]/g, '');
-    if (clean.length === 0) return true;
-
-    // Count Latin characters
-    // \u0041-\u005A is A-Z
-    // \u0061-\u007A is a-z
-    // \u00C0-\u00FF includes basic Latin accents (common in English/French/Spanish context)
-    const latinCount = (clean.match(/[\u0041-\u005A\u0061-\u007A\u00C0-\u00FF]/g) || []).length;
-
-    const ratio = latinCount / clean.length;
-
-    // If less than 70% of the linguistic characters are Latin, it's likely not English/French/Western
-    // (This effectively filters Cyrillic, CJK, Arabic, etc.)
-    return ratio > 0.7;
-}
-
-export function consolidateEvents(events: Event[]): Event[] {
-    const map = new Map<string, Event[]>();
-
-    // Group by Title + Location + DATE
-    // Update: If we group by date too, we won't consolidate same-day recurring sessions (good!)
-    // but we will still consolidate mutli-day festivals that span days? No.
-    // The goal of consolidateEvents is specifically to prevent "Music Festival Day 1", "Music Festival Day 2" clutter.
-    // BUT for "Yoga Class 10am" and "Yoga Class 2pm" on the SAME DAY, we want BOTH to show.
-    // Current bug: It merges EVERYTHING with same title.
-
-    // Fix: Key should be Title + Location + Day
-    // Wait, if we do that, then "Festival Day 1" and "Festival Day 2" are separate. That MIGHT be what we want for volume?
-    // User complaint: "Only 8 events". If we have 5 yoga classes today, we want 5 cards, not 1 "Multi-Day Yoga".
-
-    // So let's change grouping to be Title + Location + DATE-STRING.
-    // This effectively DISABLES the "Consolidation into Multi-Day ranges" for different days.
-    // It basically blindly removes duplicates (exact same time/title), but keeps same-title different-time.
-
-    // Actually, let's keep it simple: ONLY consolidate if start times are identical.
-    for (const event of events) {
-        // Key = Title + Location + Date + Time
-        // This essentially acts as a pure duplicate remover, not a "range creator".
-        // The user WANTS to see volume. 
-        const key = `${event.title.toLowerCase().trim()}|${event.location?.toLowerCase().trim() || ''}|${event.date}`;
-        if (!map.has(key)) {
-            map.set(key, []);
-        }
-        map.get(key)!.push(event);
-    }
-
-    const result: Event[] = [];
-
-    for (const group of map.values()) {
-        if (group.length === 1) {
-            result.push(group[0]);
-            continue;
-        }
-
-        // Sort by date
-        group.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-        const master = group[0];
-        const last = group[group.length - 1];
-
-        // Update Master with range
-        master.endDate = last.endDate || last.date;
-
-        // Add 'Multi-Day' tag
-        if (!master.categories.includes('Multi-Day')) {
-            master.categories.push('Multi-Day');
-        }
-
-        // Merge categories/tags from all variants
-        const allTags = new Set<string>();
-        if (master.tags) master.tags.forEach(t => allTags.add(t));
-
-        group.forEach(g => {
-            if (g.tags) g.tags.forEach(t => allTags.add(t));
-            // Also check categories if tags missing?
-            g.categories.forEach(c => {
-                if (c !== 'Multi-Day') allTags.add(c);
-            });
-        });
-
-        // Update tags
-        master.tags = Array.from(allTags);
-
-        result.push(master);
-    }
-
-    return result;
+    // Check if contains primarily Latin characters
+    const latinChars = text.match(/[a-zA-Z]/g) || [];
+    const totalChars = text.replace(/\s/g, '').length;
+    if (totalChars === 0) return true;
+    return (latinChars.length / totalChars) > 0.5;
 }

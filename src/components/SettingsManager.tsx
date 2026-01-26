@@ -278,6 +278,25 @@ export default function SettingsManager() {
                             </div>
                         </div>
 
+                        {/* Location / Nearby Section */}
+                        <div className="space-y-4 pt-2 border-t border-white/5">
+                            <label className="text-xs font-black uppercase tracking-widest text-[var(--pk-300)] opacity-70">Nearby Hub</label>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Your Postal Code (M5V 1J1)</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Enter postal code..."
+                                        maxLength={7}
+                                        value={settings.userPostalCode}
+                                        onChange={(e) => updateSettings({ userPostalCode: e.target.value.toUpperCase() })}
+                                        className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[var(--pk-500)] font-mono"
+                                    />
+                                </div>
+                                <p className="text-[9px] text-[var(--text-3)] italic">Enables distance calculations and "Nearby Me" filtering.</p>
+                            </div>
+                        </div>
+
                         {/* Tooltips & Color */}
                         <div className="space-y-4 pt-2 border-t border-white/5">
                             <label className="text-xs font-black uppercase tracking-widest text-[var(--text-3)]">X-Ray Options</label>
