@@ -1,8 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* HSL Color System */
   --primary-hue: 250;
   --secondary-hue: 320;
-  
+
   /* Primary Colors */
   --pk-100: hsl(var(--primary-hue), 80%, 98%);
   --pk-200: hsl(var(--primary-hue), 80%, 90%);
@@ -48,7 +52,9 @@
 }
 
 /* Reset & Base */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;

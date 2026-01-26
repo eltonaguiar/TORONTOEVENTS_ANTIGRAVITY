@@ -1,18 +1,42 @@
 import { getEvents } from '../lib/data';
-import EventCard from '../components/EventCard';
-import { Event } from '../lib/types';
-import { isMultiDay } from '../lib/scraper/utils';
+import EventFeed from '../components/EventFeed';
+import fs from 'fs';
+import path from 'path';
 
 // Force static generation
 export const dynamic = 'force-static';
 
+const VERSION = 'v0.4.0';
+
+export const metadata = {
+  title: `Toronto Events ${VERSION} - Real-Time Event Listings`,
+  description: 'Discover the latest events in Toronto. Updated daily with real data.',
+};
+
+function getLastUpdated(): string {
+  try {
+    const metadataPath = path.join(process.cwd(), 'data', 'metadata.json');
+    if (fs.existsSync(metadataPath)) {
+      const data = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
+      const date = new Date(data.lastUpdated);
+      return date.toLocaleString('en-US', {
+        timeZone: 'America/Toronto',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short'
+      });
+    }
+  } catch (e) {
+    console.error('Failed to load metadata:', e);
+  }
+  return 'Unknown';
+}
+
 export default function Home() {
   const allEvents = getEvents();
-
-  // Filter Logic
-  // 1. Separate Multi-Day
-  const singleDayEvents = allEvents.filter(e => !isMultiDay(e) && new Date(e.date) >= new Date());
-  const multiDayEvents = allEvents.filter(e => isMultiDay(e) && (e.endDate ? new Date(e.endDate) >= new Date() : true));
+  const lastUpdated = getLastUpdated();
 
   return (
     <main className="min-h-screen pb-20">
@@ -20,60 +44,22 @@ export default function Home() {
       <header className="relative py-20 px-6 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[var(--pk-900)] to-[var(--surface-0)] opacity-50 -z-10" />
         <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight glow-text">
-          Toronto Events
+          Toronto Events <span className="text-2xl md:text-3xl text-[var(--pk-300)]">{VERSION}</span>
         </h1>
         <p className="text-lg text-[var(--text-2)] max-w-2xl mx-auto">
           The curated feed of what's happening in the city. Updated daily.
         </p>
+        <p className="text-sm text-[var(--text-3)] mt-2">
+          Last updated: {lastUpdated}
+        </p>
       </header>
 
-      {/* Main Content */}
-      <div className="container max-w-7xl mx-auto px-4">
+      <EventFeed events={allEvents} />
 
-        {/* Upcoming Section */}
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <span className="text-[var(--pk-500)]">★</span>
-              Upcoming Events
-            </h2>
-            <div className="text-sm text-[var(--text-3)]">
-              {singleDayEvents.length} events found
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {singleDayEvents.map(event => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
-
-          {singleDayEvents.length === 0 && (
-            <div className="text-center py-20 glass-panel rounded-xl">
-              <p className="text-[var(--text-2)]">No upcoming events found. Check back later!</p>
-            </div>
-          )}
-        </section>
-
-        {/* Multi-Day Section */}
-        {multiDayEvents.length > 0 && (
-          <section>
-            <div className="flex items-center gap-4 mb-8">
-              <div className="h-px flex-1 bg-white/10" />
-              <h2 className="text-xl font-bold text-[var(--text-2)] uppercase tracking-widest">
-                Multi-Day / Festivals
-              </h2>
-              <div className="h-px flex-1 bg-white/10" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {multiDayEvents.map(event => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
+      <footer className="py-8 text-center text-xs text-[var(--text-3)] border-t border-white/5">
+        <p>Built with ❤️ for Toronto</p>
+        <p className="mt-2 opacity-50">{VERSION}-scraper-filter-fixed</p>
+      </footer>
     </main>
   );
 }

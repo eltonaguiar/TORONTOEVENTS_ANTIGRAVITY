@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent } from './utils';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -53,10 +53,12 @@ export class AllEventsScraper implements ScraperSource {
                     let dateStr = card.find('[itemprop="startDate"]').attr('content') ||
                         card.find('.date, .time, .start-time').first().text();
 
-                    // Normalize Date - if specific format needed, utilize utils
-                    let date = normalizeDate(dateStr) || new Date().toISOString();
-                    // If date fails to parse, maybe just use "Today" approximation? 
-                    // For now, let's trust normalizeDate or fallback.
+                    // Parse and validate date - REJECT if unparseable
+                    let date = normalizeDate(dateStr);
+                    if (!date) {
+                        console.log(`Skipping event with unparseable date: "${title}" - dateStr: "${dateStr}"`);
+                        return; // Skip this event entirely
+                    }
 
                     const location = cleanText(card.find('.subtitle, .venue, [itemprop="location"]').text()) || 'Toronto, ON';
 
@@ -70,7 +72,7 @@ export class AllEventsScraper implements ScraperSource {
                         price: 'TBD',
                         isFree: false,
                         description: '',
-                        categories: ['General'],
+                        categories: categorizeEvent(title, ''),
                         status: 'UPCOMING',
                         lastUpdated: new Date().toISOString()
                     };

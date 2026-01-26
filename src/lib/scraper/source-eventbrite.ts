@@ -1,5 +1,6 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent } from './utils';
+import { EventbriteDetailScraper } from './detail-scraper';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -9,9 +10,19 @@ export class EventbriteScraper implements ScraperSource {
 
     private searchUrls = [
         '/d/canada--toronto/events--today/',
+        '/d/canada--toronto/events--today/?page=2',
+        '/d/canada--toronto/events--today/?page=3',
+        '/d/canada--toronto/events--tomorrow/',
+        '/d/canada--toronto/events--tomorrow/?page=2',
+        '/d/canada--toronto/events--tomorrow/?page=3',
+        '/d/canada--toronto/events--this-weekend/',
+        '/d/canada--toronto/events--this-week/',
         '/d/canada--toronto/music--events/',
         '/d/canada--toronto/business--events/',
         '/d/canada--toronto/food-and-drink--events/',
+        '/d/canada--toronto/arts--events/',
+        '/d/canada--toronto/nightlife--events/',
+        '/d/canada--toronto/free--events/',
     ];
 
     async scrape(): Promise<ScraperResult> {
@@ -62,8 +73,8 @@ export class EventbriteScraper implements ScraperSource {
                                         if (!title || !url) continue;
 
                                         const eventId = generateEventId(url);
-                                        const date = eventItem.startDate ? normalizeDate(eventItem.startDate) : new Date().toISOString();
-                                        const endDate = eventItem.endDate ? (normalizeDate(eventItem.endDate) || undefined) : undefined;
+                                        const date = normalizeDate(eventItem.startDate) || new Date().toISOString();
+                                        const endDate = normalizeDate(eventItem.endDate) || undefined;
 
                                         let location = 'Toronto, ON';
                                         if (eventItem.location) {
@@ -72,19 +83,31 @@ export class EventbriteScraper implements ScraperSource {
                                             else if (eventItem.location.address?.addressLocality) location = eventItem.location.address.addressLocality;
                                         }
 
+                                        // Extract categories from keywords if available
+                                        let categories = ['General'];
+                                        if (eventItem.keywords) {
+                                            if (typeof eventItem.keywords === 'string') {
+                                                categories = eventItem.keywords.split(',').map((k: string) => cleanText(k));
+                                            } else if (Array.isArray(eventItem.keywords)) {
+                                                categories = eventItem.keywords.map((k: string) => cleanText(k));
+                                            }
+                                        }
+
                                         const event: Event = {
                                             id: eventId,
                                             title: cleanText(title),
-                                            date: date || new Date().toISOString(),
+                                            date,
                                             endDate,
                                             location: cleanText(location),
                                             source: 'Eventbrite',
                                             url,
                                             image: eventItem.image,
-                                            price: 'TBD',
-                                            isFree: false,
+                                            price: eventItem.offers?.price ? `$${eventItem.offers.price}` :
+                                                (eventItem.isAccessibleForFree || eventItem.offers?.price === 0 || eventItem.offers?.price === '0') ? 'Free' :
+                                                    'See tickets',
+                                            isFree: eventItem.isAccessibleForFree || eventItem.offers?.price === 0 || eventItem.offers?.price === '0',
                                             description: cleanText(eventItem.description || ''),
-                                            categories: ['General'],
+                                            categories: categorizeEvent(title, eventItem.description || '', categories),
                                             status: 'UPCOMING',
                                             lastUpdated: new Date().toISOString()
                                         };
@@ -130,7 +153,7 @@ export class EventbriteScraper implements ScraperSource {
                                     price,
                                     isFree,
                                     description: cleanText(item.description || ''),
-                                    categories: ['General'],
+                                    categories: categorizeEvent(title, item.description || ''),
                                     status: 'UPCOMING',
                                     lastUpdated: new Date().toISOString()
                                 };
@@ -150,9 +173,45 @@ export class EventbriteScraper implements ScraperSource {
         // Deduplicate
         const uniqueEvents = Array.from(new Map(events.map(item => [item.id, item])).values());
 
+        // CRITICAL: Enrich with REAL times from individual event pages
+        const today = new Date();
+        const tomorrow = new Date();
+        tomorrow.setDate(today.getDate() + 1);
+
+        const todayStr = today.toISOString().split('T')[0];
+        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+        const eventsToEnrich = uniqueEvents.filter(e => {
+            return e.date.startsWith(todayStr) || e.date.startsWith(tomorrowStr);
+        });
+        console.log(`Enriching ${eventsToEnrich.length} today/tomorrow events with real times...`);
+        let successCount = 0;
+        for (const event of eventsToEnrich) {
+            const realTime = await EventbriteDetailScraper.fetchRealEventTime(event.url);
+            if (realTime) {
+                const normalized = normalizeDate(realTime);
+                if (normalized) {
+                    event.date = normalized;
+                    successCount++;
+                } else {
+                    console.log(`  ⚠ Invalid real time format: ${realTime} for ${event.title}`);
+                }
+            }
+
+            // Check if sales have ended
+            const salesEnded = await EventbriteDetailScraper.checkSalesStatus(event.url);
+            if (salesEnded) {
+                event.status = 'CANCELLED'; // Mark as cancelled so it gets filtered
+                console.log(`  ⚠ Sales ended: ${event.title.substring(0, 40)}`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        console.log(`✓ Enriched ${successCount}/${eventsToEnrich.length} events with real times`);
+
         return {
             events: uniqueEvents,
             errors
         };
     }
 }
+

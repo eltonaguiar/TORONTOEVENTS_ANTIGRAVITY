@@ -4,14 +4,15 @@ import { AllEventsScraper } from './source-allevents';
 import { getEvents, saveEvents } from '../data';
 import { isMultiDay } from './utils';
 import { MockScraper } from './source-mock';
+import { shouldIncludeEvent } from '../quality/score';
 import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // Register sources
 const sources: ScraperSource[] = [
     new EventbriteScraper(),
     new AllEventsScraper(),
-    // new MockScraper(),
-    // Add other sources here
 ];
 
 async function checkLinkStatus(url: string): Promise<boolean> {
@@ -22,8 +23,6 @@ async function checkLinkStatus(url: string): Promise<boolean> {
         if (error.response && error.response.status === 404) {
             return false;
         }
-        // Consider other errors (timeouts) as temporary failures, so assume valid for now
-        // to avoid deleting good events on flakey connection
         return true;
     }
 }
@@ -50,11 +49,17 @@ export async function runScraper() {
     const existingEvents = getEvents();
     const existingMap = new Map(existingEvents.map(e => [e.id, e]));
 
-    // 3. Merge & Diff
+    // 3. Merge & Filter with quality gates
     const mergedEventsMap = new Map<string, Event>();
 
-    // Process fresh events
+    // Process fresh events with quality checks
     for (const fresh of freshEvents) {
+        // QUALITY GATE: Skip past or low-quality events
+        if (!shouldIncludeEvent(fresh)) {
+            console.log(`Skipping low-quality/past event: ${fresh.title}`);
+            continue;
+        }
+
         // Tag multi-day
         if (isMultiDay(fresh)) {
             if (!fresh.categories.includes('Multi-Day')) {
@@ -62,30 +67,25 @@ export async function runScraper() {
             }
         }
 
+        // Deduplicate categories
+        fresh.categories = Array.from(new Set(fresh.categories));
+
         if (existingMap.has(fresh.id)) {
             // Update existing
-            const existing = existingMap.get(fresh.id)!;
-            // Preserve some fields if needed, but usually fresh data wins
-            // Except maybe 'status' if we manually set it to cancelled? 
-            // Assuming scraper detects status better.
             mergedEventsMap.set(fresh.id, fresh);
         } else {
             // New event
-            // Verify link first before adding?
-            // Optional: const isValid = await checkLinkStatus(fresh.url);
-            // For speed, maybe trust scraper, but verify later.
             mergedEventsMap.set(fresh.id, fresh);
         }
     }
 
     // 4. Handle Stale/Cancelled events
-    // If an event was in existing but NOT in fresh...
     for (const [id, existing] of existingMap) {
         if (!mergedEventsMap.has(id)) {
-            // It is missing from scrape. Is it cancelled? Or just page drifted?
-            // Check date. If past, ignore (autoprune).
+            // Check if past (auto-prune)
             if (new Date(existing.date) < new Date()) {
-                continue; // Prune past events
+                console.log(`Pruning past event: ${existing.title}`);
+                continue;
             }
 
             // Check link status
@@ -97,8 +97,6 @@ export async function runScraper() {
                 existing.lastUpdated = new Date().toISOString();
                 mergedEventsMap.set(id, existing);
             } else {
-                // Still alive but not on front page? Keep it but maybe mark "Unknown" or just keep as is?
-                // We will keep it.
                 mergedEventsMap.set(id, existing);
             }
         }
@@ -108,6 +106,19 @@ export async function runScraper() {
 
     // Sort by date
     finalEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // Save metadata about scrape job
+    const metadata = {
+        lastUpdated: new Date().toISOString(),
+        totalEvents: finalEvents.length,
+        sources: sources.map(s => s.name)
+    };
+
+    const DATA_DIR = path.join(process.cwd(), 'data');
+    fs.writeFileSync(
+        path.join(DATA_DIR, 'metadata.json'),
+        JSON.stringify(metadata, null, 2)
+    );
 
     saveEvents(finalEvents);
     console.log(`Scrape complete. Saved ${finalEvents.length} events.`);

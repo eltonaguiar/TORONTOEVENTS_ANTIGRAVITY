@@ -3,18 +3,21 @@ import { Event } from '../lib/types';
 
 interface EventCardProps {
     event: Event;
+    onPreview?: () => void;
 }
 
-export default function EventCard({ event }: EventCardProps) {
+export default function EventCard({ event, onPreview }: EventCardProps) {
     const dateObj = new Date(event.date);
-    const dateStr = dateObj.toLocaleDateString('en-CA', {
-        month: 'short',
-        day: 'numeric',
-        weekday: 'short'
-    });
-    const timeStr = dateObj.toLocaleTimeString('en-CA', {
+
+    // Use Toronto timezone for display
+    const month = dateObj.toLocaleDateString('en-US', { month: 'short', timeZone: 'America/Toronto' });
+    const day = dateObj.toLocaleDateString('en-US', { day: 'numeric', timeZone: 'America/Toronto' });
+
+    const dateStr = `${month} ${day}`;
+    const timeStr = dateObj.toLocaleTimeString('en-US', {
         hour: 'numeric',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'America/Toronto'
     });
 
     return (
@@ -30,10 +33,10 @@ export default function EventCard({ event }: EventCardProps) {
             <div className="flex justify-between items-start mb-3">
                 <div className="flex flex-col items-center bg-white/5 rounded-lg p-2 min-w-[3.5rem] border border-white/10">
                     <span className="text-xs uppercase font-bold text-[var(--pk-200)]">
-                        {dateObj.toLocaleDateString('en-CA', { month: 'short' })}
+                        {month}
                     </span>
                     <span className="text-xl font-bold text-white">
-                        {dateObj.getDate()}
+                        {day}
                     </span>
                 </div>
                 <div className="text-xs font-medium px-2 py-1 rounded-full bg-[var(--surface-3)] text-[var(--text-2)] border border-white/5">
@@ -59,15 +62,25 @@ export default function EventCard({ event }: EventCardProps) {
                 </div>
             </div>
 
-            {/* Action */}
-            <a
-                href={event.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 block w-full text-center py-2 rounded-lg bg-[var(--pk-500)] hover:bg-[var(--pk-700)] text-white font-semibold text-sm transition-colors"
-            >
-                View Details
-            </a>
+            {/* Actions */}
+            <div className="mt-4 flex gap-2">
+                {onPreview && (
+                    <button
+                        onClick={onPreview}
+                        className="flex-1 text-center py-2 rounded-lg bg-[var(--pk-500)]/20 hover:bg-[var(--pk-500)]/30 text-[var(--pk-200)] font-semibold text-sm transition-colors border border-[var(--pk-500)]/30"
+                    >
+                        Preview
+                    </button>
+                )}
+                <a
+                    href={event.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`${onPreview ? 'flex-1' : 'w-full'} block text-center py-2 rounded-lg bg-[var(--pk-500)] hover:bg-[var(--pk-700)] text-white font-semibold text-sm transition-colors`}
+                >
+                    Tickets
+                </a>
+            </div>
         </div>
     );
 }
