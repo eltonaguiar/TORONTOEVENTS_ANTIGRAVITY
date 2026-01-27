@@ -149,8 +149,14 @@ export function shouldIncludeEvent(event: Event): boolean {
         return false;
     }
 
-    // Require minimum quality score
-    if (quality.score < 40) return false;
+    // CRITICAL FIX: Relax quality score requirement - be very permissive
+    // Only reject if quality is extremely poor (< 10)
+    // Most events should pass through and let frontend/user filters handle it
+    if (quality.score < 10) {
+        console.log(`Rejecting very low quality event: "${event.title}" (score: ${quality.score})`);
+        return false;
+    }
 
+    // Be permissive - include events unless we're CERTAIN they're bad
     return true;
 }
