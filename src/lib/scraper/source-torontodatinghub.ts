@@ -23,7 +23,8 @@ export class TorontoDatingHubScraper implements ScraperSource {
             const $ = cheerio.load(response.data);
 
             // Try to find event cards/items
-            $('.event-item, .event-card, article, .wix-event, .tribe-events-list-event-row').each((_, el) => {
+            const eventElements = $('.event-item, .event-card, article, .wix-event, .tribe-events-list-event-row').toArray();
+            for (const el of eventElements) {
                 try {
                     const card = $(el);
 
@@ -32,11 +33,11 @@ export class TorontoDatingHubScraper implements ScraperSource {
                         card.find('h1, h2, h3, h4, .event-title, .tribe-events-list-event-title').first().text()
                     );
 
-                    if (!title) return;
+                    if (!title) continue;
 
                     // Extract link
                     let link = card.find('a').first().attr('href');
-                    if (!link) return;
+                    if (!link) continue;
 
                     const fullUrl = link.startsWith('http') ? link : `https://www.torontodatinghub.com${link.startsWith('/') ? link : '/' + link}`;
 
@@ -81,7 +82,7 @@ export class TorontoDatingHubScraper implements ScraperSource {
                 } catch (e) {
                     console.error(`Error parsing Toronto Dating Hub item:`, e);
                 }
-            });
+            }
 
         } catch (e: any) {
             errors.push(`Toronto Dating Hub error: ${e.message}`);
