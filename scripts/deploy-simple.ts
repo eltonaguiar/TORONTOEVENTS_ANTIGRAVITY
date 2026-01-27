@@ -1,6 +1,7 @@
 import * as ftp from 'basic-ftp';
 import path from 'path';
 import fs from 'fs';
+import { execSync } from 'child_process';
 
 const config = {
     host: 'ftps2.50webs.com',
@@ -66,13 +67,19 @@ async function main() {
         const criticalFiles = [
             'favicon.ico',
             'ads.txt',
-            '404.html'
+            '404.html',
+            'index2.html' // FTP test page
         ];
 
         for (const file of criticalFiles) {
-            const localFile = path.join(buildDir, file);
-            if (fs.existsSync(localFile)) {
+            // Check buildDir first, then public folder
+            const buildFile = path.join(buildDir, file);
+            const publicFile = path.join(process.cwd(), 'public', file);
+            const localFile = fs.existsSync(buildFile) ? buildFile : (fs.existsSync(publicFile) ? publicFile : null);
+            if (localFile) {
                 await uploadFile(client, localFile, file);
+            } else {
+                console.log(`⚠️  ${file} not found in build or public folder, skipping...`);
             }
         }
 
@@ -80,7 +87,7 @@ async function main() {
         // CRITICAL: Upload to BOTH root AND basePath to ensure it's accessible from any URL
         const dataFiles = ['events.json', 'metadata.json'];
         const dataDir = path.join(process.cwd(), 'data');
-        
+
         // CRITICAL FIX: Create basePath directory first if it doesn't exist
         try {
             await client.ensureDir('TORONTOEVENTS_ANTIGRAVITY');
@@ -88,14 +95,14 @@ async function main() {
         } catch (dirErr) {
             console.warn(`⚠️  Could not create basePath directory: ${dirErr}`);
         }
-        
+
         for (const file of dataFiles) {
             const localFile = path.join(dataDir, file);
             if (fs.existsSync(localFile)) {
                 // Upload to root (primary location)
                 await uploadFile(client, localFile, file);
                 console.log(`✅ Uploaded ${file} to remote root`);
-                
+
                 // CRITICAL FIX: Also upload to basePath to prevent 404 errors
                 // Some users might access the site via /TORONTOEVENTS_ANTIGRAVITY/ path
                 try {
@@ -165,12 +172,17 @@ async function main() {
             console.log('✅ 2XKO page uploaded');
         }
 
-        // Upload findstocks page
+        // Upload findstocks page (to both /findstocks and /STOCKS)
         const findstocksDir = path.join(buildDir, 'findstocks');
         if (fs.existsSync(findstocksDir)) {
             console.log('📦 Uploading Find Stocks page...');
             await client.uploadFromDir(findstocksDir, 'findstocks');
-            console.log('✅ Find Stocks page uploaded');
+            console.log('✅ Find Stocks page uploaded to /findstocks');
+
+            // Also upload to /STOCKS (uppercase) for findtorontoevents.ca/STOCKS
+            console.log('📦 Uploading Find Stocks page to /STOCKS...');
+            await client.uploadFromDir(findstocksDir, 'STOCKS');
+            console.log('✅ Find Stocks page uploaded to /STOCKS');
         }
 
         // Upload daily-stocks.json data file (if it exists)
@@ -210,12 +222,10 @@ async function main() {
             console.log('✅ WINDOWSFIXER page uploaded');
         }
 
-        // CRITICAL: Also deploy app to TORONTOEVENTS_ANTIGRAVITY subdirectory for redirect compatibility
         // Build a version with basePath for the subdirectory
         console.log('\n📦 Building version with basePath for TORONTOEVENTS_ANTIGRAVITY...');
-        const { execSync } = require('child_process');
         try {
-            execSync('npx cross-env DEPLOY_TARGET=github npm run build', { 
+            execSync('npx cross-env DEPLOY_TARGET=github npm run build', {
                 stdio: 'inherit',
                 cwd: process.cwd()
             });
@@ -227,15 +237,25 @@ async function main() {
         const githubBuildDir = path.join(process.cwd(), 'build');
         await client.cd(config.remotePath);
         await client.ensureDir('TORONTOEVENTS_ANTIGRAVITY');
-        
+        await client.cd('TORONTOEVENTS_ANTIGRAVITY');
+
+        // Check for and clean recursive directory if it accidentally exists
+        try {
+            const list = await client.list();
+            if (list.find(f => f.name === 'TORONTOEVENTS_ANTIGRAVITY' && f.isDirectory)) {
+                console.log('🧹 Cleaning up recursive TORONTOEVENTS_ANTIGRAVITY folder...');
+                await client.removeDir('TORONTOEVENTS_ANTIGRAVITY', true);
+            }
+        } catch (e) { /* ignore */ }
+
         // Upload index.html to basePath
         const githubIndexHtml = path.join(githubBuildDir, 'index.html');
         if (fs.existsSync(githubIndexHtml)) {
-            await uploadFile(client, githubIndexHtml, 'TORONTOEVENTS_ANTIGRAVITY/index.html');
+            await client.uploadFrom(githubIndexHtml, 'index.html');
             console.log('✅ Uploaded index.html to TORONTOEVENTS_ANTIGRAVITY/');
         } else if (fs.existsSync(indexHtml)) {
             // Fallback to sftp build if github build failed
-            await uploadFile(client, indexHtml, 'TORONTOEVENTS_ANTIGRAVITY/index.html');
+            await client.uploadFrom(indexHtml, 'index.html');
             console.log('✅ Uploaded index.html to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
         }
 
@@ -243,10 +263,10 @@ async function main() {
         const githubNextDir = path.join(githubBuildDir, '_next');
         if (fs.existsSync(githubNextDir)) {
             console.log('📦 Uploading _next to TORONTOEVENTS_ANTIGRAVITY...');
-            await client.uploadFromDir(githubNextDir, 'TORONTOEVENTS_ANTIGRAVITY/_next');
+            await client.uploadFromDir(githubNextDir, '_next');
             console.log('✅ _next directory uploaded to TORONTOEVENTS_ANTIGRAVITY/');
         } else if (fs.existsSync(nextDir)) {
-            await client.uploadFromDir(nextDir, 'TORONTOEVENTS_ANTIGRAVITY/_next');
+            await client.uploadFromDir(nextDir, '_next');
             console.log('✅ _next directory uploaded to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
         }
 
@@ -254,22 +274,30 @@ async function main() {
         const githubTwoXkoDir = path.join(githubBuildDir, '2xko');
         if (fs.existsSync(githubTwoXkoDir)) {
             console.log('📦 Uploading 2XKO page to TORONTOEVENTS_ANTIGRAVITY...');
-            await client.uploadFromDir(githubTwoXkoDir, 'TORONTOEVENTS_ANTIGRAVITY/2xko');
+            await client.uploadFromDir(githubTwoXkoDir, '2xko');
             console.log('✅ 2XKO page uploaded to TORONTOEVENTS_ANTIGRAVITY/');
         } else if (fs.existsSync(twoXkoDir)) {
-            await client.uploadFromDir(twoXkoDir, 'TORONTOEVENTS_ANTIGRAVITY/2xko');
+            await client.uploadFromDir(twoXkoDir, '2xko');
             console.log('✅ 2XKO page uploaded to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
         }
 
-        // Upload findstocks to basePath
+        // Upload findstocks to basePath (both /findstocks and /STOCKS)
         const githubFindstocksDir = path.join(githubBuildDir, 'findstocks');
         if (fs.existsSync(githubFindstocksDir)) {
             console.log('📦 Uploading Find Stocks page to TORONTOEVENTS_ANTIGRAVITY...');
             await client.uploadFromDir(githubFindstocksDir, 'TORONTOEVENTS_ANTIGRAVITY/findstocks');
-            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/');
+            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/findstocks');
+
+            // Also upload to TORONTOEVENTS_ANTIGRAVITY/STOCKS
+            await client.uploadFromDir(githubFindstocksDir, 'TORONTOEVENTS_ANTIGRAVITY/STOCKS');
+            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/STOCKS');
         } else if (fs.existsSync(findstocksDir)) {
             await client.uploadFromDir(findstocksDir, 'TORONTOEVENTS_ANTIGRAVITY/findstocks');
-            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
+            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/findstocks (using root build)');
+
+            // Also upload to TORONTOEVENTS_ANTIGRAVITY/STOCKS
+            await client.uploadFromDir(findstocksDir, 'TORONTOEVENTS_ANTIGRAVITY/STOCKS');
+            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/STOCKS (using root build)');
         }
 
         // Upload daily-stocks.json to basePath (if it exists)
@@ -311,6 +339,8 @@ async function main() {
         console.log(`📍 Main page: ${config.remotePath}/index3.html`);
         console.log(`📍 WINDOWSFIXER page: ${config.remotePath}/WINDOWSFIXER/index.html`);
         console.log(`📍 Mental Health Resources: ${config.remotePath}/MENTALHEALTHRESOURCES/index.html`);
+        console.log(`📍 Find Stocks: ${config.remotePath}/findstocks/index.html`);
+        console.log(`📍 Find Stocks (STOCKS): ${config.remotePath}/STOCKS/index.html`);
     } catch (err) {
         console.error('❌ Deployment failed:', err);
         process.exit(1);
