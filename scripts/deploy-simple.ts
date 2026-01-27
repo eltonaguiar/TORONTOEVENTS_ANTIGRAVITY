@@ -70,6 +70,15 @@ async function main() {
         // CRITICAL: Upload to BOTH root AND basePath to ensure it's accessible from any URL
         const dataFiles = ['events.json', 'metadata.json'];
         const dataDir = path.join(process.cwd(), 'data');
+        
+        // CRITICAL FIX: Create basePath directory first if it doesn't exist
+        try {
+            await client.ensureDir('TORONTOEVENTS_ANTIGRAVITY');
+            console.log('✅ Created/verified TORONTOEVENTS_ANTIGRAVITY directory');
+        } catch (dirErr) {
+            console.warn(`⚠️  Could not create basePath directory: ${dirErr}`);
+        }
+        
         for (const file of dataFiles) {
             const localFile = path.join(dataDir, file);
             if (fs.existsSync(localFile)) {
@@ -80,11 +89,15 @@ async function main() {
                 // CRITICAL FIX: Also upload to basePath to prevent 404 errors
                 // Some users might access the site via /TORONTOEVENTS_ANTIGRAVITY/ path
                 try {
+                    // Ensure we're in the right directory
+                    await client.cd(config.remotePath);
                     await client.ensureDir('TORONTOEVENTS_ANTIGRAVITY');
-                    await uploadFile(client, localFile, `TORONTOEVENTS_ANTIGRAVITY/${file}`);
+                    const basePathFile = `TORONTOEVENTS_ANTIGRAVITY/${file}`;
+                    await uploadFile(client, localFile, basePathFile);
                     console.log(`✅ Uploaded ${file} to TORONTOEVENTS_ANTIGRAVITY/ (basePath)`);
-                } catch (basePathErr) {
-                    console.warn(`⚠️  Could not upload ${file} to basePath, but root upload succeeded`);
+                } catch (basePathErr: any) {
+                    console.warn(`⚠️  Could not upload ${file} to basePath: ${basePathErr.message}`);
+                    console.warn(`   Root upload succeeded, so site will still work from root path`);
                 }
             }
         }
