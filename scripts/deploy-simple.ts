@@ -80,9 +80,26 @@ async function main() {
         // Upload any other static assets from public folder that might be missing
         const publicDir = path.join(process.cwd(), 'public');
         if (fs.existsSync(publicDir)) {
-            console.log('📦 Syncing public assets...');
-            await client.uploadFromDir(publicDir); // Upload to remote root
-            console.log('✅ Public assets synced');
+            try {
+                console.log('📦 Syncing public assets...');
+                await client.uploadFromDir(publicDir); // Upload to remote root
+                console.log('✅ Public assets synced');
+            } catch (err) {
+                console.log('⚠️ Public assets sync failed (non-critical), continuing...');
+                // Reconnect if connection was lost
+                try {
+                    await client.access({
+                        host: config.host,
+                        user: config.user,
+                        password: config.password,
+                        secure: true,
+                        secureOptions: { rejectUnauthorized: false }
+                    });
+                    await client.cd(config.remotePath);
+                } catch (reconnectErr) {
+                    console.log('⚠️ Could not reconnect, but critical files are already uploaded');
+                }
+            }
         }
 
         // Upload _next directory recursively
