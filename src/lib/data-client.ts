@@ -65,11 +65,12 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     console.log('🔄 [Data Source] Attempting fallback to FTP site...');
     
     // Fallback to FTP site - try multiple paths
+    // CRITICAL: Try root first since events.json is deployed to root, not basePath
     const fallbackUrls = typeof window !== 'undefined' 
       ? [
-          `${window.location.origin}/events.json`,  // Root
-          `${window.location.origin}/TORONTOEVENTS_ANTIGRAVITY/events.json`,  // BasePath
-          '/events.json',  // Relative root
+          '/events.json',  // Relative root (works from any path)
+          `${window.location.origin}/events.json`,  // Absolute root
+          `${window.location.origin}/TORONTOEVENTS_ANTIGRAVITY/events.json`,  // BasePath (may not exist)
           '/TORONTOEVENTS_ANTIGRAVITY/events.json',  // Relative basePath
         ]
       : ['/events.json'];
@@ -189,21 +190,33 @@ export function useEventsFromGitHub() {
         console.error('❌ [useEventsFromGitHub] Error loading events:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to load events');
-          // Try to load from a direct fallback
+          // Try to load from a direct fallback (try root first)
           console.log('🔄 [useEventsFromGitHub] Attempting emergency fallback...');
-          try {
-            const fallbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/events.json` : '/events.json';
-            const fallbackResponse = await fetch(fallbackUrl + '?t=' + Date.now());
-            if (fallbackResponse.ok) {
-              const fallbackEvents = await fallbackResponse.json();
-              if (Array.isArray(fallbackEvents) && fallbackEvents.length > 0) {
-                console.log(`✅ [useEventsFromGitHub] Emergency fallback loaded ${fallbackEvents.length} events`);
-                setEvents(fallbackEvents);
-                setError(null);
+          const emergencyUrls = typeof window !== 'undefined' 
+            ? ['/events.json', `${window.location.origin}/events.json`]
+            : ['/events.json'];
+          
+          for (const fallbackUrl of emergencyUrls) {
+            try {
+              console.log(`🔄 [useEventsFromGitHub] Trying emergency fallback: ${fallbackUrl}`);
+              const fallbackResponse = await fetch(fallbackUrl + '?t=' + Date.now(), {
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json' }
+              });
+              if (fallbackResponse.ok) {
+                const text = await fallbackResponse.text();
+                const fallbackEvents = JSON.parse(text);
+                if (Array.isArray(fallbackEvents) && fallbackEvents.length > 0) {
+                  console.log(`✅ [useEventsFromGitHub] Emergency fallback loaded ${fallbackEvents.length} events from ${fallbackUrl}`);
+                  setEvents(fallbackEvents);
+                  setError(null);
+                  break; // Success, stop trying
+                }
               }
+            } catch (fallbackErr: any) {
+              console.log(`⚠️ [useEventsFromGitHub] Emergency fallback ${fallbackUrl} failed: ${fallbackErr.message}`);
+              continue; // Try next URL
             }
-          } catch (fallbackErr) {
-            console.error('❌ [useEventsFromGitHub] Emergency fallback also failed:', fallbackErr);
           }
         }
       } finally {
