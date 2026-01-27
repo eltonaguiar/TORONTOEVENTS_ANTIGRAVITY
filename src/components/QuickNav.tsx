@@ -246,6 +246,15 @@ END:VCALENDAR`;
                             <p className="px-4 py-2 text-[10px] font-black uppercase text-[var(--pk-300)] tracking-widest opacity-60">Network</p>
 
                             <a
+                                href="https://findtorontoevents.ca"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 hover:bg-[var(--pk-500)]/20 text-[var(--pk-300)] hover:text-white transition-all border border-transparent hover:border-[var(--pk-500)]/30 overflow-hidden"
+                            >
+                                <span className="text-lg">🎉</span> Toronto Events
+                            </a>
+
+                            <a
                                 href="https://findtorontoevents.ca/WINDOWSFIXER/"
                                 target="_blank"
                                 rel="noopener noreferrer"

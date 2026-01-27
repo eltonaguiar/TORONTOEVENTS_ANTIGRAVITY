@@ -19,6 +19,7 @@ import { TorontoDatingHubScraper } from './source-torontodatinghub';
 import { WaterworksScraper } from './source-waterworks';
 import { BlogTOScraper } from './source-blogto';
 import { NarcityScraper } from './source-narcity';
+import { FlareEventsScraper } from './source-flare';
 
 // Register sources
 const sources: ScraperSource[] = [
@@ -33,6 +34,7 @@ const sources: ScraperSource[] = [
     new WaterworksScraper(),
     new BlogTOScraper(),
     new NarcityScraper(),
+    new FlareEventsScraper(),
 ];
 
 async function checkLinkStatus(url: string): Promise<boolean> {
