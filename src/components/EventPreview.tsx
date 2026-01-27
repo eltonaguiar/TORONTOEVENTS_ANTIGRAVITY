@@ -24,12 +24,14 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
     const [iframeUrl, setIframeUrl] = useState<string>('');
     const [modalWidth, setModalWidth] = useState(settings.previewWidth || 896);
     const [modalHeight, setModalHeight] = useState(settings.previewHeight || 600);
+    const [modalPosition, setModalPosition] = useState<{ x: number; y: number } | null>(null);
     const [isResizing, setIsResizing] = useState(false);
-    const [resizeType, setResizeType] = useState<'width' | 'height' | 'both' | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [resizeType, setResizeType] = useState<string | null>(null);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
     const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+    const dragStartRef = useRef<{ x: number; y: number; startX: number; startY: number; width: number; height: number } | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -46,7 +48,11 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
         // Reset modal size to saved defaults
         setModalWidth(settings.previewWidth || 896);
         setModalHeight(settings.previewHeight || 600);
-    }, [event.id, settings.previewWidth, settings.previewHeight]);
+        // Reset position on new event, unless it's an inline preview
+        if (!isInline) {
+            setModalPosition(null);
+        }
+    }, [event.id, settings.previewWidth, settings.previewHeight, isInline]);
 
     // Use settings or local overrides
     const height = modalHeight;
@@ -58,55 +64,98 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
     const position = effectivePosition;
     const isChatbox = settings.isChatboxMode;
 
-    // Resize handlers
+    // Interaction handlers (Resize & Drag)
     useEffect(() => {
-        if (!isResizing) return;
+        if (!isResizing && !isDragging) return;
 
         const handleMouseMove = (e: MouseEvent) => {
-            if (!resizeStartRef.current || !resizeType) return;
+            if (!dragStartRef.current) return;
+            const { startX, startY, x, y, width, height } = dragStartRef.current;
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
 
-            const deltaX = e.clientX - resizeStartRef.current.x;
-            const deltaY = e.clientY - resizeStartRef.current.y;
-
-            if (resizeType === 'width' || resizeType === 'both') {
-                const newWidth = Math.max(400, Math.min(1400, resizeStartRef.current.width + deltaX));
-                setModalWidth(newWidth);
+            if (isDragging) {
+                setModalPosition({ x: x + deltaX, y: y + deltaY });
+                return;
             }
 
-            if (resizeType === 'height' || resizeType === 'both') {
-                const newHeight = Math.max(400, Math.min(1000, resizeStartRef.current.height + deltaY));
-                setModalHeight(newHeight);
+            if (resizeType) {
+                let newX = x;
+                let newY = y;
+                let newW = width;
+                let newH = height;
+
+                if (resizeType.includes('e')) {
+                    newW = Math.max(400, Math.min(1400, width + deltaX));
+                }
+                if (resizeType.includes('s')) {
+                    newH = Math.max(400, Math.min(1000, height + deltaY));
+                }
+                if (resizeType.includes('w')) {
+                    const maxDelta = width - 400;
+                    const validDelta = Math.min(Math.max(deltaX, -maxDelta), maxDelta);
+                    newW = Math.max(400, Math.min(1400, width - validDelta));
+                    newX = x + (width - newW);
+                }
+                if (resizeType.includes('n')) {
+                    const maxDelta = height - 400;
+                    const validDelta = Math.min(Math.max(deltaY, -maxDelta), maxDelta);
+                    newH = Math.max(400, Math.min(1000, height - validDelta));
+                    newY = y + (height - newH);
+                }
+
+                setModalWidth(newW);
+                setModalHeight(newH);
+                setModalPosition({ x: newX, y: newY });
             }
         };
 
         const handleMouseUp = () => {
             setIsResizing(false);
+            setIsDragging(false);
             setResizeType(null);
-            resizeStartRef.current = null;
+            dragStartRef.current = null;
+            // Update global settings on stop
+            updateSettings({ previewWidth: modalWidth, previewHeight: modalHeight });
         };
 
         window.addEventListener('mousemove', handleMouseMove);
         window.addEventListener('mouseup', handleMouseUp);
-
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mouseup', handleMouseUp);
         };
-    }, [isResizing, resizeType]);
+    }, [isResizing, isDragging, resizeType, modalWidth, modalHeight, updateSettings]);
 
-    const handleResizeStart = (e: React.MouseEvent, type: 'width' | 'height' | 'both') => {
+    const startInteraction = (e: React.MouseEvent, type: string) => {
         e.preventDefault();
         e.stopPropagation();
         if (modalRef.current) {
-            const rect = modalRef.current.getBoundingClientRect();
-            resizeStartRef.current = {
-                x: e.clientX,
-                y: e.clientY,
-                width: rect.width,
-                height: rect.height
+            // Need to get current position if not set yet (first drag)
+            let currentX = modalPosition?.x || 0;
+            let currentY = modalPosition?.y || 0;
+
+            if (!modalPosition && modalRef.current) {
+                const rect = modalRef.current.getBoundingClientRect();
+                currentX = rect.left;
+                currentY = rect.top;
+                setModalPosition({ x: currentX, y: currentY });
+            }
+
+            dragStartRef.current = {
+                startX: e.clientX,
+                startY: e.clientY,
+                x: currentX,
+                y: currentY,
+                width: modalWidth,
+                height: modalHeight
             };
-            setIsResizing(true);
-            setResizeType(type);
+            if (type === 'drag') {
+                setIsDragging(true);
+            } else {
+                setIsResizing(true);
+                setResizeType(type);
+            }
         }
     };
 
@@ -132,104 +181,35 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
     // CRITICAL: Always use fixed positioning relative to VIEWPORT, not document
     // This ensures modals appear correctly even when user is scrolled down
     const getSmartPosition = () => {
-        // Always use fixed positioning relative to viewport
         if (isInline) return {};
 
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const currentModalWidth = isChatbox ? 500 : (mode === 'split' ? 1200 : width);
-
-        // Handle default positioning preferences
-        if (settings.defaultPreviewPosition === 'center' || (position === 'center' && !anchor)) {
+        // Use state position if available (after initial render/drag)
+        if (modalPosition) {
             return {
                 position: 'fixed' as const,
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: `${currentModalWidth}px`,
-                maxWidth: '95vw',
-                maxHeight: '90vh',
+                top: `${modalPosition.y}px`,
+                left: `${modalPosition.x}px`,
                 margin: 0,
-                zIndex: 101
+                zIndex: 101,
+                transform: 'none'
             };
         }
 
-        if (settings.defaultPreviewPosition === 'left' && !anchor) {
-            return {
-                position: 'fixed' as const,
-                top: '50%',
-                left: '20px',
-                transform: 'translateY(-50%)',
-                width: `${currentModalWidth}px`,
-                maxWidth: '95vw',
-                maxHeight: '90vh',
-                margin: 0,
-                zIndex: 101
-            };
-        }
+        const vw = typeof window !== 'undefined' ? window.innerWidth : 1000;
+        const vh = typeof window !== 'undefined' ? window.innerHeight : 1000;
+        const currentModalWidth = modalWidth;
 
-        if (settings.defaultPreviewPosition === 'right' && !anchor) {
-            return {
-                position: 'fixed' as const,
-                top: '50%',
-                right: '20px',
-                left: 'auto',
-                transform: 'translateY(-50%)',
-                width: `${currentModalWidth}px`,
-                maxWidth: '95vw',
-                maxHeight: '90vh',
-                margin: 0,
-                zIndex: 101
-            };
-        }
-
-        // "offset" or smart positioning relative to anchor (default behavior)
-        if (!anchor) {
-            // No anchor, fallback to center
-            return {
-                position: 'fixed' as const,
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: `${currentModalWidth}px`,
-                maxWidth: '95vw',
-                maxHeight: '90vh',
-                margin: 0,
-                zIndex: 101
-            };
-        }
-
-        // Smart positioning relative to anchor (offset mode)
-        let top = anchor.top;
-        let left = anchor.right + 20;
-
-        // Viewport Collision Detection
-        if (left + currentModalWidth > vw) {
-            left = anchor.left - currentModalWidth - 20;
-        }
-
-        if (left < 0) {
-            left = (vw - currentModalWidth) / 2;
-            top = anchor.bottom + 20;
-        }
-
-        if (top + height > vh) {
-            top = vh - height - 20;
-        }
-
-        if (top < 20) top = 20;
-        if (left < 20) left = 20;
-        if (left + currentModalWidth > vw - 20) left = vw - currentModalWidth - 20;
+        // Default: Center
+        const centerX = (vw - currentModalWidth) / 2;
+        const centerY = (vh - modalHeight) / 2;
 
         return {
             position: 'fixed' as const,
-            top: `${top}px`,
-            left: `${left}px`,
-            width: `${currentModalWidth}px`,
-            maxWidth: '95vw',
+            top: `${centerY}px`,
+            left: `${centerX}px`,
             margin: 0,
-            transform: 'none',
-            zIndex: 101
+            zIndex: 101,
+            transform: 'none'
         };
     };
 
@@ -393,35 +373,76 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                 // CRITICAL: Always use fixed positioning relative to viewport
                 // This ensures modal appears in viewport even when scrolled
                 position: isInline ? 'relative' : 'fixed',
+                // Apply smart positioning (width/height come from state, not smartStyle)
                 ...smartStyle
             } as any}
             onClick={(e) => e.stopPropagation()}
         >
-            {/* Resize Handles */}
+            {/* Resize Handles - All Directions */}
             {!isInline && (
                 <>
-                    {/* Bottom-right corner resize handle */}
-                    <div
-                        onMouseDown={(e) => handleResizeStart(e, 'both')}
-                        className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize z-50 bg-[var(--pk-500)]/20 hover:bg-[var(--pk-500)]/40 rounded-tl-lg transition-colors flex items-center justify-center group"
-                        title="Drag to resize"
-                    >
-                        <div className="w-3 h-3 border-2 border-[var(--pk-500)] rounded-tl-lg group-hover:border-white transition-colors" />
-                    </div>
-                    {/* Right edge resize handle */}
-                    <div
-                        onMouseDown={(e) => handleResizeStart(e, 'width')}
-                        className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-16 cursor-ew-resize z-50 hover:bg-[var(--pk-500)]/30 transition-colors rounded-l"
-                        title="Drag to resize width"
+                    {/* Corners */}
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 'nw');
+                        }} 
+                        className="absolute top-0 left-0 w-6 h-6 cursor-nw-resize z-[60] hover:bg-white/20 rounded-tl-[2rem]" 
                     />
-                    {/* Bottom edge resize handle */}
-                    <div
-                        onMouseDown={(e) => handleResizeStart(e, 'height')}
-                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-2 cursor-ns-resize z-50 hover:bg-[var(--pk-500)]/30 transition-colors rounded-t"
-                        title="Drag to resize height"
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 'ne');
+                        }} 
+                        className="absolute top-0 right-0 w-6 h-6 cursor-ne-resize z-[60] hover:bg-white/20 rounded-tr-[2rem]" 
+                    />
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 'sw');
+                        }} 
+                        className="absolute bottom-0 left-0 w-6 h-6 cursor-sw-resize z-[60] hover:bg-white/20 rounded-bl-[2rem]" 
+                    />
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 'se');
+                        }} 
+                        className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize z-[60] hover:bg-white/20 rounded-br-[2rem] bg-[var(--pk-500)]/20" 
+                    />
+
+                    {/* Edges */}
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 'n');
+                        }} 
+                        className="absolute top-0 left-6 right-6 h-2 cursor-n-resize z-[60] hover:bg-white/10" 
+                    />
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 's');
+                        }} 
+                        className="absolute bottom-0 left-6 right-6 h-2 cursor-s-resize z-[60] hover:bg-white/10" 
+                    />
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 'w');
+                        }} 
+                        className="absolute top-6 bottom-6 left-0 w-3 cursor-w-resize z-[60] hover:bg-white/10" 
+                    />
+                    <div 
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            startInteraction(e, 'e');
+                        }} 
+                        className="absolute top-6 bottom-6 right-0 w-3 cursor-e-resize z-[60] hover:bg-white/10" 
                     />
                 </>
             )}
+
             {/* Visual Connector Line (Smart Arrow) */}
             {anchor && position !== 'center' && !isInline && (
                 <div
@@ -438,7 +459,15 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                 </div>
             )}
             {/* Header / Premium Controls */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40 backdrop-blur-xl z-50 shrink-0">
+            <div
+                className="p-4 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40 backdrop-blur-xl z-50 shrink-0 cursor-move select-none"
+                onMouseDown={(e) => {
+                    // Start dragging unless clicking an interactive element
+                    if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('input')) {
+                        startInteraction(e, 'drag');
+                    }
+                }}
+            >
                 <div className="flex items-center gap-3">
                     <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
                         <button
@@ -462,17 +491,67 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             Live Site
                         </button>
                     </div>
+                    {/* Open in New Tab Button */}
+                    <a
+                        href={absoluteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all bg-[var(--pk-500)]/20 hover:bg-[var(--pk-500)] text-white border border-[var(--pk-500)]/50 hover:border-[var(--pk-500)] flex items-center gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        View in New Tab
+                    </a>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                    {/* Width Slider */}
                     <div className="hidden sm:flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full border border-white/5">
-                        <span className="text-[10px] uppercase font-black text-white/40">Height</span>
+                        <span className="text-[9px] uppercase font-black text-white/40">Width</span>
                         <input
-                            type="range" min="300" max="1000" step="50" value={height}
-                            onChange={(e) => setModalHeight(parseInt(e.target.value))}
-                            onMouseUp={() => updateSettings({ previewHeight: modalHeight })}
+                            type="range" min="400" max="1400" step="25" value={modalWidth}
+                            onChange={(e) => {
+                                const newWidth = parseInt(e.target.value);
+                                setModalWidth(newWidth);
+                                // Update position to keep centered if not manually positioned
+                                if (!modalPosition && !isInline) {
+                                    const vw = window.innerWidth;
+                                    const centerX = (vw - newWidth) / 2;
+                                    const vh = window.innerHeight;
+                                    const centerY = (vh - modalHeight) / 2;
+                                    setModalPosition({ x: centerX, y: centerY });
+                                }
+                            }}
+                            onMouseUp={() => updateSettings({ previewWidth: modalWidth })}
+                            onClick={(e) => e.stopPropagation()}
                             className="w-16 h-1 accent-[var(--pk-500)] cursor-pointer"
                         />
+                        <span className="text-[9px] font-mono text-white/60 min-w-[3rem] text-right">{modalWidth}px</span>
+                    </div>
+                    {/* Height Slider */}
+                    <div className="hidden sm:flex items-center gap-2 bg-black/20 px-3 py-1.5 rounded-full border border-white/5">
+                        <span className="text-[9px] uppercase font-black text-white/40">Height</span>
+                        <input
+                            type="range" min="400" max="1000" step="25" value={modalHeight}
+                            onChange={(e) => {
+                                const newHeight = parseInt(e.target.value);
+                                setModalHeight(newHeight);
+                                // Update position to keep centered if not manually positioned
+                                if (!modalPosition && !isInline) {
+                                    const vh = window.innerHeight;
+                                    const centerY = (vh - newHeight) / 2;
+                                    const vw = window.innerWidth;
+                                    const centerX = (vw - modalWidth) / 2;
+                                    setModalPosition({ x: centerX, y: centerY });
+                                }
+                            }}
+                            onMouseUp={() => updateSettings({ previewHeight: modalHeight })}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-16 h-1 accent-[var(--pk-500)] cursor-pointer"
+                        />
+                        <span className="text-[9px] font-mono text-white/60 min-w-[3rem] text-right">{modalHeight}px</span>
                     </div>
 
                     <button
@@ -574,8 +653,15 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                         )}
 
                         <div>
-                            <h2 className="text-4xl font-black mb-6 leading-[1.1] tracking-tight" style={{ color: 'var(--pk-300)' }}>{event.title}</h2>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex items-start justify-between gap-4 mb-4">
+                                <h2 className="text-4xl font-black leading-[1.1] tracking-tight flex-1" style={{ color: 'var(--pk-300)' }}>{event.title}</h2>
+                                {/* Prominent Price Display */}
+                                <div className="shrink-0 px-6 py-3 bg-[var(--pk-500)]/20 border-2 border-[var(--pk-500)] rounded-2xl">
+                                    <div className="text-[10px] uppercase font-black text-white/60 tracking-widest mb-1">Price</div>
+                                    <div className="text-2xl font-black text-[var(--pk-300)]">{event.price || 'Free'}</div>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2 mb-6">
                                 {event.categories.map((cat) => (
                                     <span key={cat} className="px-4 py-1.5 rounded-full bg-[var(--pk-500)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--pk-500)]/20">
                                         {cat}
@@ -617,11 +703,23 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             </div>
                         </div>
 
-                        {/* About Section */}
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-bold text-white">Description</h3>
-                            <div className="prose prose-sm prose-invert max-w-none opacity-80 leading-relaxed text-base">
-                                <p className="whitespace-pre-wrap">{event.description || "No further details provided by the host."}</p>
+                        {/* About Section - Full Description */}
+                        <div className="space-y-4 p-6 bg-white/5 rounded-3xl border border-white/5">
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tight">Description</h3>
+                            <div className="prose prose-invert max-w-none leading-relaxed">
+                                <div className="text-base text-white/90 whitespace-pre-wrap break-words">
+                                    {event.description ? (
+                                        <div className="space-y-3">
+                                            {event.description.split('\n\n').map((paragraph, idx) => (
+                                                <p key={idx} className="mb-3 last:mb-0">
+                                                    {paragraph.trim()}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-white/50 italic">No further details provided by the host.</p>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
