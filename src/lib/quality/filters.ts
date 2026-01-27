@@ -33,6 +33,19 @@ export function isTorontoEvent(event: Event): boolean {
         return true;
     }
 
+    // Accept known Toronto venues even if they don't explicitly say "Toronto"
+    const knownTorontoVenues = [
+        'red sandcastle theatre', 'ago', 'art gallery of ontario', 'rom', 'royal ontario museum',
+        'north york', 'etobicoke', 'scarborough', 'yonge street', 'queen street', 'king street',
+        'dundas', 'bloor', 'spadina', 'university avenue', 'bay street', 'college street',
+        'harbourfront', 'distillery', 'kensington', 'st. lawrence', 'liberty village',
+        'leslieville', 'the annex', 'yorkville', 'little italy', 'greektown', 'chinatown',
+        'casa loma', 'cn tower', 'rogers centre', 'scotiabank arena', 'air canada centre'
+    ];
+    if (knownTorontoVenues.some(venue => loc.includes(venue))) {
+        return true;
+    }
+
     // Fallback: If it contains "ON" or "Ontario" but NOT an excluded city
     // AND doesn't seem to be a US state like "NY", "CA", etc.
     if (loc.includes(', on') || loc.includes(' on,') || loc.includes('ontario')) {

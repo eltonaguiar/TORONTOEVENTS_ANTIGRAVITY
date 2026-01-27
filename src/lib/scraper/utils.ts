@@ -41,6 +41,11 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
     try {
         let inputStr = typeof dateInput === 'string' ? dateInput.trim() : dateInput.toISOString();
 
+        // Check for TBD/unknown dates first
+        if (isTBDDate(inputStr)) {
+            return null; // Don't default to any date if it's TBD
+        }
+
         // Robust cleanup for scraping artifacts (newlines, excessive spaces)
         inputStr = inputStr.replace(/\s+/g, ' ').trim();
 
@@ -51,6 +56,46 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
             inputStr = inputStr.replace(' - ', ' ');
         }
 
+        // Handle relative dates FIRST (before general parsing)
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        // "Tomorrow", "Tomorrow at 7pm", etc.
+        if (/^tomorrow/i.test(inputStr)) {
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            // Extract time if present
+            const timeMatch = inputStr.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
+            if (timeMatch) {
+                let hours = parseInt(timeMatch[1]);
+                const minutes = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+                const period = timeMatch[3]?.toLowerCase();
+                if (period === 'pm' && hours !== 12) hours += 12;
+                if (period === 'am' && hours === 12) hours = 0;
+                tomorrow.setHours(hours, minutes, 0, 0);
+            } else {
+                tomorrow.setHours(19, 0, 0, 0); // Default to 7 PM
+            }
+            return formatTorontoDate(tomorrow);
+        }
+        
+        // "Today", "Today at 7pm", etc.
+        if (/^today/i.test(inputStr)) {
+            const todayDate = new Date(today);
+            const timeMatch = inputStr.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
+            if (timeMatch) {
+                let hours = parseInt(timeMatch[1]);
+                const minutes = timeMatch[2] ? parseInt(timeMatch[2]) : 0;
+                const period = timeMatch[3]?.toLowerCase();
+                if (period === 'pm' && hours !== 12) hours += 12;
+                if (period === 'am' && hours === 12) hours = 0;
+                todayDate.setHours(hours, minutes, 0, 0);
+            } else {
+                todayDate.setHours(19, 0, 0, 0); // Default to 7 PM
+            }
+            return formatTorontoDate(todayDate);
+        }
+
         // Enhanced date parsing with better error handling
         let date = new Date(inputStr);
         
@@ -59,14 +104,21 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
             console.log(`[Date Parsing] Attempting to parse: "${inputStr}"`);
         }
 
-        // Handle year-less dates (e.g., "Aug 21")
-        if ((isNaN(date.getTime()) || date.getFullYear() === 2001) && inputStr.match(/[a-z]{3},\s+\d+\s+[a-z]{3}/i)) {
-            const currentYear = new Date().getFullYear();
-            date = new Date(`${inputStr} ${currentYear}`);
-            if (!isNaN(date.getTime())) {
-                const now = new Date();
-                if (date.getTime() < now.getTime() - (1000 * 60 * 60 * 24 * 30 * 6)) {
-                    date = new Date(`${inputStr} ${currentYear + 1}`);
+        // Handle year-less dates (e.g., "Aug 21", "January 15")
+        if (isNaN(date.getTime()) || date.getFullYear() === 2001 || date.getFullYear() < 2020) {
+            // Try to extract month and day
+            const monthDayMatch = inputStr.match(/(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})/i);
+            if (monthDayMatch) {
+                const currentYear = new Date().getFullYear();
+                const testDate = new Date(`${monthDayMatch[0]} ${currentYear}`);
+                if (!isNaN(testDate.getTime())) {
+                    // If the date is more than 6 months in the past, assume next year
+                    const sixMonthsAgo = new Date(now.getTime() - (1000 * 60 * 60 * 24 * 30 * 6));
+                    if (testDate < sixMonthsAgo) {
+                        date = new Date(`${monthDayMatch[0]} ${currentYear + 1}`);
+                    } else {
+                        date = testDate;
+                    }
                 }
             }
         }
@@ -76,6 +128,11 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
         const hasTime = /[:\d]+ ?(am|pm)/i.test(inputStr) || inputStr.includes(':');
 
         if (isNaN(date.getTime())) return null;
+        
+        // CRITICAL: Reject dates that are clearly invalid (like Jan 1, 1970 or year 2001)
+        if (date.getFullYear() < 2020 || date.getFullYear() > 2030) {
+            return null;
+        }
 
         // CRITICAL FIX: If no zone provided and it has a time, assume Toronto
         // This is critical when running on UTC machines (GitHub Actions)
@@ -109,6 +166,43 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
     } catch {
         return null;
     }
+}
+
+/**
+ * Format a Date object as Toronto timezone ISO string
+ */
+function formatTorontoDate(date: Date): string {
+    const options: Intl.DateTimeFormatOptions = {
+        timeZone: 'America/Toronto',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    };
+    const formatter = new Intl.DateTimeFormat('sv-SE', options);
+    const parts = formatter.formatToParts(date);
+    const map: { [key: string]: string } = {};
+    parts.forEach(p => map[p.type] = p.value);
+    const torontoIso = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
+    const finalOffset = getTorontoOffset(date);
+    return `${torontoIso}${finalOffset}`;
+}
+
+/**
+ * Check if a date string indicates "To Be Determined" or unknown date
+ */
+export function isTBDDate(dateStr: string): boolean {
+    if (!dateStr) return true;
+    const lower = dateStr.toLowerCase().trim();
+    const tbdPatterns = [
+        'tbd', 't.b.d', 'to be determined', 'to be announced', 'tba', 'date tbd',
+        'coming soon', 'date coming soon', 'check back', 'date pending',
+        'date to be announced', 'announcement coming', 'stay tuned'
+    ];
+    return tbdPatterns.some(pattern => lower.includes(pattern));
 }
 
 function getTorontoOffset(date: Date): string {

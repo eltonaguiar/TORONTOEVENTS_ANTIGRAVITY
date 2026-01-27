@@ -59,18 +59,16 @@ export class NarcityScraper implements ScraperSource {
                         ? `https://www.narcity.com${image}`
                         : (image?.startsWith('//') ? `https:${image}` : image);
 
-                    // Only add if we have a valid date or if it's clearly an event article
-                    const isEventArticle = title.toLowerCase().includes('event') ||
-                        description.toLowerCase().includes('event') ||
-                        title.toLowerCase().includes('happening') ||
-                        title.toLowerCase().includes('festival');
-
-                    if (!date && !isEventArticle) return;
+                    // REJECT events without valid dates - don't default to today
+                    if (!date) {
+                        console.log(`Rejecting Narcity event without valid date: ${title}`);
+                        return;
+                    }
 
                     const event: Event = {
                         id: generateEventId(fullUrl),
                         title: title,
-                        date: date || new Date().toISOString(),
+                        date: date,
                         location: 'Toronto, ON',
                         source: 'Narcity',
                         host: 'Narcity',

@@ -44,7 +44,8 @@ export class TorontoDatingHubScraper implements ScraperSource {
                     const dateText = cleanText(
                         card.find('.event-date, .tribe-event-date-start, time').first().text()
                     );
-                    const date = normalizeDate(dateText) || new Date().toISOString();
+                    const date = normalizeDate(dateText);
+                    if (!date) continue; // REJECT events without valid dates
 
                     // Extract location
                     const location = cleanText(

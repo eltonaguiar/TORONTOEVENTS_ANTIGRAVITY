@@ -20,7 +20,8 @@ export class ShowpassScraper implements ScraperSource {
                     for (const item of data.results) {
                         const title = item.name;
                         const url = `https://www.showpass.com/${item.slug}/`;
-                        const date = normalizeDate(item.starts_at) || new Date().toISOString();
+                        const date = normalizeDate(item.starts_at);
+                        if (!date) continue; // REJECT events without valid dates
                         const endDate = normalizeDate(item.ends_at) || undefined;
 
                         const price = item.ticket_types && item.ticket_types.length > 0

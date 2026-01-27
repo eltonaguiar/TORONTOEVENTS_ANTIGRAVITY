@@ -118,7 +118,8 @@ export class EventbriteScraper implements ScraperSource {
                                         }
 
                                         const eventId = generateEventId(url);
-                                        const date = normalizeDate(eventItem.startDate) || new Date().toISOString();
+                                        const date = normalizeDate(eventItem.startDate);
+                                        if (!date) continue; // REJECT events without valid dates - don't default to today
                                         const endDate = normalizeDate(eventItem.endDate) || undefined;
 
                                         let location = 'Toronto, ON';
@@ -263,7 +264,8 @@ export class EventbriteScraper implements ScraperSource {
                                 }
 
                                 const eventId = generateEventId(url);
-                                const date = item.startDate ? normalizeDate(item.startDate) : new Date().toISOString();
+                                const date = item.startDate ? normalizeDate(item.startDate) : null;
+                                if (!date) continue; // REJECT events without valid dates
                                 const endDate = item.endDate ? (normalizeDate(item.endDate) || undefined) : undefined;
 
                                 let location = 'Toronto, ON';
@@ -338,6 +340,12 @@ export class EventbriteScraper implements ScraperSource {
                                     }
                                 }
 
+                                // REJECT events without valid dates - don't default to today
+                                if (!date) {
+                                    console.log(`Rejecting Eventbrite event without valid date: ${title}`);
+                                    continue;
+                                }
+
                                 let isRecurring = item['@type'] === 'EventSeries' ||
                                     title.toLowerCase().includes('multiple dates') ||
                                     (item.description || '').toLowerCase().includes('multiple dates');
@@ -345,8 +353,8 @@ export class EventbriteScraper implements ScraperSource {
                                 const event: Event = {
                                     id: eventId,
                                     title: cleanText(title),
-                                    date: date || new Date().toISOString(),
-                                    endDate: isRecurring ? (endDate || date || new Date().toISOString()) : endDate,
+                                    date: date,
+                                    endDate: isRecurring ? (endDate || date) : endDate,
                                     location: cleanText(location),
                                     source: 'Eventbrite',
                                     host: item.organizer?.name || 'Various Organizers',
