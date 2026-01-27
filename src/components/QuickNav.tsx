@@ -243,10 +243,10 @@ END:VCALENDAR`;
 
                         {/* External Links */}
                         <div className="space-y-1 pt-4 border-t border-white/5">
-                            <p className="px-4 py-2 text-[10px] font-black uppercase text-[var(--pk-300)] tracking-widest opacity-60">Network</p>
+                            <p className="px-4 py-2 text-[10px] font-black uppercase text-[var(--pk-300)] tracking-widest opacity-60">Other Tools</p>
 
                             <a
-                                href="https://findtorontoevents.ca"
+                                href="https://findtorontoevents.ca/"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 hover:bg-[var(--pk-500)]/20 text-[var(--pk-300)] hover:text-white transition-all border border-transparent hover:border-[var(--pk-500)]/30 overflow-hidden"
@@ -271,6 +271,23 @@ END:VCALENDAR`;
                                 <span className="text-lg">🎮</span> 2XKO Frame Data
                             </a>
 
+                            <a
+                                href="https://findtorontoevents.ca/MENTALHEALTHRESOURCES/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 hover:bg-green-500/20 text-green-200 hover:text-white transition-all border border-transparent hover:border-green-500/30 overflow-hidden"
+                            >
+                                <span className="text-lg">🌟</span> Mental Health Resources
+                            </a>
+
+                            <a
+                                href="/findstocks"
+                                className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 hover:bg-yellow-500/20 text-yellow-200 hover:text-white transition-all border border-transparent hover:border-yellow-500/30 overflow-hidden"
+                                onClick={() => setIsOpen(false)}
+                            >
+                                <span className="text-lg">📈</span> Find Stocks
+                            </a>
+
                             <button
                                 onClick={() => {
                                     setIsSettingsOpen(true);
@@ -278,7 +295,7 @@ END:VCALENDAR`;
                                 }}
                                 className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 hover:bg-white/5 text-[var(--text-2)] hover:text-white transition-all overflow-hidden"
                             >
-                                <span className="text-lg">⚙️</span> System Settings
+                                <span className="text-lg">⚙️</span> Toronto Events Settings
                             </button>
                         </div>
                     </nav>
