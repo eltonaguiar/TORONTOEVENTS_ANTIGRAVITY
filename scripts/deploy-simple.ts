@@ -67,13 +67,25 @@ async function main() {
         }
 
         // Upload events.json and metadata.json (Source of truth is data/ folder)
+        // CRITICAL: Upload to BOTH root AND basePath to ensure it's accessible from any URL
         const dataFiles = ['events.json', 'metadata.json'];
         const dataDir = path.join(process.cwd(), 'data');
         for (const file of dataFiles) {
             const localFile = path.join(dataDir, file);
             if (fs.existsSync(localFile)) {
+                // Upload to root (primary location)
                 await uploadFile(client, localFile, file);
                 console.log(`✅ Uploaded ${file} to remote root`);
+                
+                // CRITICAL FIX: Also upload to basePath to prevent 404 errors
+                // Some users might access the site via /TORONTOEVENTS_ANTIGRAVITY/ path
+                try {
+                    await client.ensureDir('TORONTOEVENTS_ANTIGRAVITY');
+                    await uploadFile(client, localFile, `TORONTOEVENTS_ANTIGRAVITY/${file}`);
+                    console.log(`✅ Uploaded ${file} to TORONTOEVENTS_ANTIGRAVITY/ (basePath)`);
+                } catch (basePathErr) {
+                    console.warn(`⚠️  Could not upload ${file} to basePath, but root upload succeeded`);
+                }
             }
         }
 
