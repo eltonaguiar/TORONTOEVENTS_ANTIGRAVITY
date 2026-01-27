@@ -606,10 +606,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     const loadMoreEvents = useCallback(() => {
         if (!isLoading && hasMoreEvents) {
             setIsLoading(true);
-            setVisibleCount(prev => Math.min(prev + 50, validEvents.length)); // Load 50 more at a time (increased from 20)
+            const safeValidEvents = validEvents || [];
+            setVisibleCount(prev => Math.min(prev + 50, safeValidEvents.length)); // Load 50 more at a time (increased from 20)
             setTimeout(() => setIsLoading(false), 100);
         }
-    }, [isLoading, hasMoreEvents, validEvents.length]);
+    }, [isLoading, hasMoreEvents, validEvents]);
 
     const separateMultiDayList = useMemo(() => {
         if (dateFilter !== 'all') return []; // We merged them
