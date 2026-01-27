@@ -6,102 +6,92 @@
         {
           "name": "5L",
           "input": "5L",
-          "inputGlyph": "L",
-          "keyboardButton": "Light",
           "startup": 6,
           "onHit": 0,
           "onBlock": -1,
+          "inputGlyph": "L",
           "type": "normal"
         },
         {
           "name": "2L",
+          "input": "2L",
           "startup": 7,
           "onHit": -1,
           "onBlock": -2,
-          "type": "normal",
-          "input": "2L",
           "inputGlyph": "↓ L",
-          "keyboardButton": "Light"
+          "type": "normal"
         },
         {
           "name": "3L",
+          "input": "3L",
           "startup": 9,
           "onHit": -1,
           "onBlock": -2,
-          "type": "normal",
-          "input": "3L",
           "inputGlyph": "↘ L",
-          "keyboardButton": "Light"
+          "type": "normal"
         },
         {
           "name": "5M",
+          "input": "5M",
           "startup": 10,
           "onHit": -4,
           "onBlock": -5,
-          "type": "normal",
-          "input": "5M",
           "inputGlyph": "M",
-          "keyboardButton": "Medium"
+          "type": "normal"
         },
         {
           "name": "2M",
+          "input": "2M",
           "startup": 10,
           "onHit": -2,
           "onBlock": -3,
-          "type": "normal",
-          "input": "2M",
           "inputGlyph": "↓ M",
-          "keyboardButton": "Medium"
+          "type": "normal"
         },
         {
           "name": "3M",
+          "input": "3M",
           "startup": 22,
           "onHit": 5,
           "onBlock": -3,
-          "type": "normal",
-          "input": "3M",
           "inputGlyph": "↘ M",
-          "keyboardButton": "Medium"
+          "type": "normal"
         },
         {
           "name": "5H",
+          "input": "5H",
           "startup": 13,
           "onHit": 1,
           "onBlock": -3,
-          "type": "normal",
-          "input": "5H",
           "inputGlyph": "H",
-          "keyboardButton": "Heavy"
+          "type": "normal"
         },
         {
           "name": "2H",
+          "input": "2H",
           "startup": 13,
           "onHit": "Launch",
           "onBlock": -5,
-          "type": "normal",
-          "input": "2H",
           "inputGlyph": "↓ H",
-          "keyboardButton": "Heavy"
+          "type": "normal"
         },
         {
           "name": "66H",
+          "input": "66H",
           "startup": 13,
           "onHit": 10,
           "onBlock": 1,
-          "type": "special",
-          "input": "66H",
           "inputGlyph": "66H",
-          "keyboardButton": "Heavy"
+          "type": "special"
         },
         {
           "name": "2T",
+          "input": "2T",
           "startup": 12,
           "onHit": "Launch",
           "onBlock": -6,
-          "type": "special",
-          "input": "2T",
           "inputGlyph": "↓ T",
-          "keyboardButton": "Tag"
+          "type": "special"
         }
       ]
     },
@@ -110,83 +100,108 @@
       "moves": [
         {
           "name": "5L",
+          "input": "5L",
           "startup": 5,
           "onBlock": -2,
           "recovery": 20,
-          "type": "normal",
-          "input": "5L",
           "inputGlyph": "L",
-          "keyboardButton": "Light"
+          "type": "normal"
         },
         {
           "name": "2L",
+          "input": "2L",
           "startup": 6,
           "onBlock": -1,
           "recovery": 20,
-          "type": "normal",
-          "input": "2L",
           "inputGlyph": "↓ L",
-          "keyboardButton": "Light"
+          "type": "normal"
         },
         {
           "name": "5M",
+          "input": "5M",
           "startup": 8,
           "onBlock": -4,
           "recovery": 29,
-          "type": "normal",
-          "input": "5M",
           "inputGlyph": "M",
-          "keyboardButton": "Medium"
+          "type": "normal"
         },
         {
           "name": "2M",
+          "input": "2M",
           "startup": 9,
           "onBlock": -4,
           "recovery": 30,
-          "type": "normal",
-          "input": "2M",
           "inputGlyph": "↓ M",
-          "keyboardButton": "Medium"
+          "type": "normal"
         },
         {
           "name": "5H",
+          "input": "5H",
           "startup": 13,
           "onBlock": -7,
           "recovery": 40,
-          "type": "normal",
-          "input": "5H",
           "inputGlyph": "H",
-          "keyboardButton": "Heavy"
+          "type": "normal"
         },
         {
           "name": "2H",
+          "input": "2H",
           "startup": 15,
           "onBlock": -8,
           "recovery": 41,
-          "type": "normal",
-          "input": "2H",
           "inputGlyph": "↓ H",
-          "keyboardButton": "Heavy"
+          "type": "normal"
         },
         {
           "name": "3H",
+          "input": "3H",
           "startup": 18,
           "onBlock": -6,
           "recovery": 44,
+          "inputGlyph": "↘ H",
+          "type": "normal"
+        },
+        {
+          "name": "2T",
+          "input": "2T",
+          "startup": 9,
+          "onBlock": -6,
+          "recovery": 43,
+          "inputGlyph": "↓ T",
+          "type": "special"
+        }
+      ]
+    },
+    {
+      "name": "Yasuo",
+      "moves": [
+        {
+          "name": "3H",
           "type": "normal",
           "input": "3H",
           "inputGlyph": "↘ H",
           "keyboardButton": "Heavy"
         },
         {
-          "name": "2T",
-          "startup": 9,
-          "onBlock": -6,
-          "recovery": 43,
+          "name": "S1",
           "type": "special",
-          "input": "2T",
-          "inputGlyph": "↓ T",
-          "keyboardButton": "Tag"
+          "input": "S1",
+          "inputGlyph": "S1",
+          "keyboardButton": "Special 1"
+        },
+        {
+          "name": "6S1",
+          "type": "special",
+          "input": "6S1",
+          "inputGlyph": "→ S1",
+          "keyboardButton": "Special 1"
+        },
+        {
+          "name": "4S2",
+          "type": "special",
+          "input": "4S2",
+          "inputGlyph": "← S2",
+          "keyboardButton": "Special 2"
         }
       ]
     },
@@ -195,30 +210,33 @@
       "moves": [
         {
           "name": "5L",
+          "input": "5L",
+          "inputGlyph": "L",
+          "keyboardButton": "Light",
           "startup": 8,
           "active": 5,
           "recovery": 12,
           "onBlock": -2,
           "type": "normal",
-          "notes": "Fastest normal, safe pressure starter",
-          "input": "5L",
-          "inputGlyph": "L",
-          "keyboardButton": "Light"
+          "notes": "Fastest normal, safe pressure starter"
         },
         {
           "name": "2L",
+          "input": "2L",
+          "inputGlyph": "↓ L",
+          "keyboardButton": "Light",
           "startup": 9,
           "active": 4,
           "recovery": 12,
           "onBlock": -3,
           "type": "normal",
-          "notes": "Fast low check, good stagger tool",
-          "input": "2L",
-          "inputGlyph": "↓ L",
-          "keyboardButton": "Light"
+          "notes": "Fast low check, good stagger tool"
         },
         {
           "name": "Prod",
+          "input": "3L",
+          "inputGlyph": "↘ L",
+          "keyboardButton": "Light",
           "startup": 9,
           "active": 4,
           "recovery": 12,
@@ -228,30 +246,33 @@
         },
         {
           "name": "2M",
+          "input": "2M",
+          "inputGlyph": "↓ M",
+          "keyboardButton": "Medium",
           "startup": 11,
           "active": 11,
           "recovery": 20,
           "onBlock": -5,
           "type": "normal",
-          "notes": "Long active frames, strong stagger",
-          "input": "2M",
-          "inputGlyph": "↓ M",
-          "keyboardButton": "Medium"
+          "notes": "Long active frames, strong stagger"
         },
         {
           "name": "j.2H",
+          "input": "j.2H",
+          "inputGlyph": "j.↓ H",
+          "keyboardButton": "Heavy",
           "startup": 17,
           "active": 7,
           "recovery": 18,
           "onBlock": "-2~+15",
           "type": "normal",
-          "notes": "Cross-up splash; very plus when spaced",
-          "input": "j.2H",
-          "inputGlyph": "j.j.2H",
-          "keyboardButton": "Heavy"
+          "notes": "Cross-up splash; very plus when spaced"
         },
         {
           "name": "Rocket Grab",
+          "input": "S1",
+          "inputGlyph": "S1",
+          "keyboardButton": "Special 1",
           "startup": 25,
           "active": 23,
           "recovery": 30,
@@ -261,18 +282,21 @@
         },
         {
           "name": "2H",
+          "input": "2H",
+          "inputGlyph": "↓ H",
+          "keyboardButton": "Heavy",
           "startup": 13,
           "active": 4,
           "recovery": 33,
           "onBlock": -16,
           "type": "normal",
-          "notes": "Huge recovery if baited",
-          "input": "2H",
-          "inputGlyph": "↓ H",
-          "keyboardButton": "Heavy"
+          "notes": "Huge recovery if baited"
         },
         {
           "name": "Spinning Turbine",
+          "input": "6S2",
+          "inputGlyph": "→ S2",
+          "keyboardButton": "Special 2",
           "startup": 24,
           "active": 14,
           "recovery": 19,
@@ -282,6 +306,9 @@
         },
         {
           "name": "Garbage Collection",
+          "input": "2S2",
+          "inputGlyph": "↓ S2",
+          "keyboardButton": "Special 2",
           "startup": 6,
           "active": 8,
           "recovery": 57,
@@ -291,6 +318,9 @@
         },
         {
           "name": "Static Field",
+          "input": "S2+L/M/H",
+          "inputGlyph": "S2",
+          "keyboardButton": "Special 2",
           "startup": 20,
           "recovery": 84,
           "onBlock": -54,
@@ -300,6 +330,6 @@
       ]
     }
   ],
-  "lastUpdated": "2026-01-27T14:25:00.000Z",
-  "source": "2XKO Wiki (https://wiki.play2xko.com/en-us/)"
+  "lastUpdated": "2026-01-27T14:30:00.000Z",
+  "source": "2XKO Wiki (https://wiki.play2xko.com/en-us/ and https://2xko.wiki)"
 }
