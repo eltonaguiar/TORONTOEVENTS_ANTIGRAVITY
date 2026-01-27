@@ -12,16 +12,22 @@ function getNextThursday(): Date {
     const dayOfWeek = now.getDay(); // 0 = Sunday, 4 = Thursday
     const daysUntilThursday = (4 - dayOfWeek + 7) % 7 || 7; // Next Thursday (or today if it's Thursday)
     
-    // Create date in Toronto timezone
-    const torontoDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
-    const nextThursday = new Date(torontoDate);
-    nextThursday.setDate(torontoDate.getDate() + daysUntilThursday);
-    nextThursday.setHours(19, 0, 0, 0); // Default to 7 PM Toronto time
+    // Get current date in Toronto timezone
+    const torontoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+    const nextThursdayLocal = new Date(torontoNow);
+    nextThursdayLocal.setDate(torontoNow.getDate() + daysUntilThursday);
+    nextThursdayLocal.setHours(19, 0, 0, 0); // 7 PM Toronto time
     
-    // Convert back to UTC for storage
-    const torontoOffset = -5 * 60 * 60 * 1000; // EST offset (will need adjustment for DST)
-    const utcThursday = new Date(nextThursday.getTime() - torontoOffset);
-    return utcThursday;
+    // Create date string in Toronto timezone format, then parse it
+    // Format: "2026-01-30T19:00:00" and append timezone offset
+    // In January, Toronto is EST (UTC-5)
+    const year = nextThursdayLocal.getFullYear();
+    const month = String(nextThursdayLocal.getMonth() + 1).padStart(2, '0');
+    const day = String(nextThursdayLocal.getDate()).padStart(2, '0');
+    
+    // Create ISO string with EST offset (UTC-5)
+    const estDateString = `${year}-${month}-${day}T19:00:00-05:00`;
+    return new Date(estDateString);
 }
 
 function fixThursdayDates(): void {

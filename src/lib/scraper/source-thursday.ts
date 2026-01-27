@@ -64,15 +64,21 @@ export class ThursdayScraper implements ScraperSource {
                         
                         // Get current date in Toronto timezone
                         const torontoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
-                        const nextThursday = new Date(torontoNow);
-                        nextThursday.setDate(torontoNow.getDate() + daysUntilThursday);
-                        nextThursday.setHours(19, 0, 0, 0); // 7 PM Toronto time
+                        const nextThursdayLocal = new Date(torontoNow);
+                        nextThursdayLocal.setDate(torontoNow.getDate() + daysUntilThursday);
+                        nextThursdayLocal.setHours(19, 0, 0, 0); // 7 PM Toronto time
                         
-                        // Convert to ISO string (this will be in UTC)
-                        // We need to account for Toronto timezone offset
-                        const torontoOffset = -5 * 60 * 60 * 1000; // EST (adjust for DST if needed)
-                        const utcThursday = new Date(nextThursday.getTime() - torontoOffset);
-                        return utcThursday.toISOString();
+                        // Create date string with EST offset (UTC-5 for January)
+                        // This ensures the date displays correctly in Toronto timezone
+                        const year = nextThursdayLocal.getFullYear();
+                        const month = String(nextThursdayLocal.getMonth() + 1).padStart(2, '0');
+                        const day = String(nextThursdayLocal.getDate()).padStart(2, '0');
+                        
+                        // Use EST offset (UTC-5) - adjust to EDT (UTC-4) if needed for summer months
+                        const isDST = nextThursdayLocal.getMonth() >= 3 && nextThursdayLocal.getMonth() <= 10;
+                        const offset = isDST ? '-04:00' : '-05:00';
+                        const estDateString = `${year}-${month}-${day}T19:00:00${offset}`;
+                        return new Date(estDateString).toISOString();
                     };
                     
                     let date = getNextThursday(); // Default to next Thursday for Thursday events
