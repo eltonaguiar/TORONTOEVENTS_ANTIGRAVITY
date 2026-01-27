@@ -231,12 +231,16 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
     const isToday = (date: string) => {
         const eventDate = new Date(date);
+        // CRITICAL: If date is invalid, return false (don't match any filter)
+        if (isNaN(eventDate.getTime())) return false;
         const today = new Date();
         return getTorontoDateParts(eventDate) === getTorontoDateParts(today);
     };
 
     const isTomorrow = (date: string) => {
         const eventDate = new Date(date);
+        // CRITICAL: If date is invalid, return false (don't match any filter)
+        if (isNaN(eventDate.getTime())) return false;
         const tomorrow = new Date();
         const tomorrowDate = new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000);
         return getTorontoDateParts(eventDate) === getTorontoDateParts(tomorrowDate);
@@ -244,6 +248,8 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
     const isThisWeek = (date: string) => {
         const eventDate = new Date(date);
+        // CRITICAL: If date is invalid, return false (don't match any filter)
+        if (isNaN(eventDate.getTime())) return false;
         const today = new Date();
         const todayStr = getTorontoDateParts(today);
         const [y, m, d] = todayStr.split('-').map(Number);
@@ -263,6 +269,8 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
     const isThisMonth = (date: string) => {
         const eventDate = new Date(date);
+        // CRITICAL: If date is invalid, return false (don't match any filter)
+        if (isNaN(eventDate.getTime())) return false;
         const today = new Date();
         const eventParts = getTorontoDateParts(eventDate).split('-');
         const todayParts = getTorontoDateParts(today).split('-');
@@ -419,21 +427,27 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     // This prevents filtering out all events on initial load
                     if (settings.viewMode !== 'saved' && !showStarted && now) {
                         const eventStartDate = new Date(e.date);
-                        const eventEndDate = e.endDate
-                            ? new Date(e.endDate)
-                            : new Date(eventStartDate.getTime() + 3 * 60 * 60 * 1000);
-
-                        if (!isMultiDay(e)) {
-                            // Standard Feed: Hide things that are over (with 1 hour grace period for timezone issues)
-                            const gracePeriod = 60 * 60 * 1000; // 1 hour
-                            if (eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
-                            // Standard Feed: Hide things that started (unless toggle is On)
-                            // Use grace period to account for timezone differences
-                            if (eventStartDate < new Date(now.getTime() - gracePeriod)) return false;
+                        // CRITICAL: If date is invalid, don't filter it out - show it anyway
+                        if (isNaN(eventStartDate.getTime())) {
+                            // Invalid date - show the event anyway (don't filter out)
+                            // This fixes the "0 events" issue when dates are malformed
                         } else {
-                            // Multi-Day in Feed: Hide if totally over (with grace period)
-                            const gracePeriod = 60 * 60 * 1000; // 1 hour
-                            if (eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
+                            const eventEndDate = e.endDate
+                                ? new Date(e.endDate)
+                                : new Date(eventStartDate.getTime() + 3 * 60 * 60 * 1000);
+
+                            if (!isMultiDay(e)) {
+                                // Standard Feed: Hide things that are over (with 1 hour grace period for timezone issues)
+                                const gracePeriod = 60 * 60 * 1000; // 1 hour
+                                if (!isNaN(eventEndDate.getTime()) && eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
+                                // Standard Feed: Hide things that started (unless toggle is On)
+                                // Use grace period to account for timezone differences
+                                if (eventStartDate < new Date(now.getTime() - gracePeriod)) return false;
+                            } else {
+                                // Multi-Day in Feed: Hide if totally over (with grace period)
+                                const gracePeriod = 60 * 60 * 1000; // 1 hour
+                                if (!isNaN(eventEndDate.getTime()) && eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
+                            }
                         }
                     }
                 }
@@ -442,8 +456,19 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 // Date Filtering
                 const eventStartDate = new Date(e.date); // Need local var for date filter block
                 const eEndDate = e.endDate ? new Date(e.endDate) : eventStartDate;
+                
+                // CRITICAL FIX: If date is invalid, show it in "All Dates" view but not in specific date filters
+                const hasInvalidDate = isNaN(eventStartDate.getTime());
+                if (hasInvalidDate) {
+                    // Invalid dates should only show in "All Dates" view
+                    // This prevents them from cluttering specific date filters
+                    if (dateFilter !== 'all') {
+                        return false; // Hide invalid dates from specific date filters
+                    }
+                    // But show them in "All Dates" view so users can see them
+                }
 
-                if (dateFilter !== 'all' && now) {
+                if (dateFilter !== 'all' && now && !hasInvalidDate) {
                     const todayStr = getTorontoDateParts(now);
                     const [y, m, d] = todayStr.split('-').map(Number);
                     const todayStart = new Date(y, m - 1, d);
@@ -452,7 +477,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     if (dateFilter === 'today') {
                         const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
                         if (isMultiDay(e)) {
-                            if (eEndDate < todayStart || eventStartDate > todayEnd) return false;
+                            if (!isNaN(eEndDate.getTime()) && (eEndDate < todayStart || eventStartDate > todayEnd)) return false;
                         } else {
                             if (!isToday(e.date)) return false;
                         }
@@ -461,7 +486,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
                         const tomorrowEnd = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000 - 1);
                         if (isMultiDay(e)) {
-                            if (eEndDate < tomorrowStart || eventStartDate > tomorrowEnd) return false;
+                            if (!isNaN(eEndDate.getTime()) && (eEndDate < tomorrowStart || eventStartDate > tomorrowEnd)) return false;
                         } else {
                             if (!isTomorrow(e.date)) return false;
                         }
@@ -478,7 +503,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         
                         if (isMultiDay(e)) {
                             // For multi-day events, include if they overlap with this week
-                            if (eEndDate < startOfWeek || eventStartDate > endOfWeek) return false;
+                            if (!isNaN(eEndDate.getTime()) && (eEndDate < startOfWeek || eventStartDate > endOfWeek)) return false;
                         } else {
                             if (!isThisWeek(e.date)) return false;
                         }
@@ -517,8 +542,14 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 let valB: any = b[key as keyof Event];
 
                 if (key === 'date') {
-                    valA = new Date(valA as string).getTime();
-                    valB = new Date(valB as string).getTime();
+                    const dateA = new Date(valA as string);
+                    const dateB = new Date(valB as string);
+                    // CRITICAL: Handle invalid dates - put them at the end
+                    if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                    if (isNaN(dateA.getTime())) return 1; // Invalid dates go to end
+                    if (isNaN(dateB.getTime())) return -1; // Valid dates come first
+                    valA = dateA.getTime();
+                    valB = dateB.getTime();
                 }
 
                 if (direction === 'asc') {
