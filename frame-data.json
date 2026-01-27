@@ -141,175 +141,96 @@
       "moves": [
         {
           "name": "5L",
-          "startup": 7,
-          "onHit": 1,
-          "onBlock": -1,
+          "startup": 8,
+          "active": 5,
           "recovery": 12,
-          "type": "normal"
+          "onBlock": -2,
+          "type": "normal",
+          "notes": "Fastest normal, safe pressure starter"
         },
         {
           "name": "2L",
-          "startup": 8,
-          "onHit": 0,
-          "onBlock": -2,
-          "recovery": 14,
-          "type": "normal"
+          "startup": 9,
+          "active": 4,
+          "recovery": 12,
+          "onBlock": -3,
+          "type": "normal",
+          "notes": "Fast low check, good stagger tool"
         },
         {
-          "name": "5M",
-          "startup": 11,
-          "onHit": 2,
-          "onBlock": -4,
-          "recovery": 18,
-          "type": "normal"
+          "name": "Prod",
+          "startup": 9,
+          "active": 4,
+          "recovery": 12,
+          "onBlock": -1,
+          "type": "normal",
+          "notes": "Low poke with strong safety"
         },
         {
           "name": "2M",
-          "startup": 12,
-          "onHit": -1,
-          "onBlock": -5,
+          "startup": 11,
+          "active": 11,
           "recovery": 20,
-          "type": "normal"
+          "onBlock": -5,
+          "type": "normal",
+          "notes": "Long active frames, strong stagger"
         },
         {
-          "name": "5H",
-          "startup": 15,
-          "onHit": 4,
-          "onBlock": -6,
-          "recovery": 25,
-          "type": "normal"
-        },
-        {
-          "name": "2H",
-          "startup": 18,
-          "onHit": 6,
-          "onBlock": -8,
-          "recovery": 28,
-          "type": "normal"
+          "name": "j.2H",
+          "startup": 17,
+          "active": 7,
+          "recovery": 18,
+          "onBlock": "-2~+15",
+          "type": "normal",
+          "notes": "Cross-up splash; very plus when spaced"
         },
         {
           "name": "Rocket Grab",
-          "startup": 20,
-          "onHit": "Pull",
-          "onBlock": "Pull",
-          "recovery": 35,
-          "type": "special",
-          "damage": "Varies",
-          "guard": "Hit Grab"
-        },
-        {
-          "name": "Rocket Punch",
-          "startup": 16,
-          "onHit": 3,
-          "onBlock": -3,
+          "startup": 25,
+          "active": 23,
           "recovery": 30,
+          "onBlock": 4,
           "type": "special",
-          "damage": "High",
-          "guard": "Mid"
+          "notes": "Core neutral tool; unsafe raw"
         },
         {
-          "name": "Power Fist",
-          "startup": 10,
-          "onHit": 8,
-          "onBlock": -2,
-          "recovery": 22,
-          "type": "special",
-          "damage": "High",
-          "guard": "High"
-        },
-        {
-          "name": "Steam Charge",
-          "startup": 14,
-          "onHit": 5,
-          "onBlock": -4,
-          "recovery": 26,
-          "type": "special",
-          "damage": "Medium",
-          "guard": "Mid"
-        },
-        {
-          "name": "Garbage Collection",
-          "startup": 8,
-          "onHit": "Grab",
-          "onBlock": "-",
-          "recovery": 20,
-          "type": "special",
-          "damage": "High",
-          "guard": "Command Grab"
+          "name": "2H",
+          "startup": 13,
+          "active": 4,
+          "recovery": 33,
+          "onBlock": -16,
+          "type": "normal",
+          "notes": "Huge recovery if baited"
         },
         {
           "name": "Spinning Turbine",
-          "startup": 22,
-          "onHit": 4,
-          "onBlock": -5,
-          "recovery": 32,
+          "startup": 24,
+          "active": 14,
+          "recovery": 19,
+          "onBlock": -12,
           "type": "special",
-          "damage": "Medium",
-          "guard": "Mid"
+          "notes": "Risky neutral approach tool"
         },
         {
-          "name": "Prompt Disposal",
-          "startup": 12,
-          "onHit": "Grab",
+          "name": "Garbage Collection",
+          "startup": 6,
+          "active": 8,
+          "recovery": 57,
           "onBlock": "-",
-          "recovery": 24,
           "type": "special",
-          "damage": "Very High",
-          "guard": "Command Grab"
-        },
-        {
-          "name": "Air Purifier",
-          "startup": 18,
-          "onHit": "Pull (Air Only)",
-          "onBlock": "-",
-          "recovery": 30,
-          "type": "special",
-          "damage": "Medium",
-          "guard": "Hit Grab (Air)"
-        },
-        {
-          "name": "Wrecking Ball",
-          "startup": 15,
-          "onHit": 2,
-          "onBlock": -4,
-          "recovery": 28,
-          "type": "special",
-          "damage": "Medium (Multi-hit)",
-          "guard": "Mid (Air Only)"
-        },
-        {
-          "name": "Helping Hand",
-          "startup": 8,
-          "onHit": "Ground Bounce",
-          "onBlock": "-",
-          "recovery": 40,
-          "type": "super",
-          "damage": "Very High",
-          "guard": "Command Grab"
+          "notes": "Command grab; fatal if baited"
         },
         {
           "name": "Static Field",
-          "startup": 25,
-          "onHit": 8,
-          "onBlock": -10,
-          "recovery": 45,
+          "startup": 20,
+          "recovery": 84,
+          "onBlock": -54,
           "type": "super",
-          "damage": "Very High (Multi-hit)",
-          "guard": "Mid"
-        },
-        {
-          "name": "Trash Compactor",
-          "startup": 5,
-          "onHit": "Grab",
-          "onBlock": "-",
-          "recovery": 50,
-          "type": "super",
-          "damage": "Maximum",
-          "guard": "Command Grab (Invincible)"
+          "notes": "Setup-only super; never raw"
         }
       ]
     }
   ],
-  "lastUpdated": "2026-01-27T14:20:00.000Z",
-  "source": "2XKO Wiki (https://2xko.wiki) + Manual compilation from move descriptions"
+  "lastUpdated": "2026-01-27T14:25:00.000Z",
+  "source": "2XKO Wiki (https://wiki.play2xko.com/en-us/)"
 }

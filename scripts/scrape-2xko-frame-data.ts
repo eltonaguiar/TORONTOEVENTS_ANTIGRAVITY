@@ -40,12 +40,12 @@ function parseFrameValue(value: string): number | string {
 }
 
 async function scrapeChampionFrameData(championName: string): Promise<Champion | null> {
-  // Try multiple URL patterns
+  // Try multiple URL patterns - correct domain is wiki.play2xko.com
   const urls = [
+    `https://wiki.play2xko.com/en-us/${championName}/Frame_Data`,
+    `https://wiki.play2xko.com/en-us/${championName}`,
     `https://2xko.wiki/w/${championName}/Frame_Data`,
-    `https://2xko.wiki/w/${championName}`,
-    `https://2xko.wiki/w/${championName}/Moves`,
-    `https://2xko.wiki/w/${championName}/Move_List`
+    `https://2xko.wiki/w/${championName}`
   ];
   
   let $: cheerio.CheerioAPI | null = null;
@@ -58,9 +58,14 @@ async function scrapeChampionFrameData(championName: string): Promise<Champion |
       console.log(`  Trying: ${url}`);
       const response = await axios.get(url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://wiki.play2xko.com/',
+          'Cache-Control': 'no-cache'
         },
-        timeout: 15000
+        timeout: 15000,
+        maxRedirects: 5
       });
 
       $ = cheerio.load(response.data);
