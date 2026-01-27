@@ -552,37 +552,113 @@
                 let data = null;
                 let error = null;
                 
-                // First, try to get the repository file list
+                // First, try direct access to frame-data.json (most reliable)
                 try {
-                    const repoResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents`);
-                    if (repoResponse.ok) {
-                        const files = await repoResponse.json();
-                        const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-                        
-                        if (jsonFiles.length > 0) {
-                            // Try the first JSON file found
-                            const fileUrl = jsonFiles[0].download_url;
-                            const fileResponse = await fetch(fileUrl);
-                            if (fileResponse.ok) {
-                                data = await fileResponse.json();
-                            }
+                    console.log(`Fetching from: ${GITHUB_BASE}/frame-data.json`);
+                    const directResponse = await fetch(`${GITHUB_BASE}/frame-data.json`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        cache: force ? 'no-cache' : 'default'
+                    });
+                    if (directResponse.ok) {
+                        const text = await directResponse.text();
+                        try {
+                            data = JSON.parse(text);
+                            console.log('✅ Successfully loaded frame-data.json');
+                            console.log(`Champions: ${data.champions?.length || 0}`);
+                            console.log(`Total moves: ${data.champions?.reduce((sum, c) => sum + (c.moves?.length || 0), 0) || 0}`);
+                        } catch (parseError) {
+                            console.error('Failed to parse JSON:', parseError);
                         }
+                    } else {
+                        console.log(`Direct fetch failed: ${directResponse.status} ${directResponse.statusText}`);
                     }
                 } catch (e) {
-                    console.log('Could not fetch from API, trying direct files...');
+                    console.error('Direct fetch error:', e);
+                }
+                
+                // If direct fetch failed, try API method
+                if (!data) {
+                    try {
+                        const repoResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents`);
+                        if (repoResponse.ok) {
+                            const files = await repoResponse.json();
+                            const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+                            
+                            if (jsonFiles.length > 0) {
+                                // Try the first JSON file found
+                                const fileUrl = jsonFiles[0].download_url;
+                                const fileResponse = await fetch(fileUrl);
+                                if (fileResponse.ok) {
+                                    data = await fileResponse.json();
+                                    console.log(`✅ Loaded via API: ${jsonFiles[0].name}`);
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Could not fetch from API, trying direct files...');
+                    }
                 }
                 
                 // If API method failed, try direct file access
                 if (!data) {
-                    for (const filename of possibleFiles) {
-                        try {
-                            const response = await fetch(`${GITHUB_BASE}/${filename}`);
-                            if (response.ok) {
-                                data = await response.json();
-                                break;
+                    // First try frame-data.json directly (most reliable)
+                    try {
+                        console.log(`Fetching from: ${GITHUB_BASE}/frame-data.json`);
+                        const directResponse = await fetch(`${GITHUB_BASE}/frame-data.json`, {
+                            method: 'GET',
+                            headers: {
+                                'Accept': 'application/json',
+                            },
+                            cache: force ? 'no-cache' : 'default'
+                        });
+                        if (directResponse.ok) {
+                            const text = await directResponse.text();
+                            try {
+                                data = JSON.parse(text);
+                                console.log('✅ Successfully loaded frame-data.json');
+                                console.log(`Champions: ${data.champions?.length || 0}`);
+                                console.log(`Total moves: ${data.champions?.reduce((sum, c) => sum + (c.moves?.length || 0), 0) || 0}`);
+                            } catch (parseError) {
+                                console.error('Failed to parse JSON:', parseError);
                             }
-                        } catch (e) {
-                            error = e;
+                        } else {
+                            console.log(`Direct fetch failed: ${directResponse.status} ${directResponse.statusText}`);
+                        }
+                    } catch (e) {
+                        console.error('Direct fetch error:', e);
+                    }
+                    
+                    // If still no data, try other filenames
+                    if (!data) {
+                        for (const filename of possibleFiles) {
+                            if (filename === 'frame-data.json') continue; // Already tried
+                            try {
+                                const response = await fetch(`${GITHUB_BASE}/${filename}`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Accept': 'application/json',
+                                    },
+                                    cache: 'no-cache'
+                                });
+                                if (response.ok) {
+                                    const text = await response.text();
+                                    try {
+                                        data = JSON.parse(text);
+                                        console.log(`✅ Successfully loaded ${filename}`);
+                                        break;
+                                    } catch (parseError) {
+                                        console.error(`Failed to parse ${filename}:`, parseError);
+                                    }
+                                } else {
+                                    console.log(`Failed to fetch ${filename}: ${response.status} ${response.statusText}`);
+                                }
+                            } catch (e) {
+                                console.error(`Error fetching ${filename}:`, e);
+                                error = e;
+                            }
                         }
                     }
                 }
@@ -753,6 +829,7 @@
         }
         
         function displayChampions(champions, moveTypeFilter, searchFilter) {
+            console.log('displayChampions called with:', champions.length, 'champions');
             if (champions.length === 0) {
                 document.getElementById('content').innerHTML = `
                     <div class="empty-state">
@@ -765,6 +842,8 @@
             
             // If only one champion selected, show detailed wiki-style view
             if (champions.length === 1) {
+                console.log('Displaying single champion detail:', champions[0].name);
+                console.log('Moves count:', champions[0].moves?.length || 0);
                 displayChampionDetail(champions[0], moveTypeFilter, searchFilter);
                 return;
             }
@@ -816,6 +895,7 @@
         function displayChampionDetail(champ, moveTypeFilter, searchFilter) {
             const championName = champ.name || champ.champion || 'Unknown';
             let allMoves = champ.moves || champ.frameData || [];
+            console.log(`displayChampionDetail: ${championName}, moves: ${allMoves.length}`);
             
             // Group moves by type
             const movesByType = {
