@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 
 interface Move {
   name: string;
+  input?: string;
+  inputGlyph?: string;
+  keyboardButton?: string;
+  keyboardInput?: string;
   startup?: number;
   onHit?: number;
   onBlock?: number;
@@ -170,7 +174,8 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
     
     if (punishableMoves.length > 0) {
       const worst = punishableMoves[0];
-      replayTips.push(`⚠️ Watch for blocked ${worst.move.name} - it's heavily punishable (${worst.onBlock} on block). If blocked, you MUST counter-attack immediately.`);
+      const worstDisplay = getMoveDisplayName(worst.move);
+      replayTips.push(`⚠️ Watch for blocked ${worstDisplay} - it's heavily punishable (${worst.onBlock} on block). If blocked, you MUST counter-attack immediately.`);
     }
     
     // Check for whiffed moves
@@ -187,7 +192,8 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
     
     if (slowMoves.length > 0) {
       const slowest = slowMoves[0];
-      replayTips.push(`🎯 If ${slowest.move.name} whiffs (${slowest.startup}f startup, ${slowest.recovery}f recovery), that's a huge punish window. Look for these opportunities in your replays.`);
+      const slowestDisplay = getMoveDisplayName(slowest.move);
+      replayTips.push(`🎯 If ${slowestDisplay} whiffs (${slowest.startup}f startup, ${slowest.recovery}f recovery), that's a huge punish window. Look for these opportunities in your replays.`);
     }
     
     // Check for missed combo opportunities
@@ -202,7 +208,8 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
     
     if (plusOnHit.length > 0) {
       const best = plusOnHit[0];
-      replayTips.push(`✅ When ${best.move.name} hits (+${best.onHit} on hit), you have significant frame advantage. Check replays for missed combo extensions after this move.`);
+      const bestDisplay = getMoveDisplayName(best.move);
+      replayTips.push(`✅ When ${bestDisplay} hits (+${best.onHit} on hit), you have significant frame advantage. Check replays for missed combo extensions after this move.`);
     }
     
     // Check for unsafe pressure patterns
@@ -213,7 +220,8 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
     });
     
     if (negativeMoves.length > 2) {
-      replayTips.push(`🔄 You have ${negativeMoves.length} moves that are unsafe on block. Review your pressure strings - are you ending with these? Switch to ${safestMoves[0]?.name || 'safer options'} to maintain pressure.`);
+      const safestDisplay = safestMoves[0] ? getMoveDisplayName(safestMoves[0]) : 'safer options';
+      replayTips.push(`🔄 You have ${negativeMoves.length} moves that are unsafe on block. Review your pressure strings - are you ending with these? Switch to ${safestDisplay} to maintain pressure.`);
     }
     
     // Check for spacing mistakes
@@ -228,7 +236,8 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
     
     if (longRecoveryMoves.length > 0) {
       const worst = longRecoveryMoves[0];
-      replayTips.push(`📏 ${worst.move.name} has ${worst.recovery}f recovery - this should ONLY be used at max range. Check if you're using it point-blank (that's a spacing mistake).`);
+      const worstDisplay = getMoveDisplayName(worst.move);
+      replayTips.push(`📏 ${worstDisplay} has ${worst.recovery}f recovery - this should ONLY be used at max range. Check if you're using it point-blank (that's a spacing mistake).`);
     }
     
     // Check for anti-air opportunities
@@ -242,12 +251,15 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
       .sort((a, b) => a.startup - b.startup);
     
     if (fastMoves.length > 0) {
-      replayTips.push(`⬆️ ${fastMoves[0].move.name} is your fastest move (${fastMoves[0].startup}f). Use this for anti-airs and quick punishes. Check replays for jump-in situations you didn't react to.`);
+      const fastestDisplay = getMoveDisplayName(fastMoves[0].move);
+      replayTips.push(`⬆️ ${fastestDisplay} is your fastest move (${fastMoves[0].startup}f). Use this for anti-airs and quick punishes. Check replays for jump-in situations you didn't react to.`);
     }
     
     // General tip about frame traps
     if (safestMoves.length > 0 && plusOnHit.length > 0) {
-      replayTips.push(`💡 Frame trap setup: Use ${safestMoves[0].name} (safe) then immediately follow with ${plusOnHit[0].move.name} (+${plusOnHit[0].onHit}). If opponent presses buttons, they get counter-hit.`);
+      const safestDisplay = getMoveDisplayName(safestMoves[0]);
+      const plusDisplay = getMoveDisplayName(plusOnHit[0].move);
+      replayTips.push(`💡 Frame trap setup: Use ${safestDisplay} (safe) then immediately follow with ${plusDisplay} (+${plusOnHit[0].onHit}). If opponent presses buttons, they get counter-hit.`);
     }
     
     return {
@@ -415,28 +427,57 @@ export default function FrameDataAnalysis() {
               </h4>
               <div className="space-y-2">
                 {analysis.safestMoves.length > 0 ? (
-                  analysis.safestMoves.map((move, idx) => (
-                    <div key={idx} className="bg-[var(--surface-3)] p-3 rounded border border-white/5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-[var(--text-1)]">{move.name}</span>
-                        <div className="flex gap-4 text-sm text-[var(--text-2)]">
-                          {move.startup && <span>Startup: {move.startup}</span>}
-                          {move.onBlock !== undefined && (
-                            <span className={typeof move.onBlock === 'number' && move.onBlock >= 0 ? 'text-green-400' : 'text-yellow-400'}>
-                              On Block: {move.onBlock}
-                            </span>
-                          )}
+                  analysis.safestMoves.map((move, idx) => {
+                    // Build user-friendly display
+                    const displayParts: string[] = [];
+                    if (move.keyboardInput) {
+                      displayParts.push(`⌨️ ${move.keyboardInput}`);
+                    }
+                    if (move.keyboardButton) {
+                      displayParts.push(move.keyboardButton);
+                    }
+                    if (move.inputGlyph) {
+                      displayParts.push(move.inputGlyph);
+                    }
+                    if (displayParts.length === 0 && move.input) {
+                      displayParts.push(move.input);
+                    }
+                    if (displayParts.length === 0) {
+                      displayParts.push(move.name);
+                    }
+                    
+                    return (
+                      <div key={idx} className="bg-[var(--surface-3)] p-3 rounded border border-white/5">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-[var(--text-1)]">{move.name}</span>
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {displayParts.map((part, i) => (
+                                <span key={i} className="text-xs px-2 py-1 bg-[var(--surface-1)] rounded border border-white/10 text-[var(--text-2)]">
+                                  {part}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-sm text-[var(--text-2)]">
+                            {move.startup && <span>Startup: {move.startup}</span>}
+                            {move.onBlock !== undefined && (
+                              <span className={typeof move.onBlock === 'number' && move.onBlock >= 0 ? 'text-green-400' : 'text-yellow-400'}>
+                                On Block: {move.onBlock}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <p className="text-xs text-[var(--text-3)] mt-1">
+                          {typeof move.onBlock === 'number' && move.onBlock >= 0 
+                            ? 'Plus on block - safe to use in pressure'
+                            : typeof move.onBlock === 'number' && move.onBlock >= -2
+                            ? 'Only slightly negative - very safe'
+                            : 'Low startup makes this safe to use'}
+                        </p>
                       </div>
-                      <p className="text-xs text-[var(--text-3)] mt-1">
-                        {typeof move.onBlock === 'number' && move.onBlock >= 0 
-                          ? 'Plus on block - safe to use in pressure'
-                          : typeof move.onBlock === 'number' && move.onBlock >= -2
-                          ? 'Only slightly negative - very safe'
-                          : 'Low startup makes this safe to use'}
-                      </p>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <p className="text-[var(--text-3)] text-sm">No safe moves identified from available data.</p>
                 )}

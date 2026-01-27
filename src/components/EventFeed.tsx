@@ -457,15 +457,13 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 const eventStartDate = new Date(e.date); // Need local var for date filter block
                 const eEndDate = e.endDate ? new Date(e.endDate) : eventStartDate;
                 
-                // CRITICAL FIX: If date is invalid, show it in "All Dates" view but not in specific date filters
+                // SURGICAL FIX: Invalid/unknown dates → INCLUDE in all views, never exclude.
+                // Previously we returned false when dateFilter !== 'all', which made "Today" show 0 events.
+                // Correct behavior: treat invalid date as "date unavailable — show anyway".
                 const hasInvalidDate = isNaN(eventStartDate.getTime());
                 if (hasInvalidDate) {
-                    // Invalid dates should only show in "All Dates" view
-                    // This prevents them from cluttering specific date filters
-                    if (dateFilter !== 'all') {
-                        return false; // Hide invalid dates from specific date filters
-                    }
-                    // But show them in "All Dates" view so users can see them
+                    // Do NOT return false. Skip date-range checks below; event passes through.
+                    // This is the exact fix: invalid dates were disqualifying; they should be included.
                 }
 
                 if (dateFilter !== 'all' && now && !hasInvalidDate) {
@@ -970,6 +968,14 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)] mt-[-0.5rem] ml-1">
                                 Events {settings.viewMode === 'saved' ? 'Saved' : 'Detected'}
                             </span>
+                            {settings.viewMode !== 'saved' && (() => {
+                                const invalidDateCount = displayEvents.filter(e => isNaN(new Date(e.date).getTime())).length;
+                                return invalidDateCount > 0 ? (
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400/90 mt-1 ml-1" title="These events have non-parseable date fields (e.g. &quot;TBD&quot;, &quot;Ongoing&quot;) and are shown anyway.">
+                                        {invalidDateCount} with date unavailable — showing anyway
+                                    </span>
+                                ) : null;
+                            })()}
                         </div>
                         <div className="h-12 w-px bg-white/10" />
                         <div className="flex flex-col justify-center">
