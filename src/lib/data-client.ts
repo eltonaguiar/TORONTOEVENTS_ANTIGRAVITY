@@ -23,10 +23,12 @@ export interface EventsMetadata {
 export async function fetchEventsFromGitHub(): Promise<Event[]> {
   try {
     console.log(`📦 [Data Source] Fetching events from GitHub: ${EVENTS_URL}`);
-    const response = await fetch(EVENTS_URL, {
+    const response = await fetch(EVENTS_URL + '?t=' + Date.now(), {
       cache: 'no-store', // Always fetch fresh data
       headers: {
         'Accept': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
       }
     });
     
@@ -50,10 +52,12 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
 export async function fetchMetadataFromGitHub(): Promise<EventsMetadata | null> {
   try {
     console.log(`📊 [Data Source] Fetching metadata from GitHub: ${METADATA_URL}`);
-    const response = await fetch(METADATA_URL, {
+    const response = await fetch(METADATA_URL + '?t=' + Date.now(), {
       cache: 'no-store',
       headers: {
         'Accept': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
       }
     });
     
