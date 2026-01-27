@@ -546,7 +546,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         return isHidden;
     });
 
-    const singleDayEvents = validEvents.filter((e: Event) => !isMultiDay(e));
+    const singleDayEvents = (validEvents || []).filter((e: Event) => !isMultiDay(e));
     const multiDayEvents = (validEvents || []).filter((e: Event) => {
         if (isMultiDay(e)) {
             // Only show multi-day/festivals that haven't ended yet
