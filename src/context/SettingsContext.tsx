@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export type ThemeColor = 'pink' | 'blue' | 'green' | 'amber' | 'purple';
 export type FontSize = 'sm' | 'md' | 'lg';
@@ -157,9 +157,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
     }, [settings, isInitialized]);
 
-    const updateSettings = (newSettings: Partial<Settings>) => {
+    const updateSettings = useCallback((newSettings: Partial<Settings>) => {
         setSettings(prev => ({ ...prev, ...newSettings }));
-    };
+    }, []);
 
     const toggleSavedEvent = (event: any) => {
         setSettings(prev => {

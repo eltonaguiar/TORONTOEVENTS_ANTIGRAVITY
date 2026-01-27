@@ -11,6 +11,11 @@ const GITHUB_BRANCH = typeof window !== 'undefined'
 const EVENTS_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/data/events.json`;
 const METADATA_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/data/metadata.json`;
 
+// Check if we're on production domain where CORS will fail
+const isProductionDomain = typeof window !== 'undefined' && 
+  (window.location.hostname === 'findtorontoevents.ca' || 
+   window.location.hostname.includes('findtorontoevents'));
+
 export interface EventsMetadata {
   lastUpdated: string;
   totalEvents: number;
@@ -21,53 +26,64 @@ export interface EventsMetadata {
  * Fetch events from GitHub raw JSON with fallback to FTP site
  */
 export async function fetchEventsFromGitHub(): Promise<Event[]> {
-  // Try GitHub first - but skip if CORS is likely to fail
-  // GitHub raw URLs should work, but if CORS fails, we'll fallback immediately
-  try {
-    console.log(`📦 [Data Source] Fetching events from GitHub: ${EVENTS_URL}`);
-    // Use simple fetch without custom headers to avoid CORS preflight issues
-    const response = await fetch(EVENTS_URL + '?t=' + Date.now(), {
-      cache: 'no-store',
-      // Don't set mode explicitly - let browser handle it
-      // Don't set custom headers that trigger preflight
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
-    }
-    
-    // Parse response - GitHub returns text/plain but it's JSON
-    const text = await response.text();
-    let events;
+  // Skip GitHub on production domain - CORS will fail, go straight to FTP
+  if (isProductionDomain) {
+    console.log('📦 [Data Source] Production domain detected - using FTP fallback directly');
+    // Fall through to FTP fallback logic below
+  } else {
+    // Try GitHub first - but skip if CORS is likely to fail
+    // GitHub raw URLs should work, but if CORS fails, we'll fallback immediately
     try {
-      events = JSON.parse(text);
-    } catch (parseError) {
-      console.error(`❌ [Data Source] Failed to parse GitHub response as JSON:`, parseError);
-      throw new Error('Invalid JSON response from GitHub');
+      console.log(`📦 [Data Source] Fetching events from GitHub: ${EVENTS_URL}`);
+      // Use simple fetch without custom headers to avoid CORS preflight issues
+      const response = await fetch(EVENTS_URL + '?t=' + Date.now(), {
+        cache: 'no-store',
+        // Don't set mode explicitly - let browser handle it
+        // Don't set custom headers that trigger preflight
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
+      }
+      
+      // Parse response - GitHub returns text/plain but it's JSON
+      const text = await response.text();
+      let events;
+      try {
+        events = JSON.parse(text);
+      } catch (parseError) {
+        console.error(`❌ [Data Source] Failed to parse GitHub response as JSON:`, parseError);
+        throw new Error('Invalid JSON response from GitHub');
+      }
+      
+      const eventCount = Array.isArray(events) ? events.length : 0;
+      console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from GitHub (${EVENTS_URL})`);
+      if (!Array.isArray(events)) {
+        console.error(`❌ [Data Source] Events is not an array! Type: ${typeof events}, Value:`, events);
+        throw new Error('Events is not an array');
+      }
+      if (eventCount === 0) {
+        console.warn(`⚠️ [Data Source] Warning: 0 events loaded from GitHub! Falling back to FTP...`);
+        throw new Error('GitHub returned 0 events - using fallback');
+      }
+      return events;
+    } catch (error: any) {
+      // Check if it's a CORS error - if so, skip GitHub and go straight to FTP
+      const isCorsError = error?.message?.includes('CORS') || 
+                         error?.message?.includes('Failed to fetch') ||
+                         error?.name === 'TypeError';
+      
+      if (isCorsError) {
+        console.warn('⚠️ [Data Source] CORS error with GitHub - skipping and using FTP fallback directly');
+      } else {
+        console.error('❌ [Data Source] Error fetching events from GitHub:', error);
+      }
+      // Fall through to FTP fallback
     }
-    
-    const eventCount = Array.isArray(events) ? events.length : 0;
-        console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from GitHub (${EVENTS_URL})`);
-        if (!Array.isArray(events)) {
-          console.error(`❌ [Data Source] Events is not an array! Type: ${typeof events}, Value:`, events);
-          throw new Error('Events is not an array');
-        }
-        if (eventCount === 0) {
-          console.warn(`⚠️ [Data Source] Warning: 0 events loaded from GitHub! Falling back to FTP...`);
-          throw new Error('GitHub returned 0 events - using fallback');
-        }
-        return events;
-  } catch (error: any) {
-    // Check if it's a CORS error - if so, skip GitHub and go straight to FTP
-    const isCorsError = error?.message?.includes('CORS') || 
-                       error?.message?.includes('Failed to fetch') ||
-                       error?.name === 'TypeError';
-    
-    if (isCorsError) {
-      console.warn('⚠️ [Data Source] CORS error with GitHub - skipping and using FTP fallback directly');
-    } else {
-      console.error('❌ [Data Source] Error fetching events from GitHub:', error);
-    }
+  }
+  
+  // FTP fallback logic (used when GitHub fails or on production domain)
+  try {
     console.log('🔄 [Data Source] Attempting fallback to FTP site...');
     
     // Fallback to FTP site - try multiple paths
@@ -129,6 +145,9 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     console.error('❌ [Data Source] All FTP fallback URLs failed - returning empty array');
     console.error('❌ [Data Source] This means events cannot be loaded. Check network and file availability.');
     return [];
+  } catch (error: any) {
+    console.error('❌ [Data Source] Unexpected error in FTP fallback:', error);
+    return [];
   }
 }
 
@@ -136,43 +155,69 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
  * Fetch metadata from GitHub raw JSON
  */
 export async function fetchMetadataFromGitHub(): Promise<EventsMetadata | null> {
-  try {
-    console.log(`📊 [Data Source] Fetching metadata from GitHub: ${METADATA_URL}`);
-    // Use simple fetch without custom headers to avoid CORS preflight issues
-    const response = await fetch(METADATA_URL + '?t=' + Date.now(), {
-      cache: 'no-store',
-      // Don't set custom headers that trigger preflight
-    });
-    
-    if (!response.ok) {
-      console.warn(`⚠️ [Data Source] Metadata fetch returned ${response.status}: ${response.statusText}`);
-      return null;
-    }
-    
-    const metadata = await response.json();
-    console.log(`✅ [Data Source] Metadata loaded from GitHub - Last updated: ${metadata?.lastUpdated || 'Unknown'}, Total events: ${metadata?.totalEvents || 0}`);
-    return metadata;
-  } catch (error: any) {
-    // Silently handle metadata fetch errors - it's not critical
-    const isCorsError = error?.message?.includes('CORS') || 
-                       error?.message?.includes('Failed to fetch') ||
-                       error?.name === 'TypeError';
-    if (!isCorsError) {
-      console.error('❌ [Data Source] Error fetching metadata from GitHub:', error);
-    }
-    // Try FTP fallback for metadata
+  // Skip GitHub on production domain - CORS will fail, go straight to FTP
+  if (!isProductionDomain) {
     try {
-      const fallbackResponse = await fetch('/metadata.json?t=' + Date.now(), { cache: 'no-store' });
+      console.log(`📊 [Data Source] Fetching metadata from GitHub: ${METADATA_URL}`);
+      // Use simple fetch without custom headers to avoid CORS preflight issues
+      const response = await fetch(METADATA_URL + '?t=' + Date.now(), {
+        cache: 'no-store',
+        // Don't set custom headers that trigger preflight
+      });
+      
+      if (!response.ok) {
+        console.warn(`⚠️ [Data Source] Metadata fetch returned ${response.status}: ${response.statusText}`);
+        // Fall through to FTP fallback
+      } else {
+        const metadata = await response.json();
+        console.log(`✅ [Data Source] Metadata loaded from GitHub - Last updated: ${metadata?.lastUpdated || 'Unknown'}, Total events: ${metadata?.totalEvents || 0}`);
+        return metadata;
+      }
+    } catch (error: any) {
+      // Silently handle metadata fetch errors - it's not critical
+      const isCorsError = error?.message?.includes('CORS') || 
+                         error?.message?.includes('Failed to fetch') ||
+                         error?.name === 'TypeError';
+      if (!isCorsError) {
+        console.error('❌ [Data Source] Error fetching metadata from GitHub:', error);
+      }
+      // Fall through to FTP fallback
+    }
+  } else {
+    console.log('📊 [Data Source] Production domain detected - using FTP fallback for metadata');
+  }
+  
+  // Try FTP fallback for metadata - try multiple paths like events
+  const fallbackUrls = typeof window !== 'undefined' 
+    ? [
+        '/metadata.json',  // Relative root (works from any path)
+        `${window.location.origin}/metadata.json`,  // Absolute root
+        `${window.location.origin}/TORONTOEVENTS_ANTIGRAVITY/metadata.json`,  // BasePath (may not exist)
+        '/TORONTOEVENTS_ANTIGRAVITY/metadata.json',  // Relative basePath
+      ]
+    : ['/metadata.json'];
+  
+  for (const ftpUrl of fallbackUrls) {
+    try {
+      const fallbackResponse = await fetch(ftpUrl + '?t=' + Date.now(), { 
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
       if (fallbackResponse.ok) {
         const metadata = await fallbackResponse.json();
-        console.log(`✅ [Data Source] Metadata loaded from FTP fallback`);
+        console.log(`✅ [Data Source] Metadata loaded from FTP fallback: ${ftpUrl}`);
         return metadata;
       }
     } catch (fallbackErr) {
-      // Ignore fallback errors
+      // Ignore fallback errors, try next URL
+      continue;
     }
-    return null;
   }
+  
+  // Metadata is not critical, return null if all fallbacks fail
+  return null;
 }
 
 /**

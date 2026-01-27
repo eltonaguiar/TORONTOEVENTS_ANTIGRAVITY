@@ -93,8 +93,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     // Geocoding Effect - Handle location based on locationSource setting
     useEffect(() => {
         if (!settings.enableLocationFilter) {
-            setUserCoords(null);
-            updateSettings({ userLatitude: null, userLongitude: null });
+            // Only update if values are not already null to prevent infinite loops
+            if (userCoords !== null || settings.userLatitude !== null || settings.userLongitude !== null) {
+                setUserCoords(null);
+                updateSettings({ userLatitude: null, userLongitude: null });
+            }
             return;
         }
 
@@ -135,24 +138,33 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 }
 
                 if (coords) {
-                    setUserCoords(coords);
-                    updateSettings({ 
-                        userLatitude: coords.lat, 
-                        userLongitude: coords.lng 
-                    });
+                    // Only update if coordinates actually changed
+                    if (!userCoords || userCoords.lat !== coords.lat || userCoords.lng !== coords.lng) {
+                        setUserCoords(coords);
+                        updateSettings({ 
+                            userLatitude: coords.lat, 
+                            userLongitude: coords.lng 
+                        });
+                    }
                 } else {
-                    setUserCoords(null);
-                    updateSettings({ userLatitude: null, userLongitude: null });
+                    // Only update if values are not already null
+                    if (userCoords !== null || settings.userLatitude !== null || settings.userLongitude !== null) {
+                        setUserCoords(null);
+                        updateSettings({ userLatitude: null, userLongitude: null });
+                    }
                 }
             } catch (error) {
                 console.error('❌ [Geocoding] Error:', error);
-                setUserCoords(null);
-                updateSettings({ userLatitude: null, userLongitude: null });
+                // Only update if values are not already null
+                if (userCoords !== null || settings.userLatitude !== null || settings.userLongitude !== null) {
+                    setUserCoords(null);
+                    updateSettings({ userLatitude: null, userLongitude: null });
+                }
             }
         };
 
         geocodeLocation();
-    }, [settings.enableLocationFilter, settings.locationSource, settings.userPostalCode, settings.userAddress, updateSettings]);
+    }, [settings.enableLocationFilter, settings.locationSource, settings.userPostalCode, settings.userAddress, settings.userLatitude, settings.userLongitude, updateSettings]);
 
     // Geocoding Effect logic remains...
     // Removed local viewMode state
