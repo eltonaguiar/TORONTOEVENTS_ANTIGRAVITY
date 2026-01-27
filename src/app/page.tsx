@@ -68,6 +68,29 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 py-20">
             <EventFeedSkeleton count={12} />
           </div>
+        ) : allEvents.length === 0 ? (
+          <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+            <div className="glass-panel p-8 rounded-2xl border border-red-500/30">
+              <h2 className="text-2xl font-bold text-red-400 mb-4">⚠️ No Events Loaded</h2>
+              <p className="text-[var(--text-2)] mb-4">
+                Unable to load events. This could be due to:
+              </p>
+              <ul className="text-left text-sm text-[var(--text-3)] space-y-2 mb-4">
+                <li>• Network connectivity issues</li>
+                <li>• CORS blocking the GitHub fetch</li>
+                <li>• Events.json file not accessible</li>
+              </ul>
+              <p className="text-xs text-[var(--text-3)] mt-4">
+                Check browser console (F12) for detailed error messages.
+              </p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-4 px-4 py-2 bg-[var(--pk-500)] text-white rounded-lg hover:bg-[var(--pk-600)] transition-colors"
+              >
+                Reload Page
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             <EventFeed events={allEvents} />

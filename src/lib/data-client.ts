@@ -50,16 +50,16 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     }
     
     const eventCount = Array.isArray(events) ? events.length : 0;
-    console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from GitHub (${EVENTS_URL})`);
-    if (!Array.isArray(events)) {
-      console.error(`❌ [Data Source] Events is not an array! Type: ${typeof events}, Value:`, events);
-      throw new Error('Events is not an array');
-    }
-    if (eventCount === 0) {
-      console.warn(`⚠️ [Data Source] Warning: 0 events loaded from GitHub!`);
-      throw new Error('GitHub returned 0 events');
-    }
-    return events;
+        console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from GitHub (${EVENTS_URL})`);
+        if (!Array.isArray(events)) {
+          console.error(`❌ [Data Source] Events is not an array! Type: ${typeof events}, Value:`, events);
+          throw new Error('Events is not an array');
+        }
+        if (eventCount === 0) {
+          console.warn(`⚠️ [Data Source] Warning: 0 events loaded from GitHub! Falling back to FTP...`);
+          throw new Error('GitHub returned 0 events - using fallback');
+        }
+        return events;
   } catch (error) {
     console.error('❌ [Data Source] Error fetching events from GitHub:', error);
     console.log('🔄 [Data Source] Attempting fallback to FTP site...');
@@ -108,6 +108,10 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
         }
         
         console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from FTP fallback: ${ftpUrl}`);
+        if (eventCount === 0) {
+          console.warn(`⚠️ [Data Source] FTP fallback returned 0 events, trying next URL...`);
+          continue; // Try next URL
+        }
         return events;
       } catch (fallbackError: any) {
         console.log(`  ⚠️  ${ftpUrl} failed: ${fallbackError.message}`);
@@ -115,7 +119,8 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
       }
     }
     
-    console.error('❌ [Data Source] All FTP fallback URLs failed');
+    console.error('❌ [Data Source] All FTP fallback URLs failed - returning empty array');
+    console.error('❌ [Data Source] This means events cannot be loaded. Check network and file availability.');
     return [];
   }
 }
@@ -169,8 +174,14 @@ export function useEventsFromGitHub() {
         const fetchedEvents = await fetchEventsFromGitHub();
         console.log(`📦 [useEventsFromGitHub] Received ${fetchedEvents.length} events`);
         if (mounted) {
-          setEvents(fetchedEvents);
-          console.log(`✅ [useEventsFromGitHub] Set ${fetchedEvents.length} events to state`);
+          if (fetchedEvents.length === 0) {
+            console.error('❌ [useEventsFromGitHub] CRITICAL: Received 0 events! This should not happen.');
+            console.error('❌ [useEventsFromGitHub] Check browser console for fetch errors.');
+            setError('No events loaded - check console for details');
+          } else {
+            setEvents(fetchedEvents);
+            console.log(`✅ [useEventsFromGitHub] Set ${fetchedEvents.length} events to state`);
+          }
         } else {
           console.log('⚠️ [useEventsFromGitHub] Component unmounted, not setting events');
         }
@@ -178,11 +189,27 @@ export function useEventsFromGitHub() {
         console.error('❌ [useEventsFromGitHub] Error loading events:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to load events');
+          // Try to load from a direct fallback
+          console.log('🔄 [useEventsFromGitHub] Attempting emergency fallback...');
+          try {
+            const fallbackUrl = typeof window !== 'undefined' ? `${window.location.origin}/events.json` : '/events.json';
+            const fallbackResponse = await fetch(fallbackUrl + '?t=' + Date.now());
+            if (fallbackResponse.ok) {
+              const fallbackEvents = await fallbackResponse.json();
+              if (Array.isArray(fallbackEvents) && fallbackEvents.length > 0) {
+                console.log(`✅ [useEventsFromGitHub] Emergency fallback loaded ${fallbackEvents.length} events`);
+                setEvents(fallbackEvents);
+                setError(null);
+              }
+            }
+          } catch (fallbackErr) {
+            console.error('❌ [useEventsFromGitHub] Emergency fallback also failed:', fallbackErr);
+          }
         }
       } finally {
         if (mounted) {
           setLoading(false);
-          console.log('✅ [useEventsFromGitHub] Loading complete');
+          console.log(`✅ [useEventsFromGitHub] Loading complete`);
         }
       }
     }
