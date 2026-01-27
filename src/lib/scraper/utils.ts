@@ -42,7 +42,6 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
         let inputStr = typeof dateInput === 'string' ? dateInput.trim() : dateInput.toISOString();
 
         // CRITICAL FIX: Detect and fix malformed timezone offsets BEFORE parsing
-        // Pattern: 2026-01-27T17:00:0005:00 or 2026-01-27T17:00:0004:00
         const malformedPattern = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})0{3,4}([+-]?\d{1,2}):(\d{2})$/;
         const match = inputStr.match(malformedPattern);
         if (match) {
@@ -52,33 +51,42 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
             const mins = parseInt(offsetMins);
             const fixedOffset = `${sign}${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
             inputStr = `${base}${fixedOffset}`;
-            console.log(`  🔧 Fixed malformed timezone: ${dateInput} → ${inputStr}`);
         }
 
         // Check for TBD/unknown dates first
         if (isTBDDate(inputStr)) {
-            return null; // Don't default to any date if it's TBD
+            return null;
         }
 
-        // Robust cleanup for scraping artifacts (newlines, excessive spaces)
+        // Clean the input
         inputStr = inputStr.replace(/\s+/g, ' ').trim();
-
-        // Handle various dot characters used as delimiters (•, ·, etc)
         inputStr = inputStr.replace(/[•·⋅\u2022\u22c5\u00b7]/g, '|').split('|')[0].trim();
-
         if (inputStr.includes(' - ')) {
             inputStr = inputStr.replace(' - ', ' ');
         }
+        inputStr = inputStr.replace(/\s*at\s*$/i, '').trim();
 
-        // Handle relative dates FIRST (before general parsing)
+        // Normalize day-month text format ("27 Jan 2026" → "Jan 27, 2026")
+        const dayMonthMatch = inputStr.match(/\b(\d{1,2})\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{4})\b/i);
+        if (dayMonthMatch) {
+            const day = dayMonthMatch[1];
+            const month = dayMonthMatch[2];
+            const year = dayMonthMatch[3];
+            inputStr = inputStr.replace(dayMonthMatch[0], `${month} ${day}, ${year}`);
+        }
+
+        // Extract date from range (e.g., "Jan 27 - Jan 29" → "Jan 27")
+        if (inputStr.includes(' - ') || inputStr.includes('–')) {
+            inputStr = inputStr.split(/[-–]/)[0].trim();
+        }
+
+        // Handle relative dates
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         
-        // "Tomorrow", "Tomorrow at 7pm", etc.
         if (/^tomorrow/i.test(inputStr)) {
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            // Extract time if present
             const timeMatch = inputStr.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
             if (timeMatch) {
                 let hours = parseInt(timeMatch[1]);
@@ -88,12 +96,11 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
                 if (period === 'am' && hours === 12) hours = 0;
                 tomorrow.setHours(hours, minutes, 0, 0);
             } else {
-                tomorrow.setHours(19, 0, 0, 0); // Default to 7 PM
+                tomorrow.setHours(19, 0, 0, 0);
             }
             return formatTorontoDate(tomorrow);
         }
         
-        // "Today", "Today at 7pm", etc.
         if (/^today/i.test(inputStr)) {
             const todayDate = new Date(today);
             const timeMatch = inputStr.match(/(\d{1,2}):?(\d{2})?\s*(am|pm)?/i);
@@ -105,84 +112,82 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
                 if (period === 'am' && hours === 12) hours = 0;
                 todayDate.setHours(hours, minutes, 0, 0);
             } else {
-                todayDate.setHours(19, 0, 0, 0); // Default to 7 PM
+                todayDate.setHours(19, 0, 0, 0);
             }
             return formatTorontoDate(todayDate);
         }
 
-        // Enhanced date parsing with better error handling
+        // Try native Date first
         let date = new Date(inputStr);
         
-        // Log parsing attempts for debugging (only in development)
-        if (process.env.NODE_ENV === 'development' && isNaN(date.getTime())) {
-            console.log(`[Date Parsing] Attempting to parse: "${inputStr}"`);
+        // If native parsing fails or produces invalid year, try date-fns
+        if (isNaN(date.getTime()) || date.getFullYear() < 2020 || date.getFullYear() > 2030) {
+            // Import date-fns parse and isValid
+            const { parse, isValid } = require('date-fns');
+            
+            const dateFnsFormats = [
+                // ISO-like formats
+                "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd",
+                // US formats
+                "MM/dd/yyyy HH:mm", "MM/dd/yyyy", "M/d/yyyy HH:mm", "M/d/yyyy",
+                // Day-first formats (common outside US)
+                "dd/MM/yyyy HH:mm", "d/MM/yyyy HH:mm", "dd/MM/yyyy", "d/MM/yyyy",
+                // Text formats
+                "MMMM dd, yyyy HH:mm", "MMMM dd, yyyy", "MMM dd, yyyy HH:mm", "MMM dd, yyyy", "MMM dd HH:mm", "MMM dd",
+                // Day-first text formats
+                "d MMM yyyy", "dd MMM yyyy", "d MMMM yyyy", "dd MMMM yyyy",
+                // Weekday with commas + time
+                "EEE, MMM d, yyyy 'at' h:mm a", "EEEE, MMM d, yyyy 'at' h:mm a", "EEE, MMM d, yyyy h:mm a", "EEEE, MMM d, yyyy h:mm a",
+                "EEE, MMMM d, yyyy 'at' h:mm a", "EEEE, MMMM d, yyyy 'at' h:mm a",
+                // With timezone
+                "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mmXXX",
+                // Common event formats
+                "EEEE, MMMM dd, yyyy 'at' HH:mm", "MMMM dd, yyyy 'at' HH:mm a", "MMM dd, yyyy 'at' HH:mm a",
+                // Bullet-separated formats
+                "MMM d '|' h:mm a", "MMMM d '|' h:mm a",
+            ];
+
+            for (const fmt of dateFnsFormats) {
+                try {
+                    const parsed = parse(inputStr, fmt, new Date());
+                    if (isValid(parsed) && parsed.getFullYear() > 2000 && parsed.getFullYear() < 2100) {
+                        date = parsed;
+                        break;
+                    }
+                } catch {}
+            }
         }
 
-        // Handle year-less dates (e.g., "Aug 21", "January 15")
-        if (isNaN(date.getTime()) || date.getFullYear() === 2001 || date.getFullYear() < 2020) {
-            // Try to extract month and day
-            const monthDayMatch = inputStr.match(/(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})/i);
-            if (monthDayMatch) {
-                const currentYear = new Date().getFullYear();
-                const testDate = new Date(`${monthDayMatch[0]} ${currentYear}`);
-                if (!isNaN(testDate.getTime())) {
-                    // If the date is more than 6 months in the past, assume next year
-                    const sixMonthsAgo = new Date(now.getTime() - (1000 * 60 * 60 * 24 * 30 * 6));
-                    if (testDate < sixMonthsAgo) {
-                        date = new Date(`${monthDayMatch[0]} ${currentYear + 1}`);
-                    } else {
-                        date = testDate;
-                    }
+        // Try format variations
+        if (isNaN(date.getTime()) || date.getFullYear() < 2020 || date.getFullYear() > 2030) {
+            const formatVariations = [
+                inputStr.replace(/T/, ' ').replace(/Z$/, ''),
+                inputStr.replace(/T/, ' ').replace(/Z$/, '') + ' EST',
+                inputStr.replace(/T/, ' ').replace(/Z$/, '') + ' EDT',
+                inputStr.replace(/(\d{4})-(\d{2})-(\d{2})/, '$2/$3/$1'),
+                inputStr.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$1-$2'),
+                inputStr + ' EST',
+                inputStr + ' EDT',
+            ];
+
+            for (const format of formatVariations) {
+                const testDate = new Date(format);
+                if (!isNaN(testDate.getTime()) && testDate.getFullYear() > 2000 && testDate.getFullYear() < 2100) {
+                    date = testDate;
+                    break;
                 }
             }
         }
 
-        // Toronto timezone for display
-        const hasZone = /GMT|UTC|[-+]\d{2}:?\d{2}|EST|EDT/i.test(inputStr);
-        const hasTime = /[:\d]+ ?(am|pm)/i.test(inputStr) || inputStr.includes(':');
-
         if (isNaN(date.getTime())) return null;
         
-        // CRITICAL: Reject dates that are clearly invalid (like Jan 1, 1970 or year 2001)
+        // CRITICAL: Reject dates that are clearly invalid
         if (date.getFullYear() < 2020 || date.getFullYear() > 2030) {
             return null;
         }
 
-        // CRITICAL FIX: If no zone provided and it has a time, assume Toronto
-        // This is critical when running on UTC machines (GitHub Actions)
-        if (!hasZone && hasTime) {
-            const torontoOffset = getTorontoOffset(date);
-            // Re-parse with the offset appended
-            const cleaned = inputStr.replace(/ at\s*$/i, '');
-            const adjustedDate = new Date(`${cleaned} ${torontoOffset}`);
-            if (!isNaN(adjustedDate.getTime())) {
-                date = adjustedDate;
-            }
-        }
-
-        // format output safely in Toronto time
-        const options: Intl.DateTimeFormatOptions = {
-            timeZone: 'America/Toronto',
-            year: 'numeric', month: '2-digit', day: '2-digit',
-            hour: '2-digit', minute: '2-digit', second: '2-digit',
-            hour12: false
-        };
-
-        const formatter = new Intl.DateTimeFormat('sv-SE', options);
-        const parts = formatter.formatToParts(date);
-        const map: { [key: string]: string } = {};
-        parts.forEach(p => map[p.type] = p.value);
-
-        const torontoIso = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
-        const finalOffset = getTorontoOffset(date);
-        
-        // CRITICAL FIX: Ensure offset has proper format (e.g., -05:00, not 0005:00)
-        // The offset should always start with + or - and have format +/-HH:MM
-        const normalizedOffset = finalOffset.startsWith('+') || finalOffset.startsWith('-') 
-            ? finalOffset 
-            : `-${finalOffset}`;
-
-        return `${torontoIso}${normalizedOffset}`;
+        // Format output safely in Toronto time
+        return formatTorontoDate(date);
     } catch {
         return null;
     }

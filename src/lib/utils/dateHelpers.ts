@@ -102,11 +102,35 @@ export function safeParseDate(
             "yyyy-MM-dd'T'HH:mm:ssXXX",
             "yyyy-MM-dd'T'HH:mmXXX",
             
+            // Day-first formats (common outside US)
+            "dd/MM/yyyy HH:mm",
+            "d/MM/yyyy HH:mm",
+            "dd/MM/yyyy",
+            "d/MM/yyyy",
+            
+            // Day-first text formats ("27 Jan 2026", "27 January 2026")
+            "d MMM yyyy",
+            "dd MMM yyyy",
+            "d MMMM yyyy",
+            "dd MMMM yyyy",
+            
+            // Weekday with commas + time
+            "EEE, MMM d, yyyy 'at' h:mm a",
+            "EEEE, MMM d, yyyy 'at' h:mm a",
+            "EEE, MMM d, yyyy h:mm a",
+            "EEEE, MMM d, yyyy h:mm a",
+            "EEE, MMMM d, yyyy 'at' h:mm a",
+            "EEEE, MMMM d, yyyy 'at' h:mm a",
+            
             // Common event formats
             "EEEE, MMMM dd, yyyy 'at' HH:mm",
             "EEEE, MMM dd, yyyy 'at' HH:mm",
             "MMMM dd, yyyy 'at' HH:mm a",
             "MMM dd, yyyy 'at' HH:mm a",
+            
+            // Bullet-separated formats ("Jan 27 | 11:00 PM")
+            "MMM d '|' h:mm a",
+            "MMMM d '|' h:mm a",
         ];
 
         for (const fmt of dateFnsFormats) {
