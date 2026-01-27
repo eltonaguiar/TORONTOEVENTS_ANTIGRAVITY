@@ -46,6 +46,29 @@
             font-size: 1.1em;
         }
         
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .info-box h3 {
+            margin-top: 0;
+            color: #1976d2;
+            font-size: 1.1em;
+        }
+        
+        .info-box ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .info-box li {
+            margin: 5px 0;
+        }
+        
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -329,6 +352,113 @@
             font-weight: 500;
         }
         
+        .input-keys {
+            font-size: 0.85em;
+            color: #059669;
+            background: #d1fae5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-family: 'Courier New', monospace;
+            margin-left: 4px;
+        }
+        
+        .tooltip-icon {
+            font-size: 0.7em;
+            cursor: help;
+            margin-left: 4px;
+            opacity: 0.7;
+        }
+        
+        th {
+            position: relative;
+            cursor: help;
+        }
+        
+        th:hover {
+            background: #f0f0f0;
+        }
+        
+        .input-fgc {
+            position: relative;
+            cursor: help;
+        }
+        
+        .input-fgc:hover::after {
+            content: "FGC Notation: Fighting game notation (5L = standing Light, 2M = crouching Medium, 6S1 = forward Special 1)";
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 1000;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+        
+        .input-glyph {
+            position: relative;
+            cursor: help;
+        }
+        
+        .input-glyph:hover::after {
+            content: "Input Glyph: Visual representation of the move input with directional arrows";
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 1000;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+        
+        .input-keyboard {
+            position: relative;
+            cursor: help;
+        }
+        
+        .input-keyboard:hover::after {
+            content: "Keyboard Button: The button name (Light, Medium, Heavy, Special 1, Special 2)";
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 1000;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+        
+        .input-keys {
+            position: relative;
+            cursor: help;
+        }
+        
+        .input-keys:hover::after {
+            content: "Keyboard Keys: Actual keys to press on keyboard (J=Light, K=Medium, L=Heavy, M=Special 1, ,=Special 2, WASD=directions)";
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 1000;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+        
         .frame-value {
             font-family: 'Courier New', monospace;
             color: #555;
@@ -430,6 +560,18 @@
             <h1>🎮 2XKO Frame Data</h1>
             <p class="subtitle">Comprehensive Champion Frame Data Summary</p>
         </header>
+        
+        <div class="info-box">
+            <h3>📚 Frame Data Guide</h3>
+            <ul>
+                <li><strong>Startup:</strong> Frames until the move becomes active (lower = faster). A 6f startup move is very fast!</li>
+                <li><strong>On Hit:</strong> Frame advantage when the move connects. Positive numbers mean you can continue your combo. Negative means the opponent can act first.</li>
+                <li><strong>On Block:</strong> Frame advantage when blocked. Positive = safe to use, negative = punishable (opponent can hit you back).</li>
+                <li><strong>Recovery:</strong> Frames after the move ends before you can act again. Lower recovery = faster recovery.</li>
+                <li><strong>FGC Notation:</strong> Fighting game notation like "5L" (standing Light), "2M" (crouching Medium), "6S1" (forward Special 1). Numbers represent directions on a numpad (5=neutral, 2=down, 6=forward).</li>
+                <li><strong>Keyboard Keys:</strong> Default 2XKO controls - J=Light, K=Medium, L=Heavy, M=Special 1, ,=Special 2, WASD for directions.</li>
+            </ul>
+        </div>
         
         <div class="status-bar">
             <div>
@@ -665,6 +807,11 @@
                 
                 if (data) {
                     frameData = normalizeData(data);
+                    console.log('Data normalized:', frameData);
+                    console.log('Champions:', frameData.champions?.length || 0);
+                    if (frameData.champions && frameData.champions.length > 0) {
+                        console.log('First champion:', frameData.champions[0].name, 'moves:', frameData.champions[0].moves?.length || 0);
+                    }
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(frameData));
                     localStorage.setItem(LAST_UPDATE_KEY, Date.now().toString());
                     updateLastUpdated(Date.now());
@@ -795,7 +942,12 @@
         }
         
         function applyFilters() {
-            if (!frameData || !frameData.champions) return;
+            if (!frameData || !frameData.champions) {
+                console.log('No frame data available');
+                return;
+            }
+            
+            console.log('applyFilters called, champions:', frameData.champions.length);
             
             const championFilter = document.getElementById('championFilter').value;
             const moveTypeFilter = document.getElementById('moveTypeFilter').value;
@@ -820,6 +972,7 @@
                 return true;
             });
             
+            console.log('Filtered champions:', filteredData.length);
             displayChampions(filteredData, moveTypeFilter, searchFilter);
         }
         
@@ -854,6 +1007,8 @@
                 let moves = champ.moves || champ.frameData || [];
                 const totalMoves = moves.length;
                 
+                console.log(`Champion: ${championName}, Total moves: ${totalMoves}`);
+                
                 // Apply move type filter
                 if (moveTypeFilter) {
                     moves = moves.filter(move => {
@@ -870,7 +1025,7 @@
                     });
                 }
                 
-                if (moves.length === 0) {
+                if (moves.length === 0 && (moveTypeFilter || searchFilter)) {
                     return '';
                 }
                 
@@ -878,18 +1033,34 @@
                     <div class="champion-card" onclick="selectChampion('${escapeHtml(championName)}')">
                         <div class="champion-card-header">
                             <div class="champion-name">${escapeHtml(championName)}</div>
-                            <div class="move-count">${moves.length} move${moves.length !== 1 ? 's' : ''}</div>
+                            <div class="move-count">${totalMoves} move${totalMoves !== 1 ? 's' : ''}</div>
                         </div>
                         <p style="color: #666; font-size: 0.9em;">Click to view full frame data</p>
                     </div>
                 `;
-            }).join('');
+            }).filter(card => card.trim() !== '').join('');
             
-            document.getElementById('content').innerHTML = `
-                <div class="champion-grid">
-                    ${html}
-                </div>
-            `;
+            console.log('Generated HTML length:', html.length);
+            console.log('HTML preview:', html.substring(0, 200));
+            
+            if (html === '' || html.trim() === '') {
+                console.log('No HTML generated, showing empty state');
+                document.getElementById('content').innerHTML = `
+                    <div class="empty-state">
+                        <h3>No Champions Match Your Filters</h3>
+                        <p>Try adjusting your filter criteria.</p>
+                    </div>
+                `;
+            } else {
+                console.log('Setting content HTML with champion grid');
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = `
+                    <div class="champion-grid">
+                        ${html}
+                    </div>
+                `;
+                console.log('Content set, children:', contentDiv.children.length);
+            }
         }
         
         function displayChampionDetail(champ, moveTypeFilter, searchFilter) {
@@ -980,13 +1151,37 @@
                     const damage = move.damage || move.dmg || '-';
                     const guard = move.guard || move.blockType || '-';
                     
-                    // Build input display with FGC notation, glyph, and keyboard button
+                    // Build input display - prioritize user-friendly formats (glyph/keyboard) over cryptic FGC notation
+                    const keyboardInput = move.keyboardInput || '';
                     let inputDisplay = '';
-                    if (input || inputGlyph || keyboardButton) {
-                        const parts = [];
-                        if (input) parts.push(`<span class="input-fgc">${escapeHtml(input)}</span>`);
-                        if (inputGlyph) parts.push(`<span class="input-glyph">${escapeHtml(inputGlyph)}</span>`);
-                        if (keyboardButton) parts.push(`<span class="input-keyboard">${escapeHtml(keyboardButton)}</span>`);
+                    
+                    // Always show input information - prioritize user-friendly formats
+                    const parts = [];
+                    
+                    // Show keyboard keys first (most user-friendly)
+                    if (keyboardInput) {
+                        parts.push(`<span class="input-keys" title="Keyboard keys to press">⌨️ ${escapeHtml(keyboardInput)}</span>`);
+                    }
+                    
+                    // Show keyboard button name (user-friendly)
+                    if (keyboardButton) {
+                        parts.push(`<span class="input-keyboard">${escapeHtml(keyboardButton)}</span>`);
+                    }
+                    
+                    // Show input glyph (visual representation)
+                    if (inputGlyph) {
+                        parts.push(`<span class="input-glyph">${escapeHtml(inputGlyph)}</span>`);
+                    }
+                    
+                    // Show FGC notation last (for advanced users) - only if no user-friendly format exists
+                    if (input && (!keyboardInput && !keyboardButton && !inputGlyph)) {
+                        parts.push(`<span class="input-fgc">${escapeHtml(input)}</span>`);
+                    } else if (input && parts.length === 0) {
+                        // Fallback: if nothing else exists, show input
+                        parts.push(`<span class="input-fgc">${escapeHtml(input)}</span>`);
+                    }
+                    
+                    if (parts.length > 0) {
                         inputDisplay = `<div class="input-display">${parts.join(' ')}</div>`;
                     }
                     
@@ -1008,8 +1203,8 @@
                 
                 const hasExtraCols = section.moves.some(m => (m.damage || m.dmg) || (m.guard || m.blockType));
                 const headerCols = hasExtraCols 
-                    ? '<th>Move</th><th>Startup</th><th>On Hit</th><th>On Block</th><th>Recovery</th><th>Damage</th><th>Guard</th>'
-                    : '<th>Move</th><th>Startup</th><th>On Hit</th><th>On Block</th><th>Recovery</th>';
+                    ? '<th>Move</th><th title="Startup: Frames until the move becomes active (lower = faster)">Startup <span class="tooltip-icon">ℹ️</span></th><th title="On Hit: Frame advantage when the move connects (positive = you can continue, negative = opponent can act first)">On Hit <span class="tooltip-icon">ℹ️</span></th><th title="On Block: Frame advantage when blocked (positive = safe, negative = punishable)">On Block <span class="tooltip-icon">ℹ️</span></th><th title="Recovery: Frames after the move ends before you can act again">Recovery <span class="tooltip-icon">ℹ️</span></th><th title="Damage: How much health the move removes">Damage <span class="tooltip-icon">ℹ️</span></th><th title="Guard: What blocking positions can guard this (L=Low, H=High, A=Air, U=Unblockable)">Guard <span class="tooltip-icon">ℹ️</span></th>'
+                    : '<th>Move</th><th title="Startup: Frames until the move becomes active (lower = faster)">Startup <span class="tooltip-icon">ℹ️</span></th><th title="On Hit: Frame advantage when the move connects (positive = you can continue, negative = opponent can act first)">On Hit <span class="tooltip-icon">ℹ️</span></th><th title="On Block: Frame advantage when blocked (positive = safe, negative = punishable)">On Block <span class="tooltip-icon">ℹ️</span></th><th title="Recovery: Frames after the move ends before you can act again">Recovery <span class="tooltip-icon">ℹ️</span></th>';
                 
                 return `
                     <div class="move-section">

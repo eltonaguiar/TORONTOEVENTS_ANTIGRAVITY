@@ -46,8 +46,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         setNow(new Date());
         
         // Update liveEvents if initialEvents prop changes
-        if (initialEvents && initialEvents.length > 0) {
+        if (initialEvents) {
+            console.log(`📦 [EventFeed] Received ${initialEvents.length} events from props`);
             setLiveEvents(initialEvents);
+        } else {
+            console.warn(`⚠️ [EventFeed] No events received in props`);
         }
     }, [initialEvents]);
 
@@ -561,6 +564,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             const events = dateFilter !== 'all' 
                 ? liveEvents.filter(e => !isMultiDay(e))
                 : liveEvents.filter(e => !isMultiDay(e));
+            console.log(`📋 [EventFeed] Display events (now not set): ${events.length} events`);
             return events.slice(0, visibleCount);
         }
 
@@ -575,6 +579,8 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             events = validEvents.filter(e => !isMultiDay(e));
         }
 
+        console.log(`📋 [EventFeed] Display events: ${events.length} (validEvents: ${validEvents.length}, liveEvents: ${liveEvents.length})`);
+        
         // Apply pagination/infinite scroll limit
         return events.slice(0, visibleCount);
     }, [validEvents, dateFilter, visibleCount, now, liveEvents]);

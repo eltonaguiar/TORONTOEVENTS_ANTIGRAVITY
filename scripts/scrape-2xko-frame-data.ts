@@ -23,8 +23,17 @@ interface Champion {
 }
 
 const CHAMPIONS = [
-  'Ekko',
   'Ahri',
+  'Blitzcrank',
+  'Braum',
+  'Caitlyn',
+  'Darius',
+  'Ekko',
+  'Illaoi',
+  'Jinx',
+  'Teemo',
+  'Vi',
+  'Warwick',
   'Yasuo',
   'Vi',
   'Jinx',
@@ -71,9 +80,10 @@ function generateInputGlyph(input: string): string {
 
 async function scrapeChampionFrameData(championName: string): Promise<Champion | null> {
   // Try multiple URL patterns - correct domain is wiki.play2xko.com
+  // Frame data is often on the main champion page, not a separate Frame_Data page
   const urls = [
-    `https://wiki.play2xko.com/en-us/${championName}/Frame_Data`,
-    `https://wiki.play2xko.com/en-us/${championName}`,
+    `https://wiki.play2xko.com/en-us/${championName}`, // Main page (has frame data tables)
+    `https://wiki.play2xko.com/en-us/${championName}/Frame_Data`, // Dedicated frame data page
     `https://2xko.wiki/w/${championName}/Frame_Data`,
     `https://2xko.wiki/w/${championName}`
   ];
@@ -182,6 +192,7 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
   });
 
   // Look for frame data tables - be more aggressive
+  // wiki.play2xko.com has tables with columns: Damage, Guard, Startup, Active, Recovery, On-Block, On-Hit, Meter-Gain, Cancel, Invuln
   $('table.wikitable, table, .wikitable table, .frame-data table').each((_, table) => {
       const rows = $(table).find('tr');
       if (rows.length < 2) return; // Need at least header + data row
@@ -193,14 +204,26 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
         headers.push(text);
       });
 
+      // Check if this looks like a frame data table
+      const headerText = headers.join(' ');
+      const isFrameDataTable = headerText.includes('startup') || 
+                               headerText.includes('on-block') || 
+                               headerText.includes('on-hit') ||
+                               headerText.includes('recovery') ||
+                               headerText.includes('active');
+      
+      if (!isFrameDataTable && headers.length < 5) {
+        return; // Skip non-frame-data tables
+      }
+
       // Find which columns contain what data - more flexible matching
-      // wiki.play2xko.com uses: Move, Input, Startup, Active, Recovery, On Block, Assist?, Notes
+      // wiki.play2xko.com uses: Damage, Guard, Startup, Active, Recovery, On-Block, On-Hit, Meter-Gain, Cancel, Invuln
+      // Move name is usually in the first column or in a heading before the table
       const moveCol = headers.findIndex(h => 
         h.includes('move') || h.includes('input') || h.includes('command') || 
-        h.includes('notation') || h === '' || (h.length < 5 && !h.includes('risk'))
+        h.includes('notation') || h === '' || (h.length < 5 && !h.includes('risk') && !h.includes('damage'))
       );
       const inputCol = headers.findIndex(h => h.includes('input'));
-      const moveColIndex = moveCol !== -1 ? moveCol : (inputCol !== -1 ? inputCol : 0);
       const startupCol = headers.findIndex(h => 
         h.includes('startup') || h.includes('start') || (h.includes('frame') && !h.includes('active'))
       );
@@ -209,10 +232,11 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
       );
       const onHitCol = headers.findIndex(h => 
         (h.includes('hit') && (h.includes('on') || h.includes('advantage'))) || 
-        (h.includes('on') && h.includes('hit'))
+        (h.includes('on-hit') || h.includes('on hit'))
       );
       const onBlockCol = headers.findIndex(h => 
-        h.includes('block') && (h.includes('on') || h.includes('advantage') || h.includes('frame'))
+        h.includes('block') && (h.includes('on') || h.includes('advantage') || h.includes('frame')) ||
+        h.includes('on-block') || h.includes('on block')
       );
       const recoveryCol = headers.findIndex(h => 
         h.includes('recovery') || (h.includes('vulnerable') && h.includes('frame'))
@@ -225,14 +249,20 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
       );
       const notesCol = headers.findIndex(h => h.includes('note'));
 
-      // More lenient - if we have a move column and at least 2 data columns, try to parse
-      if (moveCol === -1) {
-        return;
-      }
-      
-      // Check if we have any frame data columns
-      const hasFrameData = startupCol !== -1 || onHitCol !== -1 || onBlockCol !== -1 || recoveryCol !== -1;
-      if (!hasFrameData && headers.length < 3) {
+      // For wiki.play2xko.com, move name is often in the table heading (h3/h4) before the table
+      // Or in the first column if it's a move name column
+      let moveNameFromContext = '';
+      $(table).prevAll('h3, h4, h5').first().each((_, heading) => {
+        const headingText = $(heading).text().trim();
+        // Check if heading looks like a move name (e.g., "5L", "2M", "Rocket Grab")
+        if (headingText.match(/^([0-9]+[LMH]|[0-9]+S[12]|S[12]|j\.[0-9]+[LMH]|[A-Za-z\s]+)$/)) {
+          moveNameFromContext = headingText;
+        }
+      });
+
+      // More lenient - if we have startup/active/recovery/on-block, it's a frame data table
+      const hasFrameData = startupCol !== -1 || activeCol !== -1 || recoveryCol !== -1 || onBlockCol !== -1;
+      if (!hasFrameData) {
         return; // Probably not a frame data table
       }
 
@@ -241,8 +271,18 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
         const cells = $(row).find('td');
         if (cells.length === 0) return;
 
-        const moveName = moveCol !== -1 ? $(cells[moveCol]).text().trim() : '';
+        // Get move name - prefer from context (heading), then from move column, then from first cell
+        let moveName = moveNameFromContext;
+        if (!moveName && moveCol !== -1) {
+          moveName = $(cells[moveCol]).text().trim();
+        }
+        if (!moveName && cells.length > 0) {
+          moveName = $(cells[0]).text().trim();
+        }
         if (!moveName || moveName === '') return;
+        
+        // Clean up move name (remove extra whitespace, normalize)
+        moveName = moveName.replace(/\s+/g, ' ').trim();
 
         // Extract input notation from input column or move name
         let inputNotation = '';

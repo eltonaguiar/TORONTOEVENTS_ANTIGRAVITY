@@ -85,7 +85,19 @@ async function main() {
                 await client.uploadFromDir(publicDir); // Upload to remote root
                 console.log('✅ Public assets synced');
             } catch (err) {
-                console.log('⚠️ Public assets sync failed (non-critical), continuing...');
+                console.log('⚠️ Public assets sync failed, uploading critical files individually...');
+                // Upload critical files individually
+                const criticalPublicFiles = ['2xkoframedata.html'];
+                for (const file of criticalPublicFiles) {
+                    const localFile = path.join(publicDir, file);
+                    if (fs.existsSync(localFile)) {
+                        try {
+                            await uploadFile(client, localFile, file);
+                        } catch (uploadErr) {
+                            console.log(`⚠️ Failed to upload ${file}, but continuing...`);
+                        }
+                    }
+                }
                 // Reconnect if connection was lost
                 try {
                     await client.access({
