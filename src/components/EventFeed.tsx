@@ -575,14 +575,15 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         }
 
         let events: Event[];
+        const safeValidEvents = validEvents || [];
         if (dateFilter !== 'all') {
             // MERGED VIEW Logic for Specific Dates (Today, Tomorrow, etc)
             // Goal: Show EVERYTHING happening on that day.
-            events = validEvents;
+            events = safeValidEvents;
         } else {
             // Standard Split View for Global Feed
             // Here we respect the "Multi-Day" separation
-            events = validEvents.filter(e => !isMultiDay(e));
+            events = safeValidEvents.filter(e => !isMultiDay(e));
         }
 
         console.log(`📋 [EventFeed] Display events: ${events.length} (validEvents: ${validEvents.length}, liveEvents: ${liveEvents.length})`);
