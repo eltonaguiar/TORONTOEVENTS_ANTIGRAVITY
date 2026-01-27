@@ -42,10 +42,13 @@ async function main() {
         console.log(`📁 Working in: ${config.remotePath}`);
 
         const buildDir = path.join(process.cwd(), 'build');
-        
+
         // Upload index.html as index3.html (main target)
+        // Upload index.html as both index.html (primary) and index3.html (legacy/test)
         const indexHtml = path.join(buildDir, 'index.html');
         if (fs.existsSync(indexHtml)) {
+            console.log('🚀 Deploying main application index...');
+            await uploadFile(client, indexHtml, 'index.html');
             await uploadFile(client, indexHtml, 'index3.html');
         }
 
@@ -63,32 +66,55 @@ async function main() {
             }
         }
 
+        // Upload events.json and metadata.json (Source of truth is data/ folder)
+        const dataFiles = ['events.json', 'metadata.json'];
+        const dataDir = path.join(process.cwd(), 'data');
+        for (const file of dataFiles) {
+            const localFile = path.join(dataDir, file);
+            if (fs.existsSync(localFile)) {
+                await uploadFile(client, localFile, file);
+                console.log(`✅ Uploaded ${file} to remote root`);
+            }
+        }
+
+        // Upload any other static assets from public folder that might be missing
+        const publicDir = path.join(process.cwd(), 'public');
+        if (fs.existsSync(publicDir)) {
+            console.log('📦 Syncing public assets...');
+            await client.uploadFromDir(publicDir); // Upload to remote root
+            console.log('✅ Public assets synced');
+        }
+
         // Upload _next directory recursively
         const nextDir = path.join(buildDir, '_next');
         if (fs.existsSync(nextDir)) {
-            console.log('📦 Uploading _next directory...');
+            console.log('📦 Uploading application build chunks (_next)...');
             await client.uploadFromDir(nextDir, '_next');
             console.log('✅ _next directory uploaded');
         }
 
-        // Upload _not-found directory
+        // Upload error pages
         const notFoundDir = path.join(buildDir, '_not-found');
         if (fs.existsSync(notFoundDir)) {
-            console.log('📦 Uploading _not-found directory...');
             await client.uploadFromDir(notFoundDir, '_not-found');
-            console.log('✅ _not-found directory uploaded');
         }
 
-        // Upload 404 directory
         const dir404 = path.join(buildDir, '404');
         if (fs.existsSync(dir404)) {
-            console.log('📦 Uploading 404 directory...');
             await client.uploadFromDir(dir404, '404');
-            console.log('✅ 404 directory uploaded');
+        }
+
+        // Upload WINDOWSFIXER page with VirusTotal badges
+        const windowFixerDir = path.join(process.cwd(), 'WINDOWSFIXER');
+        if (fs.existsSync(windowFixerDir)) {
+            console.log('📦 Uploading WINDOWSFIXER page with VirusTotal badges...');
+            await client.uploadFromDir(windowFixerDir, 'WINDOWSFIXER');
+            console.log('✅ WINDOWSFIXER page uploaded');
         }
 
         console.log('\n🎉 Deployment complete!');
         console.log(`📍 Main page: ${config.remotePath}/index3.html`);
+        console.log(`📍 WINDOWSFIXER page: ${config.remotePath}/WINDOWSFIXER/index.html`);
     } catch (err) {
         console.error('❌ Deployment failed:', err);
         process.exit(1);

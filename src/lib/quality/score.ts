@@ -22,12 +22,34 @@ export function gradeEvent(event: Event): QualityProfile {
     const eventDate = new Date(event.date);
     const now = new Date();
 
+    // Validate date is not invalid
+    if (isNaN(eventDate.getTime())) {
+        console.log(`Rejecting event with invalid date: "${event.title}" - date: "${event.date}"`);
+        score = 0;
+        return {
+            score: 0,
+            hasImage: !!event.image,
+            hasPrice: event.price !== 'TBD',
+            hasDescription: event.description.length > 20,
+            isPast: true
+        };
+    }
+
     const getTorontoParts = (d: Date) => {
-        const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' });
-        const parts = fmt.formatToParts(d);
-        const map: { [key: string]: string } = {};
-        parts.forEach(p => map[p.type] = p.value);
-        return `${map.year}-${map.month}-${map.day}`;
+        // Additional validation
+        if (isNaN(d.getTime())) {
+            return '0000-00-00';
+        }
+        try {
+            const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' });
+            const parts = fmt.formatToParts(d);
+            const map: { [key: string]: string } = {};
+            parts.forEach(p => map[p.type] = p.value);
+            return `${map.year}-${map.month}-${map.day}`;
+        } catch (e) {
+            console.error(`Error formatting date: ${d}, error: ${e}`);
+            return '0000-00-00';
+        }
     };
 
     const eventDayStr = getTorontoParts(eventDate);

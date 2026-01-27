@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent, isEnglish } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, isEnglish, cleanDescription } from './utils';
 import { EventbriteDetailScraper } from './detail-scraper';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
@@ -146,13 +146,37 @@ export class EventbriteScraper implements ScraperSource {
                                             }
                                         }
 
+                                        // Enhanced price extraction - get minimum price from all offers
                                         let priceAmount: number | undefined;
-                                        let isFree = eventItem.isAccessibleForFree || eventItem.offers?.price === 0 || eventItem.offers?.price === '0';
-
-                                        if (isFree) {
-                                            priceAmount = 0;
-                                        } else if (eventItem.offers?.price) {
-                                            priceAmount = parseFloat(eventItem.offers.price);
+                                        let isFree = eventItem.isAccessibleForFree;
+                                        
+                                        if (eventItem.offers) {
+                                            const offers = Array.isArray(eventItem.offers) ? eventItem.offers : [eventItem.offers];
+                                            const prices: number[] = [];
+                                            
+                                            for (const offer of offers) {
+                                                if (offer.price === 0 || offer.price === '0' || offer.price === '0.00') {
+                                                    isFree = true;
+                                                    prices.push(0);
+                                                } else if (offer.price) {
+                                                    const price = parseFloat(offer.price);
+                                                    if (!isNaN(price) && price >= 0) {
+                                                        prices.push(price);
+                                                    }
+                                                }
+                                                // Also check lowPrice and highPrice
+                                                if (offer.lowPrice) {
+                                                    const lowPrice = parseFloat(offer.lowPrice);
+                                                    if (!isNaN(lowPrice) && lowPrice >= 0) {
+                                                        prices.push(lowPrice);
+                                                    }
+                                                }
+                                            }
+                                            
+                                            if (prices.length > 0) {
+                                                priceAmount = Math.min(...prices);
+                                                isFree = priceAmount === 0;
+                                            }
                                         }
 
                                         let isRecurring = eventItem['@type'] === 'EventSeries' ||
@@ -172,7 +196,7 @@ export class EventbriteScraper implements ScraperSource {
                                             price: priceAmount === 0 ? 'Free' : (priceAmount ? `$${priceAmount}` : 'See tickets'),
                                             priceAmount,
                                             isFree,
-                                            description: cleanText(eventItem.description || ''),
+                                            description: cleanDescription(eventItem.description || ''),
                                             latitude,
                                             longitude,
                                             categories: isRecurring
@@ -217,15 +241,35 @@ export class EventbriteScraper implements ScraperSource {
                                     }
                                 }
 
+                                // Enhanced price extraction - get minimum price from all offers
                                 let priceAmount: number | undefined;
                                 let isFree = false;
                                 if (item.offers) {
-                                    const offer = Array.isArray(item.offers) ? item.offers[0] : item.offers;
-                                    if (offer.price === '0' || offer.price === 0) {
-                                        isFree = true;
-                                        priceAmount = 0;
-                                    } else if (offer.price) {
-                                        priceAmount = parseFloat(offer.price);
+                                    const offers = Array.isArray(item.offers) ? item.offers : [item.offers];
+                                    const prices: number[] = [];
+                                    
+                                    for (const offer of offers) {
+                                        if (offer.price === 0 || offer.price === '0' || offer.price === '0.00') {
+                                            isFree = true;
+                                            prices.push(0);
+                                        } else if (offer.price) {
+                                            const price = parseFloat(offer.price);
+                                            if (!isNaN(price) && price >= 0) {
+                                                prices.push(price);
+                                            }
+                                        }
+                                        // Also check lowPrice and highPrice
+                                        if (offer.lowPrice) {
+                                            const lowPrice = parseFloat(offer.lowPrice);
+                                            if (!isNaN(lowPrice) && lowPrice >= 0) {
+                                                prices.push(lowPrice);
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (prices.length > 0) {
+                                        priceAmount = Math.min(...prices);
+                                        isFree = priceAmount === 0;
                                     }
                                 }
 
@@ -246,7 +290,7 @@ export class EventbriteScraper implements ScraperSource {
                                     price: priceAmount === 0 ? 'Free' : (priceAmount ? `$${priceAmount}` : 'See tickets'),
                                     priceAmount,
                                     isFree,
-                                    description: cleanText(item.description || ''),
+                                    description: cleanDescription(item.description || ''),
                                     latitude,
                                     longitude,
                                     categories: isRecurring

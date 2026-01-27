@@ -1,45 +1,34 @@
-import { getEvents } from '../lib/data';
+'use client';
+
+import { useEventsFromGitHub, useMetadataFromGitHub } from '../lib/data-client';
 import EventFeed from '../components/EventFeed';
 import ChatAssistant from '../components/ChatAssistant';
 import AdUnit from '../components/AdUnit';
 import WindowsFixerPromo from '../components/WindowsFixerPromo';
-import fs from 'fs';
-import path from 'path';
-
-// Force static generation
-export const dynamic = 'force-static';
 
 const VERSION = 'v0.5.0';
 
-export const metadata = {
-  title: `Toronto Events ${VERSION} - Real-Time Event Listings`,
-  description: 'Discover the latest events in Toronto. Updated daily with real data.',
-};
-
-function getLastUpdated(): string {
+function formatLastUpdated(dateString: string | null): string {
+  if (!dateString) return 'Unknown';
   try {
-    const metadataPath = path.join(process.cwd(), 'data', 'metadata.json');
-    if (fs.existsSync(metadataPath)) {
-      const data = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'));
-      const date = new Date(data.lastUpdated);
-      return date.toLocaleString('en-US', {
-        timeZone: 'America/Toronto',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZoneName: 'short'
-      });
-    }
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      timeZone: 'America/Toronto',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
   } catch (e) {
-    console.error('Failed to load metadata:', e);
+    return 'Unknown';
   }
-  return 'Unknown';
 }
 
 export default function Home() {
-  const allEvents = getEvents();
-  const lastUpdated = getLastUpdated();
+  const { events: allEvents, loading: eventsLoading } = useEventsFromGitHub();
+  const { metadata, loading: metadataLoading } = useMetadataFromGitHub();
+  const lastUpdated = formatLastUpdated(metadata?.lastUpdated || null);
 
   return (
     <main className="min-h-screen pb-20">
@@ -67,8 +56,17 @@ export default function Home() {
         <AdUnit slot="1234567890" format="horizontal" className="mb-8" />
       </div>
 
-      <EventFeed events={allEvents} />
-      <ChatAssistant allEvents={allEvents} />
+      {eventsLoading ? (
+        <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[var(--pk-500)] border-t-transparent"></div>
+          <p className="mt-4 text-[var(--text-2)]">Loading events...</p>
+        </div>
+      ) : (
+        <>
+          <EventFeed events={allEvents} />
+          <ChatAssistant allEvents={allEvents} />
+        </>
+      )}
 
       {/* In-Feed Ad */}
       <div className="max-w-7xl mx-auto px-4 py-8">

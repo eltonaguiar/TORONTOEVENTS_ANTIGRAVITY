@@ -654,11 +654,52 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
 
                         <div>
                             <div className="flex items-start justify-between gap-4 mb-4">
-                                <h2 className="text-4xl font-black leading-[1.1] tracking-tight flex-1" style={{ color: 'var(--pk-300)' }}>{event.title}</h2>
+                                <div className="flex-1">
+                                    <h2 className="text-4xl font-black leading-[1.1] tracking-tight mb-2" style={{ color: 'var(--pk-300)' }}>{event.title}</h2>
+                                    {/* Multi-Day Indicator */}
+                                    {event.categories.includes('Multi-Day') && (
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="px-3 py-1 bg-[var(--pk-500)]/30 border border-[var(--pk-500)] rounded-full text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)]">
+                                                📅 Multi-Day Event
+                                            </span>
+                                            {event.endDate && (
+                                                <span className="text-xs text-white/60">
+                                                    {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(event.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                    {/* Status Badges */}
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {isSoldOut && (
+                                            <span className="px-3 py-1 bg-red-600/30 border border-red-600 rounded-full text-[10px] font-black uppercase tracking-widest text-red-400">
+                                                ⚠️ Sold Out
+                                            </span>
+                                        )}
+                                        {event.status === 'CANCELLED' && (
+                                            <span className="px-3 py-1 bg-red-600/30 border border-red-600 rounded-full text-[10px] font-black uppercase tracking-widest text-red-400">
+                                                ❌ Cancelled
+                                            </span>
+                                        )}
+                                        {event.status === 'MOVED' && (
+                                            <span className="px-3 py-1 bg-yellow-600/30 border border-yellow-600 rounded-full text-[10px] font-black uppercase tracking-widest text-yellow-400">
+                                                📍 Moved
+                                            </span>
+                                        )}
+                                        {event.isFree && (
+                                            <span className="px-3 py-1 bg-green-600/30 border border-green-600 rounded-full text-[10px] font-black uppercase tracking-widest text-green-400">
+                                                🎉 Free Event
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                                 {/* Prominent Price Display */}
                                 <div className="shrink-0 px-6 py-3 bg-[var(--pk-500)]/20 border-2 border-[var(--pk-500)] rounded-2xl">
                                     <div className="text-[10px] uppercase font-black text-white/60 tracking-widest mb-1">Price</div>
                                     <div className="text-2xl font-black text-[var(--pk-300)]">{event.price || 'Free'}</div>
+                                    {event.priceAmount !== undefined && event.priceAmount > 0 && (
+                                        <div className="text-[9px] text-white/50 mt-0.5">CAD ${event.priceAmount.toFixed(2)}</div>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-2 mb-6">
@@ -670,35 +711,151 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             </div>
                         </div>
 
-                        {/* Core Info Grid */}
+                        {/* Enhanced Core Info Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white/5 rounded-3xl border border-white/5">
+                            {/* Date & Time with End Time */}
                             <div className="space-y-1">
                                 <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📅 Date & Time</span>
                                 <div className="flex flex-col">
                                     <span className="font-bold text-white">
-                                        {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                        {new Date(event.date).toLocaleDateString('en-US', { 
+                                            month: 'short', 
+                                            day: 'numeric',
+                                            year: new Date(event.date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
+                                        })}
                                     </span>
                                     <span className="text-[var(--pk-300)] text-sm font-bold">
-                                        {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                        {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
                                     </span>
+                                    {event.endDate && (
+                                        <>
+                                            <span className="text-[10px] text-white/40 mt-1">Until</span>
+                                            <span className="text-[var(--pk-400)] text-xs font-bold">
+                                                {new Date(event.endDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                            </span>
+                                            {(() => {
+                                                const start = new Date(event.date);
+                                                const end = new Date(event.endDate);
+                                                const durationMs = end.getTime() - start.getTime();
+                                                const hours = Math.floor(durationMs / (1000 * 60 * 60));
+                                                const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+                                                if (hours > 0 || minutes > 0) {
+                                                    return (
+                                                        <span className="text-[9px] text-white/50 mt-0.5">
+                                                            ({hours > 0 ? `${hours}h ` : ''}{minutes > 0 ? `${minutes}m` : ''})
+                                                        </span>
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
+                                        </>
+                                    )}
                                 </div>
                             </div>
+                            
+                            {/* Location with Map Link */}
                             <div className="space-y-1">
                                 <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📍 Location</span>
                                 <div className="flex flex-col">
-                                    <span className="font-bold text-white truncate">{event.location}</span>
+                                    <span className="font-bold text-white">{event.location}</span>
+                                    {(event.latitude && event.longitude) && (
+                                        <a
+                                            href={`https://www.google.com/maps?q=${event.latitude},${event.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[10px] text-[var(--pk-300)] hover:text-[var(--pk-200)] underline mt-1 flex items-center gap-1"
+                                        >
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            View on Map
+                                        </a>
+                                    )}
                                 </div>
                             </div>
+                            
+                            {/* Price with Amount */}
                             <div className="space-y-1">
                                 <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">💰 Price</span>
-                                <div className="flex flex-col underline decoration-[var(--pk-500)]/50">
+                                <div className="flex flex-col">
                                     <span className="font-bold text-white">{event.price || 'Free'}</span>
+                                    {event.priceAmount !== undefined && event.priceAmount > 0 && (
+                                        <span className="text-[10px] text-white/50">CAD ${event.priceAmount.toFixed(2)}</span>
+                                    )}
+                                    {isSoldOut && (
+                                        <span className="text-[9px] text-red-400 font-bold mt-1">SOLD OUT</span>
+                                    )}
                                 </div>
                             </div>
+                            
+                            {/* Host/Organizer */}
                             <div className="space-y-1">
-                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📰 Source</span>
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">👤 Host</span>
                                 <div className="flex flex-col">
-                                    <span className="font-bold text-white">{event.source}</span>
+                                    <span className="font-bold text-white">{event.host || event.source}</span>
+                                    <span className="text-[10px] text-white/50">via {event.source}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Additional Details Row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6 bg-white/5 rounded-3xl border border-white/5 mt-4">
+                            {/* Status */}
+                            <div className="space-y-1">
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📊 Status</span>
+                                <div className="flex flex-col">
+                                    <span className={`font-bold text-sm ${
+                                        event.status === 'UPCOMING' ? 'text-green-400' :
+                                        event.status === 'CANCELLED' ? 'text-red-400' :
+                                        event.status === 'MOVED' ? 'text-yellow-400' :
+                                        'text-white/60'
+                                    }`}>
+                                        {event.status}
+                                    </span>
+                                    {event.isSoldOut && (
+                                        <span className="text-[10px] text-red-400 font-bold">Sold Out</span>
+                                    )}
+                                    {event.genderSoldOut && event.genderSoldOut !== 'none' && (
+                                        <span className="text-[10px] text-orange-400 font-bold">
+                                            {event.genderSoldOut.toUpperCase()} tickets sold out
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Categories/Tags */}
+                            <div className="space-y-1">
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">🏷️ Categories</span>
+                                <div className="flex flex-wrap gap-1.5 mt-1">
+                                    {event.categories.map((cat) => (
+                                        <span key={cat} className="px-2 py-0.5 rounded-full bg-[var(--pk-500)]/20 text-[var(--pk-300)] text-[9px] font-bold uppercase tracking-wider border border-[var(--pk-500)]/30">
+                                            {cat}
+                                        </span>
+                                    ))}
+                                    {event.tags && event.tags.length > 0 && event.tags.filter(t => !event.categories.includes(t)).map((tag) => (
+                                        <span key={tag} className="px-2 py-0.5 rounded-full bg-white/5 text-white/60 text-[9px] font-medium border border-white/10">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Last Updated */}
+                            <div className="space-y-1">
+                                <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">🔄 Last Updated</span>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-white text-sm">
+                                        {new Date(event.lastUpdated).toLocaleDateString('en-US', { 
+                                            month: 'short', 
+                                            day: 'numeric',
+                                            hour: 'numeric',
+                                            minute: '2-digit'
+                                        })}
+                                    </span>
+                                    <span className="text-[9px] text-white/40">
+                                        {Math.round((new Date().getTime() - new Date(event.lastUpdated).getTime()) / (1000 * 60 * 60))}h ago
+                                    </span>
                                 </div>
                             </div>
                         </div>

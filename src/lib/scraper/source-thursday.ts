@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription } from './utils';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -57,7 +57,7 @@ export class ThursdayScraper implements ScraperSource {
                     const ldScript = $d('script[type="application/ld+json"]').html();
                     let date = new Date().toISOString();
                     let title = cleanText($d('h1').text() || $d('.event-title').text());
-                    let description = cleanText($d('.event-description').text() || $d('.entry-content').text());
+                    let description = cleanDescription($d('.event-description').text() || $d('.entry-content').text());
                     let image = $d('.event-image img').attr('src') || $d('.wp-post-image').attr('src');
                     let location = 'Toronto, ON';
                     let latitude: number | undefined;
@@ -72,7 +72,7 @@ export class ThursdayScraper implements ScraperSource {
                             if (eventData) {
                                 title = cleanText(eventData.name || title);
                                 date = normalizeDate(eventData.startDate) || date;
-                                description = cleanText(eventData.description || description);
+                                description = cleanDescription(eventData.description || description);
                                 if (eventData.image) {
                                     image = Array.isArray(eventData.image) ? eventData.image[0] : (typeof eventData.image === 'object' ? eventData.image.url : eventData.image);
                                 }

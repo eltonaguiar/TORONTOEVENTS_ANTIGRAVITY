@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription } from './utils';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -23,94 +23,104 @@ export class AllEventsScraper implements ScraperSource {
             const html = Buffer.from(response.data).toString('utf8');
             const $ = cheerio.load(html);
 
-            // Extract description from "About the event" section
-            // Try multiple selectors based on AllEvents.in structure
+            // Extract description with paragraph preservation
             let description = '';
-            
-            // Method 1: Direct description selectors
-            description = cleanText(
-                $('.event-description, #event-description, [itemprop="description"]').text() ||
-                $('.about-event, .event-details, .event-about').text()
-            );
-            
-            // Method 2: Find "About the event" heading and get following content
-            if (!description || description.length < 50) {
-                const aboutHeading = $('h2:contains("About"), h3:contains("About"), h4:contains("About")').filter((i, el) => {
-                    return $(el).text().toLowerCase().includes('about');
-                });
-                if (aboutHeading.length > 0) {
-                    const aboutSection = aboutHeading.first().parent().find('p, div').text();
-                    if (aboutSection && aboutSection.length > description.length) {
-                        description = cleanText(aboutSection);
-                    }
-                }
+
+            // Try specific HTML description selectors
+            const descEl = $('.event-description, #event-description, .about-event, .event-details-description').first();
+            if (descEl.length) {
+                let descHtml = descEl.html() || '';
+                // Transform common tags to newlines before cleaning
+                descHtml = descHtml
+                    .replace(/<br\s*\/?>/gi, '\n')
+                    .replace(/<\/p>/gi, '\n\n')
+                    .replace(/<[^>]+>/g, '');
+                description = cleanDescription(descHtml);
             }
-            
-            // Method 3: Get all paragraph text from main content area
+
             if (!description || description.length < 50) {
                 const mainContent = $('main, .main-content, .event-content, article').find('p').text();
                 if (mainContent && mainContent.length > description.length) {
-                    description = cleanText(mainContent);
+                    description = cleanDescription(mainContent);
                 }
             }
 
             // Extract price from detail page - try multiple methods
             let price: string | undefined;
             let priceAmount: number | undefined;
-            
-            // Method 1: Look for "Starting at CAD X" or "Tickets from CAD X"
-            let priceText = $('*:contains("Starting at"), *:contains("Tickets from")').first().text();
-            
-            // Method 2: Check ticket table (common format: "General Admission | 62 CAD")
-            if (!priceText || priceText.length < 10) {
-                const ticketTable = $('table').filter((i, el) => {
-                    return $(el).text().toLowerCase().includes('ticket');
-                });
-                if (ticketTable.length > 0) {
-                    priceText = ticketTable.first().text();
-                }
-            }
-            
-            // Method 3: Direct price selectors
-            if (!priceText || priceText.length < 10) {
-                priceText = $('.ticket-price, .price, [itemprop="price"], .event-price').text();
-            }
-            
-            // Method 4: Look for price in any text containing CAD or $
-            if (!priceText || priceText.length < 10) {
-                const allText = $('body').text();
-                const priceMatch = allText.match(/(?:starting at|tickets from|from)\s*(?:CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i);
-                if (priceMatch) {
-                    priceText = priceMatch[0];
-                }
+
+            // Check for structured data offers - get minimum price from all offers
+            const scriptData = $('script[type="application/ld+json"]');
+            const prices: number[] = [];
+            scriptData.each((_, el) => {
+                try {
+                    const json = JSON.parse($(el).html() || '{}');
+                    if (json.offers) {
+                        const offers = Array.isArray(json.offers) ? json.offers : [json.offers];
+                        for (const offer of offers) {
+                            if (offer.price !== undefined) {
+                                const p = parseFloat(offer.price);
+                                if (!isNaN(p) && p >= 0) prices.push(p);
+                            }
+                            if (offer.lowPrice !== undefined) {
+                                const lp = parseFloat(offer.lowPrice);
+                                if (!isNaN(lp) && lp >= 0) prices.push(lp);
+                            }
+                        }
+                    }
+                } catch { }
+            });
+            if (prices.length > 0) {
+                priceAmount = Math.min(...prices);
+                price = `$${priceAmount}`;
             }
 
-            if (priceText) {
-                // Try CAD first (most common for Toronto)
-                const cadMatch = priceText.match(/(?:CAD|C\$)\s*(\d+(?:\.\d{2})?)/i);
-                if (cadMatch) {
-                    priceAmount = parseFloat(cadMatch[1]);
-                    price = `$${priceAmount}`;
-                } else {
-                    // Try USD format
-                    const usdMatch = priceText.match(/\$\s?(\d+(?:\.\d{2})?)/);
-                    if (usdMatch) {
-                        priceAmount = parseFloat(usdMatch[1]);
+            if (!price) {
+                // Method 1: Extract minimum price from ticket tables
+                const ticketTables = $('table').filter((i, el) => {
+                    return $(el).text().toLowerCase().includes('ticket') || 
+                           $(el).text().toLowerCase().includes('price') ||
+                           $(el).find('th, td').text().toLowerCase().includes('price');
+                });
+                
+                if (ticketTables.length > 0) {
+                    const tablePrices: number[] = [];
+                    ticketTables.find('tr').each((_, row) => {
+                        const rowText = $(row).text();
+                        // Look for all price patterns in table rows
+                        const priceMatches = [...rowText.matchAll(/(?:CAD|C\$|\$)\s*(\d+(?:\.\d{2})?)/gi)];
+                        for (const match of priceMatches) {
+                            const p = parseFloat(match[1]);
+                            if (!isNaN(p) && p >= 0 && p < 10000) { // Reasonable price cap
+                                tablePrices.push(p);
+                            }
+                        }
+                    });
+                    if (tablePrices.length > 0) {
+                        priceAmount = Math.min(...tablePrices);
                         price = `$${priceAmount}`;
-                    } else {
-                        // Try just numbers (might be in table format like "62 CAD")
-                        const numberMatch = priceText.match(/(\d+(?:\.\d{2})?)\s*(?:CAD|C\$)/i);
-                        if (numberMatch) {
-                            priceAmount = parseFloat(numberMatch[1]);
+                    }
+                }
+                
+                // Method 2: Look for price strings in other elements
+                if (!price) {
+                    const priceText = $('.ticket-price, .price, [itemprop="price"], .event-price, .display-price').first().text();
+                    const match = priceText.match(/(?:CAD|C\$|\$)\s*(\d+(?:\.\d{2})?)/i) || priceText.match(/(\d+(?:\.\d{2})?)\s*(?:CAD|C\$)/i);
+                    if (match) {
+                        const p = parseFloat(match[1]);
+                        if (!isNaN(p) && p >= 0 && p < 10000) {
+                            priceAmount = p;
                             price = `$${priceAmount}`;
                         }
+                    } else if (priceText.toLowerCase().includes('free')) {
+                        price = 'Free';
+                        priceAmount = 0;
                     }
                 }
             }
 
             return { description, price, priceAmount };
         } catch (e) {
-            // Silently fail - return empty object
             return {};
         }
     }
@@ -218,11 +228,11 @@ export class AllEventsScraper implements ScraperSource {
                         }
 
                         // Enhanced description extraction - try multiple selectors
-                        let description = cleanText(
+                        let description = cleanDescription(
                             card.find('.description, .detail, .event-description, .summary, p').first().text() ||
                             card.find('[itemprop="description"]').text()
                         );
-                        
+
                         const combinedText = `${title} ${description} ${card.text()}`;
 
                         let price = 'See Tickets';
@@ -255,17 +265,32 @@ export class AllEventsScraper implements ScraperSource {
                             }
                         }
 
-                        // If description is missing/short or price wasn't found, fetch detail page
-                        if ((!description || description.length < 50) || (!priceAmount && price === 'See Tickets')) {
-                            const details = await this.fetchEventDetails(fullUrl);
-                            if (details.description && (!description || description.length < details.description.length)) {
-                                description = details.description;
-                            }
-                            if (details.price && details.priceAmount && (!priceAmount || price === 'See Tickets')) {
+                        // Always fetch detail page for better price and description data
+                        // This ensures we get accurate pricing (especially for events with multiple ticket tiers)
+                        const details = await this.fetchEventDetails(fullUrl);
+                        if (details.description && (!description || description.length < details.description.length)) {
+                            description = details.description;
+                        }
+                        // Use detail page price if:
+                        // 1. We don't have a price yet, OR
+                        // 2. The detail page price is lower (to avoid showing premium tier prices)
+                        if (details.price && details.priceAmount) {
+                            if (!priceAmount || price === 'See Tickets') {
+                                price = details.price;
+                                priceAmount = details.priceAmount;
+                            } else if (details.priceAmount < priceAmount) {
+                                // Use lower price if detail page has a better (lower) price
                                 price = details.price;
                                 priceAmount = details.priceAmount;
                             }
                         }
+
+                        // Extract tags if any
+                        const tags: string[] = [];
+                        card.find('.tags a, .categories a, .event-tags span').each((_, tagEl) => {
+                            const t = cleanText($(tagEl).text());
+                            if (t && !tags.includes(t)) tags.push(t);
+                        });
 
                         const event: Event = {
                             id: generateEventId(fullUrl),
@@ -281,6 +306,7 @@ export class AllEventsScraper implements ScraperSource {
                             isFree,
                             description,
                             categories: categorizeEvent(title, description),
+                            tags,
                             status: 'UPCOMING',
                             lastUpdated: new Date().toISOString()
                         };

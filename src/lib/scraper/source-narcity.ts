@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription } from './utils';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -49,7 +49,7 @@ export class NarcityScraper implements ScraperSource {
                     // and use publication date if available, or skip if no date at all
 
                     // Extract description
-                    const description = cleanText(
+                    const description = cleanDescription(
                         card.find('.description, .excerpt, .summary, p').first().text()
                     );
 
