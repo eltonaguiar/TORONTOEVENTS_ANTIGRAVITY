@@ -51,6 +51,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             setLiveEvents(initialEvents);
         } else {
             console.warn(`⚠️ [EventFeed] No events received in props`);
+            // If no events received, check if we can load from a fallback
+            // This shouldn't happen if useEventsFromGitHub is working, but add safety net
+            if (liveEvents.length === 0) {
+                console.warn(`⚠️ [EventFeed] liveEvents is also empty - events may not be loading`);
+            }
         }
     }, [initialEvents]);
 
@@ -65,7 +70,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     const [maxPrice, setMaxPrice] = useState<number>(120);
     const [showExpensive, setShowExpensive] = useState(false);
     const [showStarted, setShowStarted] = useState(false);
-    const [visibleCount, setVisibleCount] = useState(20); // Initial visible events count
+    const [visibleCount, setVisibleCount] = useState(50); // Initial visible events count (increased from 20)
     const [isLoading, setIsLoading] = useState(false);
 
     // New Features
@@ -154,7 +159,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
     // Reset visible count when filters change
     useEffect(() => {
-        setVisibleCount(20);
+        setVisibleCount(50); // Increased from 20 to show more events initially
     }, [dateFilter, selectedCategory, selectedSource, selectedHost, maxPrice, showExpensive, showStarted, searchQuery, settings.viewMode]);
 
     const handleExport = () => {
@@ -268,6 +273,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         // CRITICAL FIX: If 'now' is not set, return events without date filtering
         // This prevents empty page on initial load
         if (!now) {
+            console.log(`⚠️ [EventFeed] 'now' not set yet, showing ${sourceEvents.length} events without date filtering`);
             return sourceEvents.filter((e: Event) => {
                 // Apply basic filters that don't require 'now'
                 if (settings.viewMode === 'saved' && !settings.savedEvents?.some((saved: Event) => saved.id === e.id)) {
@@ -310,7 +316,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             });
         }
         
-        return sourceEvents
+        const filtered = sourceEvents
             .filter((e: Event) => {
                 if (searchQuery) {
                     const fullText = `${e.title} ${e.description} ${e.host} ${e.source} ${e.tags?.join(' ') || ''}`.toLowerCase();
@@ -598,7 +604,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     const loadMoreEvents = useCallback(() => {
         if (!isLoading && hasMoreEvents) {
             setIsLoading(true);
-            setVisibleCount(prev => Math.min(prev + 20, validEvents.length));
+            setVisibleCount(prev => Math.min(prev + 50, validEvents.length)); // Load 50 more at a time (increased from 20)
             setTimeout(() => setIsLoading(false), 100);
         }
     }, [isLoading, hasMoreEvents, validEvents.length]);
