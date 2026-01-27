@@ -326,6 +326,18 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         
         const filtered = sourceEvents
             .filter((e: Event) => {
+                // DEBUG: Log first few events to see what's being filtered
+                const eventIndex = sourceEvents.indexOf(e);
+                if (eventIndex < 3) {
+                    console.log(`🔍 [Filter Debug] Event ${eventIndex}: "${e.title.substring(0, 50)}"`, {
+                        date: e.date,
+                        dateValid: !isNaN(new Date(e.date).getTime()),
+                        priceAmount: e.priceAmount,
+                        isSoldOut: e.isSoldOut,
+                        status: e.status
+                    });
+                }
+                
                 if (searchQuery) {
                     const fullText = `${e.title} ${e.description} ${e.host} ${e.source} ${e.tags?.join(' ') || ''}`.toLowerCase();
 
@@ -431,6 +443,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         if (isNaN(eventStartDate.getTime())) {
                             // Invalid date - show the event anyway (don't filter out)
                             // This fixes the "0 events" issue when dates are malformed
+                            console.log(`✅ [Filter] Including event with invalid date: "${e.title.substring(0, 50)}"`);
                         } else {
                             const eventEndDate = e.endDate
                                 ? new Date(e.endDate)
@@ -439,14 +452,28 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                             if (!isMultiDay(e)) {
                                 // Standard Feed: Hide things that are over (with 1 hour grace period for timezone issues)
                                 const gracePeriod = 60 * 60 * 1000; // 1 hour
-                                if (!isNaN(eventEndDate.getTime()) && eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
-                                // Standard Feed: Hide things that started (unless toggle is On)
-                                // Use grace period to account for timezone differences
-                                if (eventStartDate < new Date(now.getTime() - gracePeriod)) return false;
+                                const graceTime = new Date(now.getTime() - gracePeriod);
+                                
+                                // Only filter if event ENDED (not just started)
+                                if (!isNaN(eventEndDate.getTime()) && eventEndDate < graceTime) {
+                                    const eventIndex = sourceEvents.indexOf(e);
+                                    if (eventIndex < 3) {
+                                        console.log(`❌ [Filter] Filtering ended event: "${e.title.substring(0, 50)}" (ended: ${eventEndDate.toISOString()}, now: ${now.toISOString()})`);
+                                    }
+                                    return false;
+                                }
+                                // DON'T filter events that just started - only filter if they ENDED
+                                // This is the key fix: we were filtering started events, now we only filter ended events
                             } else {
                                 // Multi-Day in Feed: Hide if totally over (with grace period)
                                 const gracePeriod = 60 * 60 * 1000; // 1 hour
-                                if (!isNaN(eventEndDate.getTime()) && eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
+                                if (!isNaN(eventEndDate.getTime()) && eventEndDate < new Date(now.getTime() - gracePeriod)) {
+                                    const eventIndex = sourceEvents.indexOf(e);
+                                    if (eventIndex < 3) {
+                                        console.log(`❌ [Filter] Filtering ended multi-day event: "${e.title.substring(0, 50)}"`);
+                                    }
+                                    return false;
+                                }
                             }
                         }
                     }
@@ -533,8 +560,20 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 }
 
                 return true;
-            })
-            .sort((a: Event, b: Event) => {
+            });
+        
+        // DEBUG: Log filtering results
+        console.log(`📊 [Filter Results] Input: ${sourceEvents.length}, Output: ${filtered.length}, Filtered out: ${sourceEvents.length - filtered.length}`);
+        if (filtered.length === 0 && sourceEvents.length > 0) {
+            console.error(`❌ [Filter] CRITICAL: All ${sourceEvents.length} events were filtered out!`);
+            console.error(`   Date filter: ${dateFilter}`);
+            console.error(`   Show started: ${showStarted}`);
+            console.error(`   Hide sold out: ${settings.hideSoldOut}`);
+            console.error(`   Max price: ${maxPrice}`);
+            console.error(`   Now: ${now?.toISOString()}`);
+        }
+        
+        return filtered.sort((a: Event, b: Event) => {
                 const { key, direction } = sortConfig;
                 let valA: any = a[key as keyof Event];
                 let valB: any = b[key as keyof Event];

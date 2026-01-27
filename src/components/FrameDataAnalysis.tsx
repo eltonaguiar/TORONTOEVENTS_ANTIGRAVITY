@@ -31,6 +31,27 @@ interface Analysis {
 const GITHUB_REPO = 'eltonaguiar/2XKOFRAMEDATA';
 const GITHUB_BASE = `https://raw.githubusercontent.com/${GITHUB_REPO}/main`;
 
+// Helper function to get user-friendly move display name
+function getMoveDisplayName(move: Move): string {
+  const parts: string[] = [];
+  if (move.keyboardInput) {
+    parts.push(`⌨️ ${move.keyboardInput}`);
+  }
+  if (move.keyboardButton) {
+    parts.push(move.keyboardButton);
+  }
+  if (move.inputGlyph) {
+    parts.push(move.inputGlyph);
+  }
+  if (parts.length === 0 && move.input) {
+    parts.push(move.input);
+  }
+  if (parts.length === 0) {
+    parts.push(move.name);
+  }
+  return parts.join(' / ');
+}
+
 function analyzeFrameData(champions: Champion[]): Analysis[] {
   return champions.map(champ => {
     const moves = champ.moves || [];
@@ -99,7 +120,9 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
           .sort((a, b) => a.startup - b.startup); // Fastest first
         
         if (followUps.length > 0) {
-          efficientCombos.push(`${starterName} → ${followUps[0].move.name} (${starterOnHit}f advantage)`);
+          const starterDisplay = getMoveDisplayName(starter);
+          const followUpDisplay = getMoveDisplayName(followUps[0].move);
+          efficientCombos.push(`${starterDisplay} → ${followUpDisplay} (${starterOnHit}f advantage)`);
           
           // Try to find a third hit
           const secondMove = followUps[0].move;
@@ -121,7 +144,8 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
               .sort((a, b) => a.startup - b.startup);
             
             if (thirdHits.length > 0) {
-              efficientCombos.push(`${starterName} → ${followUps[0].move.name} → ${thirdHits[0].move.name}`);
+              const thirdDisplay = getMoveDisplayName(thirdHits[0].move);
+              efficientCombos.push(`${starterDisplay} → ${followUpDisplay} → ${thirdDisplay}`);
             }
           }
         }
@@ -141,7 +165,9 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
                             typeof medium.startup === 'string' ? parseInt(medium.startup) : 999;
         
         if (mediumStartup <= lightOnHit + 3) {
-          efficientCombos.push(`${light.name} → ${medium.name} (Basic Link)`);
+          const lightDisplay = getMoveDisplayName(light);
+          const mediumDisplay = getMoveDisplayName(medium);
+          efficientCombos.push(`${lightDisplay} → ${mediumDisplay} (Basic Link)`);
         }
       }
       
@@ -154,7 +180,9 @@ function analyzeFrameData(champions: Champion[]): Analysis[] {
                            typeof heavy.startup === 'string' ? parseInt(heavy.startup) : 999;
         
         if (heavyStartup <= mediumOnHit + 3) {
-          efficientCombos.push(`${medium.name} → ${heavy.name} (Medium to Heavy)`);
+          const mediumDisplay = getMoveDisplayName(medium);
+          const heavyDisplay = getMoveDisplayName(heavy);
+          efficientCombos.push(`${mediumDisplay} → ${heavyDisplay} (Medium to Heavy)`);
         }
       }
     }
