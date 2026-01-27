@@ -183,8 +183,17 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         const todayStr = getTorontoDateParts(today);
         const [y, m, d] = todayStr.split('-').map(Number);
         const startOfToday = new Date(y, m - 1, d);
-        const weekEnd = new Date(startOfToday.getTime() + 7 * 24 * 60 * 60 * 1000);
-        return eventDate >= startOfToday && eventDate <= weekEnd;
+        
+        // Get the start of the week (Sunday) and end of the week (Saturday)
+        const dayOfWeek = startOfToday.getDay(); // 0 = Sunday, 6 = Saturday
+        const startOfWeek = new Date(startOfToday);
+        startOfWeek.setDate(startOfToday.getDate() - dayOfWeek); // Go back to Sunday
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday (6 days after Sunday)
+        endOfWeek.setHours(23, 59, 59, 999); // End of Saturday
+        
+        return eventDate >= startOfWeek && eventDate <= endOfWeek;
     };
 
     const isThisMonth = (date: string) => {
@@ -306,9 +315,18 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         }
                     }
                     if (dateFilter === 'this-week') {
-                        const weekEnd = new Date(todayStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+                        // Calculate calendar week (Sunday to Saturday)
+                        const dayOfWeek = todayStart.getDay(); // 0 = Sunday, 6 = Saturday
+                        const startOfWeek = new Date(todayStart);
+                        startOfWeek.setDate(todayStart.getDate() - dayOfWeek); // Go back to Sunday
+                        
+                        const endOfWeek = new Date(startOfWeek);
+                        endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+                        endOfWeek.setHours(23, 59, 59, 999); // End of Saturday
+                        
                         if (isMultiDay(e)) {
-                            if (eEndDate < todayStart || eventStartDate > weekEnd) return false;
+                            // For multi-day events, include if they overlap with this week
+                            if (eEndDate < startOfWeek || eventStartDate > endOfWeek) return false;
                         } else {
                             if (!isThisWeek(e.date)) return false;
                         }
