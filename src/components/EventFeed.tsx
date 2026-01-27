@@ -14,7 +14,8 @@ interface EventFeedProps {
 
 type DateFilter = 'all' | 'today' | 'tomorrow' | 'this-week' | 'this-month' | 'nearby';
 
-export default function EventFeed({ events }: EventFeedProps) {
+export default function EventFeed({ events: initialEvents }: EventFeedProps) {
+    const [liveEvents, setLiveEvents] = useState<Event[]>(initialEvents);
     const [showHidden, setShowHidden] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedSource, setSelectedSource] = useState<string | null>(null);
@@ -31,7 +32,25 @@ export default function EventFeed({ events }: EventFeedProps) {
         setPreviewAnchor(anchor || null);
     };
 
+    // Runtime Sync: Pull latest database from GitHub
     useEffect(() => {
+        const fetchLatest = async () => {
+            try {
+                // Point to the raw JSON on the main branch
+                const response = await fetch('https://raw.githubusercontent.com/eltonaguiar/TORONTOEVENTS_ANTIGRAVITY/main/data/events.json');
+                if (response.ok) {
+                    const freshEvents = await response.json();
+                    if (Array.isArray(freshEvents) && freshEvents.length > 0) {
+                        console.log(`Synced ${freshEvents.length} events from database.`);
+                        setLiveEvents(freshEvents);
+                    }
+                }
+            } catch (err) {
+                console.error('Runtime sync failed:', err);
+            }
+        };
+
+        fetchLatest();
         setNow(new Date());
     }, []);
 
@@ -81,7 +100,7 @@ export default function EventFeed({ events }: EventFeedProps) {
     const handleExport = () => {
         const eventsToExport = settings.savedEvents.length > 0 ? settings.savedEvents : validEvents;
         const headers = ['Title', 'Date', 'Location', 'Host', 'Price', 'URL', 'Categories'];
-        const rows = eventsToExport.map(e => [
+        const rows = eventsToExport.map((e: Event) => [
             `"${e.title.replace(/"/g, '""')}"`,
             `"${e.date}"`,
             `"${(e.location || '').replace(/"/g, '""')}"`,
@@ -105,7 +124,7 @@ export default function EventFeed({ events }: EventFeedProps) {
         // ... (import logic)
     };
 
-    const sourceEvents = settings.viewMode === 'saved' ? settings.savedEvents : events;
+    const sourceEvents = settings.viewMode === 'saved' ? settings.savedEvents : liveEvents;
 
     const allCategories = useMemo(() => {
         const catSet = new Set<string>();
@@ -178,7 +197,7 @@ export default function EventFeed({ events }: EventFeedProps) {
 
     const validEvents = useMemo(() => {
         return sourceEvents
-            .filter(e => {
+            .filter((e: Event) => {
                 if (searchQuery) {
                     const fullText = `${e.title} ${e.description} ${e.host} ${e.source} ${e.tags?.join(' ') || ''}`.toLowerCase();
 
@@ -311,7 +330,7 @@ export default function EventFeed({ events }: EventFeedProps) {
 
                 return true;
             })
-            .sort((a, b) => {
+            .sort((a: Event, b: Event) => {
                 const { key, direction } = sortConfig;
                 let valA: any = a[key as keyof Event];
                 let valB: any = b[key as keyof Event];
@@ -341,13 +360,13 @@ export default function EventFeed({ events }: EventFeedProps) {
         return filters;
     }, [dateFilter, selectedCategory, selectedSource, selectedHost, maxPrice, settings.hideSoldOut, settings.hideGenderSoldOut, settings.gender, updateSettings]);
 
-    const hiddenEvents = events.filter(e => {
+    const hiddenEvents = liveEvents.filter((e: Event) => {
         const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
         return isHidden;
     });
 
-    const singleDayEvents = validEvents.filter(e => !isMultiDay(e));
-    const multiDayEvents = validEvents.filter(e => {
+    const singleDayEvents = validEvents.filter((e: Event) => !isMultiDay(e));
+    const multiDayEvents = validEvents.filter((e: Event) => {
         if (isMultiDay(e)) {
             // Only show multi-day/festivals that haven't ended yet
             return now && e.endDate ? new Date(e.endDate) >= now : true;
@@ -394,7 +413,7 @@ export default function EventFeed({ events }: EventFeedProps) {
 
     const separateMultiDayList = useMemo(() => {
         if (dateFilter !== 'all') return []; // We merged them
-        return validEvents.filter(e => isMultiDay(e));
+        return validEvents.filter((e: Event) => isMultiDay(e));
     }, [validEvents, dateFilter]);
 
     return (
@@ -627,7 +646,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                         <span>{showExpensive ? '👁 Expensive On' : '❌ Expensive Hidden'}</span>
                         {!showExpensive && (
                             <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
-                                {events.filter(e => e.priceAmount !== undefined && e.priceAmount > maxPrice).length} Hidden
+                                {liveEvents.filter((e: Event) => e.priceAmount !== undefined && e.priceAmount > maxPrice).length} Hidden
                             </span>
                         )}
                     </button>
@@ -641,7 +660,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                         <span>{showStarted ? '👁 Ongoing On' : '❌ Ongoing Hidden'}</span>
                         {!showStarted && (
                             <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] group-hover:bg-white/20 transition-colors">
-                                {events.filter(e => now && new Date(e.date) < now && !isMultiDay(e)).length} Hidden
+                                {liveEvents.filter((e: Event) => now && new Date(e.date) < now && !isMultiDay(e)).length} Hidden
                             </span>
                         )}
                     </button>
@@ -686,8 +705,8 @@ export default function EventFeed({ events }: EventFeedProps) {
 
             {/* Main Content */}
             {settings.detailViewMode === 'inline' && previewEvent && (
-                <InlinePreviewWithIndicator 
-                    event={previewEvent} 
+                <InlinePreviewWithIndicator
+                    event={previewEvent}
                     onClose={() => setPreviewEvent(null)}
                     onSwitchToPopup={() => updateSettings({ detailViewMode: 'popup' })}
                 />
@@ -714,7 +733,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                         <div className="absolute inset-0 bg-gradient-to-r from-[var(--pk-500)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="flex flex-col">
                             <span className="text-[4rem] font-black leading-none tracking-tighter text-white tabular-nums glow-text">
-                                {displayEvents.length === events.length ? displayEvents.length : `${displayEvents.length}/${events.length}`}
+                                {displayEvents.length === liveEvents.length ? displayEvents.length : `${displayEvents.length}/${liveEvents.length}`}
                             </span>
                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)] mt-[-0.5rem] ml-1">
                                 Events {settings.viewMode === 'saved' ? 'Saved' : 'Detected'}
