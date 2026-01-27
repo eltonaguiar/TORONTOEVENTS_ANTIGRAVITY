@@ -15,7 +15,7 @@ type PreviewMode = 'details' | 'live' | 'split';
 type Placement = 'center' | 'right' | 'left';
 
 export default function EventPreview({ event, onClose, isInline, anchor }: EventPreviewProps) {
-    const { settings, updateSettings, toggleSavedEvent } = useSettings();
+    const { settings, updateSettings, toggleSavedEvent, setIsSettingsOpen } = useSettings();
     const [mode, setMode] = useState<PreviewMode>('details');
 
     // Use settings or local overrides
@@ -200,11 +200,16 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                     </button>
 
                     <button
-                        onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
+                        onClick={() => setIsSettingsOpen(true)}
                         className="p-2 bg-white/5 hover:bg-[var(--pk-500)] text-white/40 hover:text-white rounded-xl transition-all border border-white/10 group/pg"
                         title="Tweak Global Settings"
                     >
-                        <span className="group-hover/pg:rotate-90 transition-transform block text-lg leading-none">⚙️</span>
+                        <span className="group-hover/pg:rotate-90 transition-transform block text-lg leading-none">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </span>
                     </button>
 
                     <button onClick={onClose} className="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-full transition-colors text-white font-bold text-xl">
@@ -329,13 +334,34 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                                 <div className="text-[10px] uppercase font-black text-white/30">Interactive IFrame</div>
                             </div>
 
-                            <iframe
-                                src={absoluteUrl}
-                                className="w-full bg-white rounded-3xl border-4 border-white/5 shadow-inner"
-                                style={{ height: `${Math.max(400, height - 200)}px`, transition: 'height 0.3s ease' }}
-                                title={`Preview: ${event.title}`}
-                                sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                            />
+                            <div className="relative w-full rounded-3xl border-4 border-white/5 shadow-inner overflow-hidden bg-black/20" style={{ height: `${Math.max(400, height - 200)}px`, transition: 'height 0.3s ease' }}>
+                                {(event.source === 'Eventbrite' || absoluteUrl.includes('eventbrite') || event.source === 'AllEvents.in' || absoluteUrl.includes('allevents.in')) ? (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-[#0a0a0b]">
+                                        <div className="w-16 h-16 mb-4 rounded-full bg-[#F05537] flex items-center justify-center text-white text-3xl shadow-lg">
+                                            🔒
+                                        </div>
+                                        <h4 className="text-xl font-bold text-white mb-2">External Content Protected</h4>
+                                        <p className="text-sm text-[var(--text-2)] max-w-sm mb-6">
+                                            {event.source} does not allow embedded previews. Please open the event page directly.
+                                        </p>
+                                        <a
+                                            href={absoluteUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-6 py-3 bg-[#F05537] hover:bg-[#d14429] text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-orange-500/20"
+                                        >
+                                            Open Event on {event.source} ↗
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <iframe
+                                        src={absoluteUrl}
+                                        className="w-full h-full bg-white"
+                                        title={`Preview: ${event.title}`}
+                                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                                    />
+                                )}
+                            </div>
 
                             <p className="text-sm text-white/40 italic">
                                 If the preview doesn't load, <a href={absoluteUrl} target="_blank" className="text-[var(--pk-300)] underline hover:text-white transition-colors">click here to open the event page</a>.

@@ -40,6 +40,7 @@ interface Settings {
     userLongitude: number | null;
     maxDistanceKm: number;
     locationSource: 'browser' | 'postal-code' | 'address';
+    viewMode: 'feed' | 'saved';
 }
 
 interface SettingsContextType {
@@ -47,6 +48,8 @@ interface SettingsContextType {
     updateSettings: (newSettings: Partial<Settings>) => void;
     toggleSavedEvent: (event: any) => void;
     importEvents: (events: any[]) => void;
+    isSettingsOpen: boolean;
+    setIsSettingsOpen: (isOpen: boolean) => void;
 }
 
 const defaultSettings: Settings = {
@@ -82,6 +85,7 @@ const defaultSettings: Settings = {
     userLongitude: null,
     maxDistanceKm: 10, // Default to 10km radius
     locationSource: 'browser',
+    viewMode: 'feed', // Default view mode
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -95,7 +99,17 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const saved = localStorage.getItem('toronto-events-settings');
         if (saved) {
             try {
-                setSettings({ ...defaultSettings, ...JSON.parse(saved) });
+                const parsed = JSON.parse(saved);
+
+                // Validate critical styling dimensions
+                if (!parsed.configPanelWidth || isNaN(parsed.configPanelWidth) || parsed.configPanelWidth < 300) {
+                    parsed.configPanelWidth = 450;
+                }
+                if (!parsed.configPanelHeight || isNaN(parsed.configPanelHeight) || parsed.configPanelHeight < 300) {
+                    parsed.configPanelHeight = 800;
+                }
+
+                setSettings({ ...defaultSettings, ...parsed });
             } catch (e) {
                 console.error('Failed to parse settings', e);
             }
@@ -158,15 +172,18 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         });
     };
 
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
     return (
-        <SettingsContext.Provider value={{ settings, updateSettings, toggleSavedEvent, importEvents }}>
-            <div className={`app-bg-wrapper bg-${settings.activeBackground}`} />
-            <div
-                className={`font-size-${settings.fontSize} density-${settings.layoutDensity} relative z-0`}
-                style={{ scale: 'var(--webpage-scale)', transformOrigin: 'top center' }}
-            >
-                {children}
-            </div>
+        <SettingsContext.Provider value={{
+            settings,
+            updateSettings,
+            toggleSavedEvent,
+            importEvents,
+            isSettingsOpen,
+            setIsSettingsOpen
+        }}>
+            {children}
         </SettingsContext.Provider>
     );
 };

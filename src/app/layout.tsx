@@ -11,6 +11,8 @@ export const metadata: Metadata = {
 
 import { SettingsProvider } from '../context/SettingsContext';
 import SettingsManager from '../components/SettingsManager';
+import QuickNav from '../components/QuickNav';
+import AppShell from '../components/AppShell';
 
 export default function RootLayout({
   children,
@@ -20,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="google" content="notranslate" />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7893721225790912"
@@ -28,8 +31,12 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <SettingsProvider>
-          {children}
-          <SettingsManager />
+          <AppShell
+            nav={<QuickNav />}
+            settingsModal={<SettingsManager />}
+          >
+            {children}
+          </AppShell>
         </SettingsProvider>
       </body>
     </html>

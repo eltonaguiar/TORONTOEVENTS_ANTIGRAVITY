@@ -52,7 +52,7 @@ export default function EventFeed({ events }: EventFeedProps) {
     };
 
     // New Features
-    const { settings, updateSettings, importEvents } = useSettings();
+    const { settings, updateSettings, importEvents, setIsSettingsOpen } = useSettings();
 
     // Geocoding Effect
     useEffect(() => {
@@ -72,8 +72,9 @@ export default function EventFeed({ events }: EventFeedProps) {
         }
     }, [settings.userPostalCode]);
 
+    // Geocoding Effect logic remains...
+    // Removed local viewMode state
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'feed' | 'saved'>('feed');
     const [sortConfig, setSortConfig] = useState<{ key: keyof Event | 'priceAmount', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
 
     const handleExport = () => {
@@ -103,7 +104,7 @@ export default function EventFeed({ events }: EventFeedProps) {
         // ... (import logic)
     };
 
-    const sourceEvents = viewMode === 'saved' ? settings.savedEvents : events;
+    const sourceEvents = settings.viewMode === 'saved' ? settings.savedEvents : events;
 
     const allCategories = useMemo(() => {
         const catSet = new Set<string>();
@@ -204,7 +205,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                 }
 
                 const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
-                if (viewMode !== 'saved' && isHidden) return false;
+                if (settings.viewMode !== 'saved' && isHidden) return false;
 
                 if (selectedCategory && !e.categories.includes(selectedCategory)) return false;
                 if (selectedSource && e.source !== selectedSource) return false;
@@ -238,7 +239,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                 const isTargetedDate = dateFilter === 'today' || dateFilter === 'tomorrow';
 
                 if (!isTargetedDate) { // Only apply hide logic if we are browsing the general feed
-                    if (viewMode !== 'saved' && !showStarted && now) {
+                    if (settings.viewMode !== 'saved' && !showStarted && now) {
                         const eventStartDate = new Date(e.date);
                         const eventEndDate = e.endDate
                             ? new Date(e.endDate)
@@ -325,7 +326,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                     return valA < valB ? 1 : -1;
                 }
             });
-    }, [sourceEvents, viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, now, userCoords, sortConfig]);
+    }, [sourceEvents, settings.viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, now, userCoords, sortConfig]);
 
     const activeFilters = useMemo(() => {
         const filters = [];
@@ -396,7 +397,7 @@ export default function EventFeed({ events }: EventFeedProps) {
     }, [validEvents, dateFilter]);
 
     return (
-        <div className="container max-w-7xl mx-auto px-4">
+        <div id="event-feed-section" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
             {/* Control Panel */}
             <div className="mb-6 flex flex-col gap-6 glass-panel p-6 rounded-2xl border border-white/5">
 
@@ -411,12 +412,12 @@ export default function EventFeed({ events }: EventFeedProps) {
                             ].map(btn => (
                                 <button
                                     key={btn.id}
-                                    onClick={() => setViewMode(btn.id as any)}
-                                    className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === btn.id ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
+                                    onClick={() => updateSettings({ viewMode: btn.id as any })}
+                                    className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${settings.viewMode === btn.id ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-[var(--text-3)] hover:text-white'}`}
                                 >
                                     <span>{btn.icon}</span>
                                     <span>{btn.label}</span>
-                                    {btn.id === 'saved' && <span className="bg-black/20 px-1.5 py-0.5 rounded text-[9px]">{settings.savedEvents?.length || 0}</span>}
+                                    {settings.viewMode !== 'saved' && (<span className="bg-black/20 px-1.5 py-0.5 rounded text-[9px]">{settings.savedEvents?.length || 0}</span>)}
                                 </button>
                             ))}
                         </div>
@@ -461,11 +462,16 @@ export default function EventFeed({ events }: EventFeedProps) {
                                     </button>
                                 )}
                                 <button
-                                    onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
+                                    onClick={() => setIsSettingsOpen(true)}
                                     className="p-3 bg-white/5 hover:bg-[var(--pk-500)] hover:text-white rounded-xl transition-all border border-white/10 group/gear"
                                     title="Open System Architecture"
                                 >
-                                    <span className="group-hover/gear:rotate-180 transition-transform duration-700 block">⚙️</span>
+                                    <span className="group-hover/gear:rotate-90 transition-transform duration-700 block">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </span>
                                 </button>
                             </div>
                         </div>
@@ -481,7 +487,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                     </div>
 
                     {/* Saved View Actions (Export/Import) */}
-                    {viewMode === 'saved' && (
+                    {settings.viewMode === 'saved' && (
                         <div className="flex items-center gap-3 animate-slide-up shrink-0">
                             <button
                                 onClick={handleExport}
@@ -495,11 +501,16 @@ export default function EventFeed({ events }: EventFeedProps) {
                                 <input type="file" onChange={handleImport} accept=".txt,.json" className="hidden" />
                             </label>
                             <button
-                                onClick={() => (document.querySelector('[title="Configuration Settings (Floating)"]') as any)?.click()}
+                                onClick={() => setIsSettingsOpen(true)}
                                 className="p-3 bg-white/5 hover:bg-[var(--pk-500)] text-white/40 hover:text-white rounded-xl transition-all border border-white/10 group/savedgear"
                                 title="System Preferences"
                             >
-                                <span className="group-hover/savedgear:rotate-90 transition-transform block text-lg leading-none">⚙️</span>
+                                <span className="group-hover/savedgear:rotate-90 transition-transform block text-lg leading-none">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </span>
                             </button>
                         </div>
                     )}
@@ -507,7 +518,7 @@ export default function EventFeed({ events }: EventFeedProps) {
             </div>
 
             {/* Primary Filters (Date & Price) */}
-            <div className={`flex flex-col gap-6 transition-all duration-300 ${viewMode === 'saved' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+            <div className={`flex flex-col gap-6 transition-all duration-300 ${settings.viewMode === 'saved' ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                 <div className="flex flex-wrap gap-4 items-center justify-center">
                     <div className="flex flex-wrap gap-2 justify-center">
                         <button title="Show all upcoming events" onClick={() => setDateFilter('all')} className={`px-4 py-2 rounded-full font-semibold text-sm transition-all ${dateFilter === 'all' ? 'bg-gradient-to-r from-[var(--pk-600)] to-[var(--pk-500)] text-white shadow-lg' : 'bg-white/5 text-[var(--text-2)] hover:bg-white/10'}`}>All Dates</button>
@@ -694,7 +705,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                             <div className="h-10 w-1.5 bg-[var(--pk-500)] rounded-full shadow-[0_0_15px_rgba(var(--pk-500-rgb),0.5)]" />
                             <h2 className="text-4xl font-black uppercase tracking-tighter flex items-center gap-3">
                                 <span className="text-[var(--pk-300)] opacity-50 font-mono text-2xl">/</span>
-                                {viewMode === 'saved' ? 'My Collection' : (dateFilter !== 'all' ? `${dateFilter.replace('-', ' ')} events` : 'Global Pulse')}
+                                {settings.viewMode === 'saved' ? 'My Collection' : (dateFilter !== 'all' ? `${dateFilter.replace('-', ' ')} events` : 'Global Pulse')}
                             </h2>
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--text-3)] ml-5">
@@ -709,7 +720,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                                 {displayEvents.length === events.length ? displayEvents.length : `${displayEvents.length}/${events.length}`}
                             </span>
                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)] mt-[-0.5rem] ml-1">
-                                Events {viewMode === 'saved' ? 'Saved' : 'Detected'}
+                                Events {settings.viewMode === 'saved' ? 'Saved' : 'Detected'}
                             </span>
                         </div>
                         <div className="h-12 w-px bg-white/10" />
@@ -719,7 +730,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                                 Optimal Engine
                             </span>
-                            {viewMode !== 'saved' && hiddenEvents.length > 0 && (
+                            {settings.viewMode !== 'saved' && hiddenEvents.length > 0 && (
                                 <button
                                     onClick={() => setShowHidden(!showHidden)}
                                     className="mt-2 text-[9px] font-black uppercase tracking-widest text-[var(--pk-300)] hover:text-white transition-colors border-b border-white/20 pb-0.5 w-fit"
@@ -738,9 +749,9 @@ export default function EventFeed({ events }: EventFeedProps) {
                             const isEnded = now && endDate < now;
 
                             return (
-                                <div key={event.id} className={`relative group ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
+                                <div key={event.id} className={`relative group h-[400px] ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
                                     {/* Visual Indicator for Past Events in Saved View OR Today View */}
-                                    {((viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
+                                    {((settings.viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
                                         <div className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20">
                                             PAST
                                         </div>
@@ -829,7 +840,7 @@ export default function EventFeed({ events }: EventFeedProps) {
                 {displayEvents.length === 0 && (
                     <div className="text-center py-20 glass-panel rounded-xl">
                         <p className="text-[var(--text-2)]">
-                            {viewMode === 'saved'
+                            {settings.viewMode === 'saved'
                                 ? "You haven't saved any events yet. Click the heart icon on events to build your collection."
                                 : "No confirmed upcoming events found matching your current filters."}
                         </p>

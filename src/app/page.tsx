@@ -2,6 +2,7 @@ import { getEvents } from '../lib/data';
 import EventFeed from '../components/EventFeed';
 import ChatAssistant from '../components/ChatAssistant';
 import AdUnit from '../components/AdUnit';
+import WindowsFixerPromo from '../components/WindowsFixerPromo';
 import fs from 'fs';
 import path from 'path';
 
@@ -55,6 +56,11 @@ export default function Home() {
           Last updated: {lastUpdated}
         </p>
       </header>
+
+      {/* Windows Fixer Promotional Section */}
+      <div className="max-w-7xl mx-auto px-4">
+        <WindowsFixerPromo />
+      </div>
 
       {/* Top Banner Ad */}
       <div className="max-w-7xl mx-auto px-4 py-6">

@@ -1,10 +1,9 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { useSettings, ThemeColor, FontSize, LayoutDensity } from '../context/SettingsContext';
 
 export default function SettingsManager() {
-    const { settings, updateSettings } = useSettings();
-    const [isOpen, setIsOpen] = useState(false);
+    const { settings, updateSettings, isSettingsOpen, setIsSettingsOpen } = useSettings();
 
     const themeColors: { name: ThemeColor; value: string }[] = [
         { name: 'pink', value: '#ec4899' },
@@ -14,7 +13,7 @@ export default function SettingsManager() {
         { name: 'purple', value: '#a855f7' },
     ];
 
-    const toggleOpen = () => setIsOpen(!isOpen);
+    const toggleOpen = () => setIsSettingsOpen(!isSettingsOpen);
 
     return (
         <>
@@ -22,7 +21,7 @@ export default function SettingsManager() {
             <div className="fixed top-6 right-6 z-[200] flex gap-3 pointer-events-none">
                 <button
                     onClick={toggleOpen}
-                    className="pointer-events-auto p-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl hover:bg-[var(--pk-500)] text-white transition-all group overflow-hidden"
+                    className="pointer-events-auto px-4 py-3 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl hover:bg-[var(--pk-500)] text-white transition-all group overflow-hidden flex items-center gap-2"
                     title="System Configuration (Top Right)"
                 >
                     <div className="flex items-center gap-2 px-1">
@@ -36,7 +35,7 @@ export default function SettingsManager() {
             <div className="fixed bottom-6 right-6 z-[200]">
                 <button
                     onClick={toggleOpen}
-                    className={`w-16 h-16 rounded-full glass-panel flex items-center justify-center transition-all duration-500 shadow-2xl hover:shadow-[0_0_40px_rgba(var(--pk-500-rgb),0.6)] ${isOpen ? 'rotate-90 bg-[var(--pk-500)] text-white scale-110' : 'hover:scale-125 text-[var(--pk-300)] animate-pulse'}`}
+                    className={`w-16 h-16 rounded-full glass-panel flex items-center justify-center transition-all duration-500 shadow-2xl hover:shadow-[0_0_40px_rgba(var(--pk-500-rgb),0.6)] ${isSettingsOpen ? 'rotate-90 bg-[var(--pk-500)] text-white scale-110' : 'hover:scale-125 text-[var(--pk-300)] animate-pulse'}`}
                     title="Configuration Settings (Always Accessible)"
                     aria-label="Open Settings"
                 >
@@ -48,21 +47,25 @@ export default function SettingsManager() {
             </div>
 
             {/* SETTINGS MODAL / POPUP */}
-            {isOpen && (
+            {isSettingsOpen && (
                 <div
-                    className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
-                    onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm animate-fade-in"
+                    onClick={() => setIsSettingsOpen(false)}
                 >
                     <div
-                        className="glass-panel rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/20 flex flex-col overflow-hidden relative"
+                        className="glass-panel rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/20 flex flex-col overflow-hidden fixed"
                         style={{
-                            width: `${settings.configPanelWidth}px`,
-                            height: `${settings.configPanelHeight}px`,
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: `${settings.configPanelWidth || 450}px`,
+                            height: `${settings.configPanelHeight || 800}px`,
                             maxHeight: '90vh',
                             maxWidth: '95vw',
                             resize: 'both',
                             minWidth: '350px',
-                            minHeight: '400px'
+                            minHeight: '400px',
+                            zIndex: 301
                         }}
                         onClick={(e) => e.stopPropagation()}
                         onMouseUp={(e) => {

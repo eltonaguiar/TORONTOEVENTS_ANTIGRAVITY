@@ -272,3 +272,30 @@ a {
 .ad-container ins {
   min-width: 100%;
 }
+
+/* ============================================
+   DEFENSIVE FIXES: Modal/Drawer Positioning
+   ============================================
+   Safety net to ensure modals and drawers
+   always use fixed positioning relative to viewport.
+   This prevents the "black box at bottom of page" bug.
+   
+   Note: Primary fixes are in React components.
+   This CSS is a defensive layer for edge cases.
+   ============================================ */
+
+/* Ensure all overlay containers cover full viewport */
+[class*="fixed"][class*="inset-0"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+/* Settings modal - ensure centered when using fixed positioning */
+.glass-panel[style*="top: 50%"] {
+  position: fixed !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 10001 !important;
+}

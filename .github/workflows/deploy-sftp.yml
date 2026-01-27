@@ -1,0 +1,36 @@
+name: Deploy to SFTP
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node ⚙️
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies 📦
+        run: npm ci
+
+      - name: Install Deployment Tools 🛠️
+        run: npm install ssh2-sftp-client dotenv
+
+      - name: Build 🏗️
+        run: npm run build
+
+      - name: Deploy to SFTP 🚀
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PATH1_EVENTS: ${{ secrets.FTP_PATH1_EVENTS }}
+        run: npx tsx scripts/deploy-sftp.ts
