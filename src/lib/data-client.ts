@@ -54,9 +54,8 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     
     // Fallback to FTP site
     try {
-      const ftpUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/events.json`
-        : '/events.json';
+      // Use relative URL to avoid CORS issues
+      const ftpUrl = '/events.json';
       console.log(`📦 [Data Source] Fetching events from FTP fallback: ${ftpUrl}`);
       const fallbackResponse = await fetch(ftpUrl + '?t=' + Date.now(), {
         cache: 'no-store',
