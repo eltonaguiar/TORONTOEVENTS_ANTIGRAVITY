@@ -112,7 +112,7 @@ export class AllEventsScraper implements ScraperSource {
      * Fetch event detail page for enhanced data extraction
      * Tries to follow Eventbrite links to get accurate prices from the original source
      */
-    private async fetchEventDetails(url: string): Promise<{ description?: string; price?: string; priceAmount?: number; minPrice?: number; maxPrice?: number; ticketTypes?: any[] }> {
+    private async fetchEventDetails(url: string): Promise<{ description?: string; price?: string; priceAmount?: number; minPrice?: number; maxPrice?: number; ticketTypes?: any[]; date?: string; location?: string }> {
         try {
             const response = await axios.get(url, {
                 responseType: 'arraybuffer',
@@ -255,7 +255,57 @@ export class AllEventsScraper implements ScraperSource {
                 }
             }
 
-            return { description, price, priceAmount };
+            // Extract date and location from JSON-LD if available
+            let extractedDate: string | undefined;
+            let extractedLocation: string | undefined;
+            
+            scriptData.each((_, el) => {
+                try {
+                    const json = JSON.parse($(el).html() || '{}');
+                    const items = Array.isArray(json) ? json : [json];
+                    for (const item of items) {
+                        if (item['@type'] === 'Event' || (Array.isArray(item['@type']) && item['@type'].includes('Event'))) {
+                            if (item.startDate && !extractedDate) {
+                                extractedDate = normalizeDate(item.startDate) || undefined;
+                            }
+                            if (item.location && !extractedLocation) {
+                                if (typeof item.location === 'string') {
+                                    extractedLocation = item.location;
+                                } else if (item.location.name) {
+                                    extractedLocation = item.location.name;
+                                    if (item.location.address) {
+                                        const addr = typeof item.location.address === 'string' 
+                                            ? item.location.address 
+                                            : item.location.address.streetAddress || '';
+                                        if (addr) {
+                                            extractedLocation = `${extractedLocation}, ${addr}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch { }
+            });
+            
+            // Fallback: Try HTML selectors for location
+            if (!extractedLocation) {
+                const locationText = $('.venue').text() ||
+                    $('.event-location').text() ||
+                    $('[itemprop="location"]').text() ||
+                    $('.location').text();
+                if (locationText && locationText.trim().length > 5) {
+                    extractedLocation = locationText.trim();
+                }
+            }
+
+            return { 
+                description, 
+                price, 
+                priceAmount,
+                date: extractedDate,
+                location: extractedLocation
+            };
         } catch (e) {
             console.log(`  ⚠️ Error fetching AllEvents.in details: ${e}`);
             return {};
@@ -341,18 +391,78 @@ export class AllEventsScraper implements ScraperSource {
                             fullUrl = fullUrl.startsWith('/') ? `${domain}${fullUrl}` : `${domain}/${fullUrl}`;
                         }
 
-                        // Date
+                        // Date - try multiple extraction methods
                         let dateStr = card.find('[itemprop="startDate"]').attr('content') ||
+                            card.find('[data-date]').attr('data-date') ||
                             card.find('.date, .time, .start-time').first().text();
 
                         // Parse and validate date - REJECT if unparseable
                         let date = normalizeDate(dateStr);
+                        
+                        // If date extraction failed or we need more detail, fetch the detail page
+                        if (!date || !dateStr || dateStr.length < 10) {
+                            try {
+                                console.log(`  📅 Fetching detail page for accurate date: ${fullUrl}`);
+                                const detailResponse = await axios.get(fullUrl, {
+                                    headers: {
+                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                                    },
+                                    timeout: 10000
+                                });
+                                const $detail = cheerio.load(detailResponse.data);
+                                
+                                // Try JSON-LD first (most reliable)
+                                const ldScript = $detail('script[type="application/ld+json"]').html();
+                                if (ldScript) {
+                                    try {
+                                        const data = JSON.parse(ldScript);
+                                        const items = Array.isArray(data) ? data : [data];
+                                        const eventData = items.find((i: any) => 
+                                            i['@type'] === 'Event' || 
+                                            (Array.isArray(i['@type']) && i['@type'].includes('Event'))
+                                        );
+                                        if (eventData?.startDate) {
+                                            date = normalizeDate(eventData.startDate);
+                                            if (date) {
+                                                console.log(`  ✅ Extracted date from JSON-LD: ${date}`);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        // JSON parsing failed
+                                    }
+                                }
+                                
+                                // Fallback: Try HTML selectors
+                                if (!date) {
+                                    const detailDateStr = $detail('[itemprop="startDate"]').attr('content') ||
+                                        $detail('.event-date').text() ||
+                                        $detail('.date-time').text() ||
+                                        $detail('time[datetime]').attr('datetime');
+                                    if (detailDateStr) {
+                                        date = normalizeDate(detailDateStr);
+                                        if (date) {
+                                            console.log(`  ✅ Extracted date from detail page: ${date}`);
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // Detail page fetch failed, continue with what we have
+                            }
+                        }
+                        
                         if (!date) {
                             console.log(`Skipping event with unparseable date: "${title}" - dateStr: "${dateStr}"`);
                             continue; // Skip this event entirely
                         }
 
-                        const location = cleanText(card.find('.subtitle, .venue, [itemprop="location"]').text()) || 'Toronto, ON';
+                        // Enhanced location extraction - also try from detail page if generic
+                        let location = cleanText(card.find('.subtitle, .venue, [itemprop="location"]').text()) || 'Toronto, ON';
+                        
+                        // If location is generic and we fetched detail page, try to get better location
+                        if ((location === 'Toronto, ON' || location.length < 10) && date) {
+                            // Location extraction from detail page happens in fetchEventDetails
+                            // We'll update it there if available
+                        }
 
                         // Improved image extraction: try data-src (lazy load) then src
                         let image = card.find('img').first().attr('data-src') ||
@@ -402,9 +512,32 @@ export class AllEventsScraper implements ScraperSource {
                             }
                         }
 
-                        // Always fetch detail page for better price and description data
-                        // This will try to follow Eventbrite links to get prices from original source
+                        // CRITICAL: Always fetch detail page for accurate date, time, location, price, and description
+                        // This ensures we get the most accurate data from the source page
                         const details = await this.fetchEventDetails(fullUrl);
+                        
+                        // Update date if detail page has more accurate date/time
+                        if (details.date && details.date !== date) {
+                            const detailDate = new Date(details.date);
+                            const currentDate = new Date(date);
+                            // Only update if the time component is different (more accurate)
+                            if (detailDate.getHours() !== currentDate.getHours() || 
+                                detailDate.getMinutes() !== currentDate.getMinutes()) {
+                                date = details.date;
+                                console.log(`  ✅ Updated date from detail page: ${date}`);
+                            }
+                        }
+                        
+                        // Update location if detail page has specific venue
+                        if (details.location && 
+                            details.location !== location &&
+                            details.location.length > location.length &&
+                            !details.location.match(/^Toronto, ON$/i)) {
+                            location = details.location;
+                            console.log(`  ✅ Updated location from detail page: ${location}`);
+                        }
+                        
+                        // Update description if detail page has better one
                         if (details.description && (!description || description.length < details.description.length)) {
                             description = details.description;
                         }
