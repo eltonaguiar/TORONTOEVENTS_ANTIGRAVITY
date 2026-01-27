@@ -68,25 +68,24 @@ function findInjectionPoints(html: string): { githubIndex: number | null; cursor
   let githubIndex: number | null = null;
   let cursorIndex: number | null = null;
 
-  for (const pattern of githubPatterns) {
-    const match = html.match(pattern);
-    if (match && match.index !== undefined) {
-      const afterMatch = html.indexOf('</a>', match.index);
-      if (afterMatch !== -1) {
-        githubIndex = afterMatch + 4;
-        break;
+  // Find the quick-download-buttons container and inject after it closes
+  const containerMatch = html.match(/<div[^>]*class="quick-download-buttons"[^>]*>/i);
+  if (containerMatch && containerMatch.index !== undefined) {
+    // Find the closing </div> for this container
+    let depth = 0;
+    let pos = containerMatch.index;
+    while (pos < html.length && pos < containerMatch.index + 2000) {
+      if (html.substr(pos, 5) === '<div ') depth++;
+      if (html.substr(pos, 6) === '</div>') {
+        depth--;
+        if (depth === 0) {
+          // Found the closing div - this is where we inject
+          githubIndex = pos + 6;
+          cursorIndex = pos + 6; // Same location for both
+          break;
+        }
       }
-    }
-  }
-
-  for (const pattern of cursorPatterns) {
-    const match = html.match(pattern);
-    if (match && match.index !== undefined) {
-      const afterMatch = html.indexOf('</a>', match.index);
-      if (afterMatch !== -1) {
-        cursorIndex = afterMatch + 4;
-        break;
-      }
+      pos++;
     }
   }
 
@@ -94,12 +93,31 @@ function findInjectionPoints(html: string): { githubIndex: number | null; cursor
 }
 
 function injectBadges(html: string): string {
-  if (html.includes('virustotal-scan') || html.includes('VirusTotal: Clean')) {
-    console.log('⚠️  Badges appear to already be in the HTML. Skipping injection.');
-    return html;
+  // Remove any existing broken badges first
+  if (html.includes('virustotal-scan')) {
+    console.log('🧹 Cleaning up existing badges...');
+    html = html.replace(/<!-- VirusTotal Scan Badge[^]*?<\/div>\s*/g, '');
+    html = html.replace(/box-shadow 0\.2s;"[^]*?<\/div>\s*/g, '');
+    html = html.replace(/<div class="virustotal-scan"[^]*?<\/div>\s*/g, '');
+    html = html.replace(/<div class="virustotal-badges"[^]*?<\/div>\s*/g, '');
   }
 
   const { githubIndex, cursorIndex } = findInjectionPoints(html);
+
+  // If both found the same index (same container), inject both badges together
+  if (githubIndex !== null && cursorIndex !== null && githubIndex === cursorIndex) {
+    const combinedBadges = `
+                <!-- VirusTotal Badges -->
+                <div class="virustotal-badges" style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                    ${GITHUB_BADGE.trim()}
+                    ${CURSOR_BADGE.trim()}
+                </div>
+`;
+    const result = html.slice(0, githubIndex) + combinedBadges + html.slice(githubIndex);
+    console.log('✅ Injected both badges together after download buttons');
+    return result;
+  }
+
   let result = html;
   let offset = 0;
 

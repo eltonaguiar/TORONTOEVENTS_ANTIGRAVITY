@@ -526,13 +526,16 @@ export class EventbriteScraper implements ScraperSource {
         
         // Remove expensive events that were marked during enrichment
         const beforeFilter = uniqueEvents.length;
-        uniqueEvents = uniqueEvents.filter(e => {
+        const filteredEvents = uniqueEvents.filter(e => {
             if (e.status === 'CANCELLED' && e.priceAmount !== undefined && e.priceAmount > 150) {
                 return false; // Remove expensive events
             }
             return true;
         });
-        const removedCount = beforeFilter - uniqueEvents.length;
+        const removedCount = beforeFilter - filteredEvents.length;
+        // Update uniqueEvents reference
+        uniqueEvents.length = 0;
+        uniqueEvents.push(...filteredEvents);
         if (removedCount > 0) {
             console.log(`✓ Removed ${removedCount} expensive events after price enrichment`);
         }

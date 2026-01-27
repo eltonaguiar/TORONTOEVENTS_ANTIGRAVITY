@@ -78,27 +78,55 @@ function findInjectionPoints(html: string): { githubIndex: number | null; cursor
   let githubIndex: number | null = null;
   let cursorIndex: number | null = null;
 
-  // Find GitHub version section
+  // Find GitHub version section - look for the closing div of the buttons container
   for (const pattern of githubPatterns) {
     const match = html.match(pattern);
     if (match && match.index !== undefined) {
-      // Find the end of the download link/button after this text
-      const afterMatch = html.indexOf('</a>', match.index);
-      if (afterMatch !== -1) {
-        githubIndex = afterMatch + 4; // After </a>
-        break;
+      // Find the closing </div> of the quick-download-buttons container
+      // This is safer than just finding </a> which might be inside the button
+      const sectionStart = html.lastIndexOf('<div class="quick-download-buttons"', match.index);
+      if (sectionStart !== -1) {
+        // Find the closing </div> for this container
+        let depth = 0;
+        let pos = sectionStart;
+        while (pos < html.length) {
+          if (html.substr(pos, 6) === '<div ') depth++;
+          if (html.substr(pos, 6) === '</div>') {
+            depth--;
+            if (depth === 0) {
+              githubIndex = pos + 6; // After </div>
+              break;
+            }
+          }
+          pos++;
+          if (pos > sectionStart + 2000) break; // Safety limit
+        }
+        if (githubIndex !== null) break;
       }
     }
   }
 
-  // Find Cursor version section
+  // Find Cursor version section - same approach
   for (const pattern of cursorPatterns) {
     const match = html.match(pattern);
     if (match && match.index !== undefined) {
-      const afterMatch = html.indexOf('</a>', match.index);
-      if (afterMatch !== -1) {
-        cursorIndex = afterMatch + 4; // After </a>
-        break;
+      const sectionStart = html.lastIndexOf('<div class="quick-download-buttons"', match.index);
+      if (sectionStart !== -1) {
+        let depth = 0;
+        let pos = sectionStart;
+        while (pos < html.length) {
+          if (html.substr(pos, 6) === '<div ') depth++;
+          if (html.substr(pos, 6) === '</div>') {
+            depth--;
+            if (depth === 0) {
+              cursorIndex = pos + 6; // After </div>
+              break;
+            }
+          }
+          pos++;
+          if (pos > sectionStart + 2000) break; // Safety limit
+        }
+        if (cursorIndex !== null) break;
       }
     }
   }
@@ -125,13 +153,30 @@ function findInjectionPoints(html: string): { githubIndex: number | null; cursor
  * Inject badges into HTML
  */
 export function injectBadges(html: string): string {
-  // Check if badges are already injected
-  if (html.includes('virustotal-scan') || html.includes('VirusTotal: Clean')) {
-    console.log('⚠️  Badges appear to already be in the HTML. Skipping injection.');
-    return html;
+  // Remove any existing broken badges first
+  if (html.includes('virustotal-scan')) {
+    console.log('🧹 Cleaning up existing badges...');
+    // Remove broken badge HTML
+    html = html.replace(/<!-- VirusTotal Scan Badge[^]*?<\/div>\s*/g, '');
+    html = html.replace(/box-shadow 0\.2s;"[^]*?<\/div>\s*/g, '');
+    html = html.replace(/<div class="virustotal-scan"[^]*?<\/div>\s*/g, '');
   }
 
   const { githubIndex, cursorIndex } = findInjectionPoints(html);
+
+  // If both found the same index (same container), inject both badges together
+  if (githubIndex !== null && cursorIndex !== null && githubIndex === cursorIndex) {
+    const combinedBadges = `
+                <!-- VirusTotal Badges -->
+                <div class="virustotal-badges" style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                    ${GITHUB_BADGE.trim()}
+                    ${CURSOR_BADGE.trim()}
+                </div>
+`;
+    const result = html.slice(0, githubIndex) + combinedBadges + html.slice(githubIndex);
+    console.log('✅ Injected both badges together');
+    return result;
+  }
 
   let result = html;
   let offset = 0;
