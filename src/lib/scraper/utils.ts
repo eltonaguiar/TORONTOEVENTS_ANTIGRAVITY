@@ -161,8 +161,14 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
 
         const torontoIso = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
         const finalOffset = getTorontoOffset(date);
+        
+        // CRITICAL FIX: Ensure offset has proper format (e.g., -05:00, not 0005:00)
+        // The offset should always start with + or - and have format +/-HH:MM
+        const normalizedOffset = finalOffset.startsWith('+') || finalOffset.startsWith('-') 
+            ? finalOffset 
+            : `-${finalOffset}`;
 
-        return `${torontoIso}${finalOffset}`;
+        return `${torontoIso}${normalizedOffset}`;
     } catch {
         return null;
     }
@@ -207,23 +213,28 @@ export function isTBDDate(dateStr: string): boolean {
 
 function getTorontoOffset(date: Date): string {
     try {
-        const parts = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'America/Toronto',
-            timeZoneName: 'shortOffset'
-        }).formatToParts(date);
-        const tz = parts.find(p => p.type === 'timeZoneName')?.value; // "GMT-5" or "GMT-4"
-
-        if (!tz || tz === 'GMT') return '-05:00';
-
-        let offset = tz.replace('GMT', '');
-        if (!offset.includes(':')) {
-            const sign = offset.startsWith('+') || offset.startsWith('-') ? '' : '+';
-            const val = offset.replace(/[+-]/, '');
-            offset = `${sign}${val.padStart(2, '0')}:00`;
-        }
-        return offset;
+        // Get the timezone offset for Toronto at this specific date
+        // Toronto uses EST (-05:00) or EDT (-04:00) depending on DST
+        const torontoDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+        const utcDate = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+        
+        // Calculate offset in minutes
+        const offsetMinutes = (torontoDate.getTime() - utcDate.getTime()) / (1000 * 60);
+        
+        // Convert to hours and format as +/-HH:MM
+        const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+        const offsetMins = Math.abs(offsetMinutes) % 60;
+        const sign = offsetMinutes >= 0 ? '+' : '-';
+        
+        return `${sign}${String(offsetHours).padStart(2, '0')}:${String(offsetMins).padStart(2, '0')}`;
     } catch {
-        return '-05:00';
+        // Fallback: EST is -05:00, EDT is -04:00
+        // Use a simple check - if between March and November, likely EDT
+        const month = date.getMonth();
+        if (month >= 2 && month <= 10) {
+            return '-04:00'; // EDT (Daylight Saving)
+        }
+        return '-05:00'; // EST (Standard)
     }
 }
 
