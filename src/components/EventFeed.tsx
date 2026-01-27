@@ -586,7 +586,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             events = safeValidEvents.filter(e => !isMultiDay(e));
         }
 
-        console.log(`📋 [EventFeed] Display events: ${events.length} (validEvents: ${validEvents.length}, liveEvents: ${liveEvents.length})`);
+        console.log(`📋 [EventFeed] Display events: ${events.length} (validEvents: ${safeValidEvents.length}, liveEvents: ${liveEvents.length})`);
         
         // Apply pagination/infinite scroll limit
         return events.slice(0, visibleCount);
