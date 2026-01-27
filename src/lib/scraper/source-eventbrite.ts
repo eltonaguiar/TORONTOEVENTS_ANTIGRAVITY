@@ -557,8 +557,17 @@ export class EventbriteScraper implements ScraperSource {
                 }
             }
 
+            // Set sold-out status for filtering (even if we don't cancel the event)
+            if (enrichment.isSoldOut !== undefined) {
+                event.isSoldOut = enrichment.isSoldOut;
+                if (enrichment.isSoldOut) {
+                    console.log(`  🚫 Sold out: ${event.title.substring(0, 40)}`);
+                }
+            }
+            
             if (enrichment.salesEnded) {
                 event.status = 'CANCELLED';
+                event.isSoldOut = true; // Also mark as sold out
                 console.log(`  ⚠ Sales ended: ${event.title.substring(0, 40)}`);
             }
 

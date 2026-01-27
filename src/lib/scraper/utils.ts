@@ -194,9 +194,10 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
 }
 
 /**
- * Format a Date object as Toronto timezone ISO string
+ * Format a Date object as Toronto timezone ISO string.
+ * Exported for use in source extractors (e.g. AllEvents data-stime).
  */
-function formatTorontoDate(date: Date): string {
+export function formatTorontoDate(date: Date): string {
     const options: Intl.DateTimeFormatOptions = {
         timeZone: 'America/Toronto',
         year: 'numeric',

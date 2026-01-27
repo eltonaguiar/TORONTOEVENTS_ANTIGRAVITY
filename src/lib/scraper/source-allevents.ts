@@ -1,8 +1,46 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription, formatTorontoDate } from './utils';
 import { EventbriteDetailScraper } from './detail-scraper';
+import { safeParseDate } from '../utils/dateHelpers';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+
+/**
+ * Extract date from AllEvents .event-time-label (authoritative).
+ * Uses data-stime (Unix) first, then human-readable label text.
+ * Never treat as TBD when these exist.
+ * Selector supports "event-time-label" and "event-time-label " (trailing space).
+ */
+function extractDateFromEventTimeLabel($: cheerio.CheerioAPI): string | null {
+    const el = $('.event-time-label, [class*="event-time-label"]').first();
+    if (!el.length) return null;
+
+    const stime = el.attr('data-stime');
+    if (stime) {
+        const startMs = parseInt(stime, 10) * 1000;
+        if (!isNaN(startMs)) {
+            const date = new Date(startMs);
+            return formatTorontoDate(date);
+        }
+    }
+
+    // Human-readable fallback: use only the datetime part, not nested tooltips (e.g. DST warning)
+    let labelText = el.text().trim();
+    if (!labelText) return null;
+    const cleaned = labelText
+        .replace(/to\s+.*$/i, '')
+        .replace(/\([^)]*\)/g, '')
+        .replace(/\s*\.\s*The\s+event\s+timings.*$/i, '')
+        .replace(/\s*We\s+recommend.*$/i, '')
+        .split(/[\n.]/)[0]
+        .trim();
+    if (!cleaned) return null;
+    const parsed = safeParseDate(cleaned);
+    if (parsed.isValid && parsed.date) {
+        return formatTorontoDate(parsed.date);
+    }
+    return normalizeDate(cleaned);
+}
 
 export class AllEventsScraper implements ScraperSource {
     name = 'AllEvents.in';
@@ -399,8 +437,10 @@ export class AllEventsScraper implements ScraperSource {
                         // Parse and validate date - REJECT if unparseable
                         let date = normalizeDate(dateStr);
                         
-                        // If date extraction failed or we need more detail, fetch the detail page
-                        if (!date || !dateStr || dateStr.length < 10) {
+                        // CRITICAL: Always fetch detail page for AllEvents to get authoritative data-stime
+                        // The listing page date might be incomplete or missing, but detail page has .event-time-label with data-stime
+                        // This ensures we get the correct date even if listing shows a partial date
+                        if (!date || !dateStr || dateStr.length < 10 || dateStr.includes('TBD') || dateStr.includes('tbd')) {
                             try {
                                 console.log(`  📅 Fetching detail page for accurate date: ${fullUrl}`);
                                 const detailResponse = await axios.get(fullUrl, {
@@ -411,35 +451,43 @@ export class AllEventsScraper implements ScraperSource {
                                 });
                                 const $detail = cheerio.load(detailResponse.data);
                                 
-                                // Try JSON-LD first (most reliable)
-                                const ldScript = $detail('script[type="application/ld+json"]').html();
-                                if (ldScript) {
-                                    try {
-                                        const data = JSON.parse(ldScript);
-                                        const items = Array.isArray(data) ? data : [data];
-                                        const eventData = items.find((i: any) => 
-                                            i['@type'] === 'Event' || 
-                                            (Array.isArray(i['@type']) && i['@type'].includes('Event'))
-                                        );
-                                        if (eventData?.startDate) {
-                                            date = normalizeDate(eventData.startDate);
-                                            if (date) {
-                                                console.log(`  ✅ Extracted date from JSON-LD: ${date}`);
+                                // Order matters: .event-time-label (data-stime) is authoritative, then JSON-LD, then HTML.
+                                // Never mark TBD if any of these exist.
+                                const fromLabel = extractDateFromEventTimeLabel($detail);
+                                if (fromLabel) {
+                                    date = fromLabel;
+                                    console.log(`  ✅ Extracted date from .event-time-label: ${date}`);
+                                }
+                                if (!date) {
+                                    const ldScript = $detail('script[type="application/ld+json"]').html();
+                                    if (ldScript) {
+                                        try {
+                                            const data = JSON.parse(ldScript);
+                                            const items = Array.isArray(data) ? data : [data];
+                                            const eventData = items.find((i: any) => 
+                                                i['@type'] === 'Event' || 
+                                                (Array.isArray(i['@type']) && i['@type'].includes('Event'))
+                                            );
+                                            if (eventData?.startDate) {
+                                                date = normalizeDate(eventData.startDate);
+                                                if (date) {
+                                                    console.log(`  ✅ Extracted date from JSON-LD: ${date}`);
+                                                }
                                             }
+                                        } catch (e) {
+                                            // JSON parsing failed
                                         }
-                                    } catch (e) {
-                                        // JSON parsing failed
                                     }
                                 }
-                                
-                                // Fallback: Try HTML selectors
                                 if (!date) {
                                     const detailDateStr = $detail('[itemprop="startDate"]').attr('content') ||
                                         $detail('.event-date').text() ||
                                         $detail('.date-time').text() ||
-                                        $detail('time[datetime]').attr('datetime');
+                                        $detail('time[datetime]').attr('datetime') ||
+                                        $detail('.event-time-label, [class*="event-time-label"]').first().text().trim();
                                     if (detailDateStr) {
-                                        date = normalizeDate(detailDateStr);
+                                        const s = detailDateStr.replace(/to\s+.*$/i, '').replace(/\([^)]*\)/g, '').split(/[\n.]/)[0].trim();
+                                        date = s ? normalizeDate(s) : null;
                                         if (date) {
                                             console.log(`  ✅ Extracted date from detail page: ${date}`);
                                         }

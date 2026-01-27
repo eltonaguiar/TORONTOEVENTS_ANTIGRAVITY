@@ -25,6 +25,7 @@ export interface EventEnrichment {
     realTime?: string; // Start time (ISO 8601)
     endTime?: string; // End time (ISO 8601)
     salesEnded: boolean;
+    isSoldOut?: boolean; // Explicit sold-out flag (for filtering)
     isRecurring: boolean;
     fullDescription?: string;
     price?: string;
@@ -124,8 +125,27 @@ export class EventbriteDetailScraper {
             }
 
             // 2. Check Sales Status
-            const statusText = $('.eds-text-weight--heavy, .eds-notification-bar, [data-testid="sales-status"]').text().toLowerCase();
-            const directSalesEnded = statusText.includes('sales ended') ||
+            // Check for "Sold out" text in multiple places (including GeneralEventPanelInfo_label__sPi2U)
+            const soldOutSelectors = [
+                '.GeneralEventPanelInfo_label__sPi2U',
+                '.eds-text-weight--heavy',
+                '.eds-notification-bar',
+                '[data-testid="sales-status"]',
+                '[class*="sold-out"]',
+                '[class*="soldout"]'
+            ];
+            let statusText = '';
+            for (const selector of soldOutSelectors) {
+                const el = $(selector);
+                if (el.length > 0) {
+                    statusText += ' ' + el.text().toLowerCase();
+                }
+            }
+            // Also check body text for "Sold out"
+            statusText += ' ' + bodyText.toLowerCase();
+            
+            const directSalesEnded = statusText.includes('sold out') ||
+                statusText.includes('sales ended') ||
                 statusText.includes('registration closed') ||
                 statusText.includes('this event has passed');
 
@@ -134,6 +154,8 @@ export class EventbriteDetailScraper {
                 $('a[href*="checkout"]').length > 0;
 
             result.salesEnded = directSalesEnded && !hasTicketButton;
+            // Also set isSoldOut explicitly for frontend filtering
+            result.isSoldOut = statusText.includes('sold out') && !statusText.includes('not sold out');
 
             // 3. Check Recurring Status
             // 3. Check Recurring Status
