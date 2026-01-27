@@ -45,6 +45,11 @@ export default function Home() {
         </p>
         <p className="text-sm text-[var(--text-3)] mt-2">
           Last updated: {lastUpdated}
+          {metadata && (
+            <span className="ml-4">
+              • {metadata.totalEvents} events
+            </span>
+          )}
         </p>
       </header>
 
