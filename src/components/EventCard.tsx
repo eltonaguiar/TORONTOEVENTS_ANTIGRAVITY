@@ -198,8 +198,8 @@ function EventCard({ event, onPreview }: EventCardProps) {
                                 )}
                                 {!dateParts.isValid && (
                                     <div className="flex items-center gap-2 text-yellow-400/70">
-                                        <span className="opacity-70">⚠️</span>
-                                        <span className="text-[10px]">Invalid Date</span>
+                                        <span className="opacity-70">📅</span>
+                                        <span className="text-[10px]">Date TBD</span>
                                     </div>
                                 )}
                                 <div className="flex items-center gap-2">

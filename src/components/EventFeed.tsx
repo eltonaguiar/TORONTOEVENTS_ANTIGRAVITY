@@ -1201,7 +1201,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                                                     if (dateResult.isValid && dateResult.date) {
                                                         return formatDateForDisplay(dateResult.date, { includeTime: true });
                                                     }
-                                                    return 'Invalid Date';
+                                                    return 'Date TBD';
                                                 })()}
                                             </div>
                                         </td>
