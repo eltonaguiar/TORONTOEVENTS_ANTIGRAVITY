@@ -52,43 +52,59 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     console.error('❌ [Data Source] Error fetching events from GitHub:', error);
     console.log('🔄 [Data Source] Attempting fallback to FTP site...');
     
-    // Fallback to FTP site
-    try {
-      // Use absolute URL based on current location to handle basePath
-      const ftpUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}${window.location.pathname.includes('/TORONTOEVENTS_ANTIGRAVITY') ? '/TORONTOEVENTS_ANTIGRAVITY' : ''}/events.json`
-        : '/events.json';
-      console.log(`📦 [Data Source] Fetching events from FTP fallback: ${ftpUrl}`);
-      const fallbackResponse = await fetch(ftpUrl + '?t=' + Date.now(), {
-        cache: 'no-store',
-        headers: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
+    // Fallback to FTP site - try multiple paths
+    const fallbackUrls = typeof window !== 'undefined' 
+      ? [
+          `${window.location.origin}/events.json`,  // Root
+          `${window.location.origin}/TORONTOEVENTS_ANTIGRAVITY/events.json`,  // BasePath
+          '/events.json',  // Relative root
+          '/TORONTOEVENTS_ANTIGRAVITY/events.json',  // Relative basePath
+        ]
+      : ['/events.json'];
+    
+    for (const ftpUrl of fallbackUrls) {
+      try {
+        console.log(`📦 [Data Source] Trying FTP fallback: ${ftpUrl}`);
+        const fallbackResponse = await fetch(ftpUrl + '?t=' + Date.now(), {
+          cache: 'no-store',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          }
+        });
+        
+        if (!fallbackResponse.ok) {
+          console.log(`  ⚠️  ${ftpUrl} returned ${fallbackResponse.status}`);
+          continue; // Try next URL
         }
-      });
-      
-      if (!fallbackResponse.ok) {
-        throw new Error(`FTP fallback failed: ${fallbackResponse.statusText}`);
+        
+        // Try to parse as JSON even if Content-Type is missing
+        const text = await fallbackResponse.text();
+        let events;
+        try {
+          events = JSON.parse(text);
+        } catch (parseError) {
+          console.log(`  ⚠️  ${ftpUrl} is not valid JSON`);
+          continue; // Try next URL
+        }
+        
+        const eventCount = Array.isArray(events) ? events.length : 0;
+        if (!Array.isArray(events)) {
+          console.log(`  ⚠️  ${ftpUrl} returned non-array`);
+          continue; // Try next URL
+        }
+        
+        console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from FTP fallback: ${ftpUrl}`);
+        return events;
+      } catch (fallbackError: any) {
+        console.log(`  ⚠️  ${ftpUrl} failed: ${fallbackError.message}`);
+        continue; // Try next URL
       }
-      
-      const contentType = fallbackResponse.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error(`FTP fallback returned non-JSON: ${contentType}`);
-      }
-      
-      const events = await fallbackResponse.json();
-      const eventCount = Array.isArray(events) ? events.length : 0;
-      console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from FTP fallback`);
-      if (!Array.isArray(events)) {
-        console.error(`❌ [Data Source] FTP events is not an array!`);
-        return [];
-      }
-      return events;
-    } catch (fallbackError) {
-      console.error('❌ [Data Source] FTP fallback also failed:', fallbackError);
-      return [];
     }
+    
+    console.error('❌ [Data Source] All FTP fallback URLs failed');
+    return [];
   }
 }
 
