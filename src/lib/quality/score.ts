@@ -89,53 +89,44 @@ import { isTorontoEvent } from './filters';
 export function shouldIncludeEvent(event: Event): boolean {
     const quality = gradeEvent(event);
 
-    // Reject past events
-    if (quality.isPast) return false;
+    // CRITICAL FIX: Don't reject past events - let frontend handle date filtering
+    // Frontend has better date handling and user controls for showing past events
+    // if (quality.isPast) return false;
 
-    // Reject non-Toronto events
-    if (!isTorontoEvent(event)) {
+    // CRITICAL FIX: Relax geofence - be more permissive
+    // Only reject if we're CERTAIN it's not Toronto (explicit exclusions)
+    // Don't reject if we're unsure - let it through and let frontend filter if needed
+    const loc = (event.location || '').toLowerCase();
+    const EXCLUDED_LOCATIONS = [
+        'new york', 'ny', 'manhattan', 'brooklyn',
+        'washington', 'dc',
+        'chicago', 'il',
+        'buffalo'
+    ];
+    
+    // Only reject if explicitly in excluded list
+    if (EXCLUDED_LOCATIONS.some(ex => loc.includes(ex.toLowerCase()))) {
         console.log(`Rejecting non-Toronto event: "${event.title}" @ "${event.location}"`);
         return false;
     }
-
-    // Reject expensive events (> $150)
-    // Also check description for high prices if priceAmount is missing
-    if (event.priceAmount !== undefined && event.priceAmount > 150) {
-        console.log(`Rejecting expensive event: "${event.title}" ($${event.priceAmount})`);
+    
+    // If location is empty or very short, don't reject - might be online/virtual
+    if (!event.location || event.location.length < 3) {
+        // Don't reject - might be valid online event
+        // return true; // Let it through
+    }
+    
+    // CRITICAL FIX: Relax price filter - only reject if VERY expensive (> $200)
+    // The frontend has user-controlled price filters, so be more permissive here
+    if (event.priceAmount !== undefined && event.priceAmount > 200) {
+        console.log(`Rejecting very expensive event: "${event.title}" ($${event.priceAmount})`);
         return false;
     }
     
-    // Fallback: Check description for high prices if priceAmount is undefined
-    // This catches cases where price extraction failed but price is mentioned in text
-    if (event.priceAmount === undefined && event.description) {
-        const descText = event.description.toLowerCase();
-        // Look for prices over $150 mentioned in description
-        const highPricePatterns = [
-            /(?:CA\$|CAD|C\$|\$)\s*(\d{3,}(?:\.\d{2})?)/g,
-            /(?:regular|normal|full|standard)\s+price[^.]*?(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi,
-            /(?:price|cost|fee)\s+(?:is|of|for)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi
-        ];
-        
-        for (const pattern of highPricePatterns) {
-            const matches = [...descText.matchAll(pattern)];
-            for (const match of matches) {
-                const price = parseFloat(match[1]);
-                if (!isNaN(price) && price > 150) {
-                    console.log(`Rejecting expensive event (price in description): "${event.title}" ($${price} mentioned in text)`);
-                    return false;
-                }
-            }
-        }
-    }
-    
-    // CRITICAL: Be permissive - only reject if we're CERTAIN it's bad
-    // Most validation should happen in the frontend where users can control filters
-    return true;
-    
-    // Additional safety: Check URL for price indicators if available (DISABLED - too aggressive)
-    // Some Eventbrite URLs contain price hints in the page structure
+    // Don't check description for prices - too aggressive and error-prone
+    // Let frontend handle price filtering with user controls
 
-    // Reject "garbage" topics (sales seminars, etc.)
+    // Reject "garbage" topics (sales seminars, etc.) - keep this as it's spam filtering
     const spamKeywords = [
         'sales seminar', 'home buying', 'estate investing',
         'wealth mastery', 'financial freedom', 'webinar',
