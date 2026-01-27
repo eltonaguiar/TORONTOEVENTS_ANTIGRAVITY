@@ -194,7 +194,7 @@ export function formatDateForDisplay(date: Date | null, options?: {
     timeZone?: string;
 }): string {
     if (!date || isNaN(date.getTime())) {
-        return 'Invalid Date';
+        return 'Date TBD';
     }
 
     const {
@@ -233,7 +233,7 @@ export function formatTimeForDisplay(date: Date | null, options?: {
     timeZone?: string;
 }): string {
     if (!date || isNaN(date.getTime())) {
-        return 'Invalid Time';
+        return 'Time TBD';
     }
 
     const {
@@ -268,7 +268,7 @@ export function getDateParts(date: Date | null, timeZone: string = 'America/Toro
     isValid: boolean;
 } {
     if (!date || isNaN(date.getTime())) {
-        return { month: 'Invalid', day: 'Date', year: '', isValid: false };
+        return { month: 'Date', day: 'TBD', year: '', isValid: false };
     }
 
     try {

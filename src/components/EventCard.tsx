@@ -27,8 +27,10 @@ function EventCard({ event, onPreview }: EventCardProps) {
     const dateParts = getDateParts(dateObj);
     const month = dateParts.month;
     const day = dateParts.day;
-    const dateStr = dateParts.isValid ? `${month} ${day}` : 'Invalid Date';
-    const timeStr = dateObj ? formatTimeForDisplay(dateObj) : 'Invalid Time';
+    // CRITICAL FIX: Show user-friendly message instead of "Invalid Date"
+    // This prevents confusing users - show "Date TBD" or similar
+    const dateStr = dateParts.isValid ? `${month} ${day}` : 'Date TBD';
+    const timeStr = dateObj ? formatTimeForDisplay(dateObj) : 'Time TBD';
 
     // Safely parse price with error handling (with event context for logging)
     const priceParseResult = safeParsePrice(event.price, event.priceAmount, event.id, event.title);

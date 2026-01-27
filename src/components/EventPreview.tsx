@@ -742,7 +742,7 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                                         if (!startDateResult.isValid) {
                                             return (
                                                 <div className="text-yellow-400/70 text-sm">
-                                                    ⚠️ Invalid Date
+                                                    📅 Date TBD - Check event page for details
                                                 </div>
                                             );
                                         }
