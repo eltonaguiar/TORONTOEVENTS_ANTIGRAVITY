@@ -16,6 +16,15 @@ export function cleanText(text: string): string {
     return text.replace(/\s+/g, ' ').trim();
 }
 
+export function cleanDescription(text: string | null | undefined): string {
+    if (!text) return '';
+    return text
+        .replace(/\r\n/g, '\n')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n\s*\n/g, '\n\n')
+        .trim();
+}
+
 export function isMultiDay(event: Event): boolean {
     if (event.categories.includes('Multi-Day')) return true;
     if (!event.endDate) return false;

@@ -89,9 +89,16 @@ export class EventbriteDetailScraper {
             for (const selector of descriptionSelectors) {
                 const descEl = $(selector);
                 if (descEl.length > 0) {
-                    // Get text with some whitespace preservation
-                    result.fullDescription = cleanText(descEl.text());
-                    if (result.fullDescription.length > 100) break; // Found a good one
+                    // Preserving HTML structure for line breaks
+                    let html = descEl.html() || '';
+                    html = html
+                        .replace(/<br\s*\/?>/gi, '\n')
+                        .replace(/<\/p>/gi, '\n\n')
+                        .replace(/<[^>]+>/g, '');
+
+                    const { cleanDescription } = require('./utils');
+                    result.fullDescription = cleanDescription(html);
+                    if (result.fullDescription && result.fullDescription.length > 100) break;
                 }
             }
 
