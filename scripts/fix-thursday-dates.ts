@@ -11,10 +11,17 @@ function getNextThursday(): Date {
     const now = new Date();
     const dayOfWeek = now.getDay(); // 0 = Sunday, 4 = Thursday
     const daysUntilThursday = (4 - dayOfWeek + 7) % 7 || 7; // Next Thursday (or today if it's Thursday)
-    const nextThursday = new Date(now);
-    nextThursday.setDate(now.getDate() + daysUntilThursday);
-    nextThursday.setHours(19, 0, 0, 0); // Default to 7 PM
-    return nextThursday;
+    
+    // Create date in Toronto timezone
+    const torontoDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+    const nextThursday = new Date(torontoDate);
+    nextThursday.setDate(torontoDate.getDate() + daysUntilThursday);
+    nextThursday.setHours(19, 0, 0, 0); // Default to 7 PM Toronto time
+    
+    // Convert back to UTC for storage
+    const torontoOffset = -5 * 60 * 60 * 1000; // EST offset (will need adjustment for DST)
+    const utcThursday = new Date(nextThursday.getTime() - torontoOffset);
+    return utcThursday;
 }
 
 function fixThursdayDates(): void {

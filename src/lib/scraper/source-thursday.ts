@@ -56,15 +56,23 @@ export class ThursdayScraper implements ScraperSource {
                     // Thursday pages usually have JSON-LD
                     const ldScript = $d('script[type="application/ld+json"]').html();
                     
-                    // Helper function to get next Thursday
+                    // Helper function to get next Thursday in Toronto timezone
                     const getNextThursday = (): string => {
                         const now = new Date();
                         const dayOfWeek = now.getDay(); // 0 = Sunday, 4 = Thursday
                         const daysUntilThursday = (4 - dayOfWeek + 7) % 7 || 7; // Next Thursday (or today if it's Thursday)
-                        const nextThursday = new Date(now);
-                        nextThursday.setDate(now.getDate() + daysUntilThursday);
-                        nextThursday.setHours(19, 0, 0, 0); // Default to 7 PM
-                        return nextThursday.toISOString();
+                        
+                        // Get current date in Toronto timezone
+                        const torontoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+                        const nextThursday = new Date(torontoNow);
+                        nextThursday.setDate(torontoNow.getDate() + daysUntilThursday);
+                        nextThursday.setHours(19, 0, 0, 0); // 7 PM Toronto time
+                        
+                        // Convert to ISO string (this will be in UTC)
+                        // We need to account for Toronto timezone offset
+                        const torontoOffset = -5 * 60 * 60 * 1000; // EST (adjust for DST if needed)
+                        const utcThursday = new Date(nextThursday.getTime() - torontoOffset);
+                        return utcThursday.toISOString();
                     };
                     
                     let date = getNextThursday(); // Default to next Thursday for Thursday events
