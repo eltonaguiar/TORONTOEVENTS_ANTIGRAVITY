@@ -328,10 +328,30 @@ export default function FrameDataAnalysis() {
             }));
           }
           
-          const analyses = analyzeFrameData(champions);
-          setAnalyses(analyses);
+          if (champions.length > 0) {
+            const analyses = analyzeFrameData(champions);
+            setAnalyses(analyses);
+          } else {
+            setError('Frame data file found but contains no champions. Please check the data format.');
+          }
         } else {
-          setError('No frame data found. Please ensure data is available in the repository.');
+          // Check if repository exists but is empty
+          try {
+            const repoResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents`);
+            if (repoResponse.ok) {
+              const files = await repoResponse.json();
+              const hasJsonFiles = files.some((f: any) => f.name.endsWith('.json'));
+              if (!hasJsonFiles) {
+                setError('Repository exists but contains no JSON files. Please add frame data JSON file (e.g., frame-data.json, data.json, or champions.json) to the repository.');
+              } else {
+                setError('No frame data found. Please ensure the JSON file contains valid champion data.');
+              }
+            } else {
+              setError('Could not access repository. Please ensure the repository exists and is accessible.');
+            }
+          } catch (err) {
+            setError('No frame data found. Please ensure data is available in the repository.');
+          }
         }
       } catch (err) {
         console.error('Analysis error:', err);

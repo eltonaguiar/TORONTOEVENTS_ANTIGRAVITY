@@ -551,7 +551,16 @@
                     setUpdateStatus('success', 'Updated');
                     renderFrameData();
                 } else {
-                    throw new Error('No data file found in repository. Please ensure frame data is stored as JSON in the repository.');
+                    // Check if repository exists but is empty
+                    const repoResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents`);
+                    if (repoResponse.ok) {
+                        const files = await repoResponse.json();
+                        const hasJsonFiles = files.some(f => f.name.endsWith('.json'));
+                        if (!hasJsonFiles) {
+                            throw new Error('Repository exists but contains no JSON files. Please add frame data JSON file to the repository.');
+                        }
+                    }
+                    throw new Error('No data file found. Please ensure frame data is stored as JSON in the repository (e.g., frame-data.json, data.json, or champions.json).');
                 }
             } catch (error) {
                 console.error('Error fetching frame data:', error);
@@ -597,7 +606,31 @@
                     <div class="empty-state">
                         <h3>No Frame Data Available</h3>
                         <p>The repository may be empty or the data format is not recognized.</p>
-                        <p>Expected format: JSON file with a "champions" array or array of champion objects.</p>
+                        <p><strong>Expected format:</strong> JSON file with a "champions" array or array of champion objects.</p>
+                        <div style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: left; max-width: 600px; margin-left: auto; margin-right: auto;">
+                            <h4 style="margin-bottom: 10px;">Example JSON Structure:</h4>
+                            <pre style="background: white; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 0.85em;"><code>{
+  "champions": [
+    {
+      "name": "Ekko",
+      "moves": [
+        {
+          "name": "5L",
+          "startup": 6,
+          "onHit": 0,
+          "onBlock": -2,
+          "recovery": 10,
+          "type": "normal"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+                            <p style="margin-top: 15px; font-size: 0.9em;">
+                                <strong>To add data:</strong> Upload a JSON file (e.g., <code>frame-data.json</code>) to the 
+                                <a href="https://github.com/eltonaguiar/2XKOFRAMEDATA" target="_blank">GitHub repository</a>.
+                            </p>
+                        </div>
                     </div>
                 `;
                 document.getElementById('championQuickSelect').style.display = 'none';
