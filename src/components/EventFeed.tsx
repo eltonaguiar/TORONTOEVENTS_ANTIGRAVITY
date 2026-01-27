@@ -42,6 +42,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     useEffect(() => {
         // Events are already loaded via useEventsFromGitHub in page.tsx
         // This effect is mainly for setting the current time
+        // CRITICAL: Set now immediately to prevent filtering out all events
         setNow(new Date());
         
         // Update liveEvents if initialEvents prop changes
@@ -49,6 +50,13 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             setLiveEvents(initialEvents);
         }
     }, [initialEvents]);
+
+    // Ensure 'now' is always set (fallback if useEffect doesn't run)
+    useEffect(() => {
+        if (!now) {
+            setNow(new Date());
+        }
+    }, []);
 
     const [showMultiDay, setShowMultiDay] = useState(false);
     const [maxPrice, setMaxPrice] = useState<number>(120);
@@ -254,6 +262,51 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     };
 
     const validEvents = useMemo(() => {
+        // CRITICAL FIX: If 'now' is not set, return events without date filtering
+        // This prevents empty page on initial load
+        if (!now) {
+            return sourceEvents.filter((e: Event) => {
+                // Apply basic filters that don't require 'now'
+                if (settings.viewMode === 'saved' && !settings.savedEvents?.some((saved: Event) => saved.id === e.id)) {
+                    return false;
+                }
+                
+                const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
+                if (settings.viewMode !== 'saved' && isHidden) return false;
+                
+                if (selectedCategory && !e.categories.includes(selectedCategory)) return false;
+                if (selectedSource && e.source !== selectedSource) return false;
+                if (selectedHost && e.host !== selectedHost) return false;
+                
+                // Price filter
+                if (!showExpensive && e.priceAmount !== undefined && e.priceAmount > maxPrice) {
+                    return false;
+                }
+                
+                // Sold out filter
+                const { isSoldOut: inferredSoldOut } = inferSoldOutStatus(e.title + ' ' + (e.description || ''));
+                if (settings.hideSoldOut && (e.isSoldOut === true || inferredSoldOut)) return false;
+                
+                // Search filter
+                if (searchQuery) {
+                    const terms = searchQuery.trim().split(/\s+/).filter(t => t.length > 0);
+                    if (terms.length > 0) {
+                        const fullText = (e.title + ' ' + (e.description || '')).toLowerCase();
+                        const matchesSearch = terms.every(term => {
+                            if (term.startsWith('"') && term.endsWith('"')) {
+                                const exact = term.slice(1, -1).toLowerCase();
+                                return fullText.includes(exact);
+                            }
+                            return fullText.includes(term.toLowerCase());
+                        });
+                        if (!matchesSearch) return false;
+                    }
+                }
+                
+                return true;
+            });
+        }
+        
         return sourceEvents
             .filter((e: Event) => {
                 if (searchQuery) {
@@ -353,6 +406,8 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 const isTargetedDate = dateFilter === 'today' || dateFilter === 'tomorrow';
 
                 if (!isTargetedDate) { // Only apply hide logic if we are browsing the general feed
+                    // CRITICAL FIX: Only filter by start time if 'now' is set AND showStarted is false
+                    // This prevents filtering out all events on initial load
                     if (settings.viewMode !== 'saved' && !showStarted && now) {
                         const eventStartDate = new Date(e.date);
                         const eventEndDate = e.endDate
@@ -360,13 +415,16 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                             : new Date(eventStartDate.getTime() + 3 * 60 * 60 * 1000);
 
                         if (!isMultiDay(e)) {
-                            // Standard Feed: Hide things that are over
-                            if (eventEndDate < now) return false;
+                            // Standard Feed: Hide things that are over (with 1 hour grace period for timezone issues)
+                            const gracePeriod = 60 * 60 * 1000; // 1 hour
+                            if (eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
                             // Standard Feed: Hide things that started (unless toggle is On)
-                            if (eventStartDate < now) return false;
+                            // Use grace period to account for timezone differences
+                            if (eventStartDate < new Date(now.getTime() - gracePeriod)) return false;
                         } else {
-                            // Multi-Day in Feed: Hide if totally over
-                            if (eventEndDate < now) return false;
+                            // Multi-Day in Feed: Hide if totally over (with grace period)
+                            const gracePeriod = 60 * 60 * 1000; // 1 hour
+                            if (eventEndDate < new Date(now.getTime() - gracePeriod)) return false;
                         }
                     }
                 }
@@ -496,9 +554,15 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     // 2. If DateFilter == 'all', keep the split (Single Day vs Multi Day section).
 
     const displayEvents = useMemo(() => {
-        // Hydration safety: If 'now' is not set (SSR), return empty or full list?
-        // Returning full list might cause flash. Returning empty is safer.
-        // Actually, if we just rely on 'validEvents' handling 'now', it's fine.
+        // CRITICAL FIX: If 'now' is not set yet, show events anyway to prevent empty page
+        // This prevents the "no events" issue on initial load
+        if (!now) {
+            // Return events without date filtering until 'now' is set
+            const events = dateFilter !== 'all' 
+                ? liveEvents.filter(e => !isMultiDay(e))
+                : liveEvents.filter(e => !isMultiDay(e));
+            return events.slice(0, visibleCount);
+        }
 
         let events: Event[];
         if (dateFilter !== 'all') {
@@ -513,7 +577,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
         // Apply pagination/infinite scroll limit
         return events.slice(0, visibleCount);
-    }, [validEvents, dateFilter, visibleCount]);
+    }, [validEvents, dateFilter, visibleCount, now, liveEvents]);
 
     const hasMoreEvents = useMemo(() => {
         let totalEvents: Event[];
