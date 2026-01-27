@@ -341,12 +341,65 @@ export class AllEventsScraper implements ScraperSource {
                             fullUrl = fullUrl.startsWith('/') ? `${domain}${fullUrl}` : `${domain}/${fullUrl}`;
                         }
 
-                        // Date
+                        // Date - try multiple extraction methods
                         let dateStr = card.find('[itemprop="startDate"]').attr('content') ||
+                            card.find('[data-date]').attr('data-date') ||
                             card.find('.date, .time, .start-time').first().text();
 
                         // Parse and validate date - REJECT if unparseable
                         let date = normalizeDate(dateStr);
+                        
+                        // If date extraction failed or we need more detail, fetch the detail page
+                        if (!date || !dateStr || dateStr.length < 10) {
+                            try {
+                                console.log(`  📅 Fetching detail page for accurate date: ${fullUrl}`);
+                                const detailResponse = await axios.get(fullUrl, {
+                                    headers: {
+                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                                    },
+                                    timeout: 10000
+                                });
+                                const $detail = cheerio.load(detailResponse.data);
+                                
+                                // Try JSON-LD first (most reliable)
+                                const ldScript = $detail('script[type="application/ld+json"]').html();
+                                if (ldScript) {
+                                    try {
+                                        const data = JSON.parse(ldScript);
+                                        const items = Array.isArray(data) ? data : [data];
+                                        const eventData = items.find((i: any) => 
+                                            i['@type'] === 'Event' || 
+                                            (Array.isArray(i['@type']) && i['@type'].includes('Event'))
+                                        );
+                                        if (eventData?.startDate) {
+                                            date = normalizeDate(eventData.startDate);
+                                            if (date) {
+                                                console.log(`  ✅ Extracted date from JSON-LD: ${date}`);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        // JSON parsing failed
+                                    }
+                                }
+                                
+                                // Fallback: Try HTML selectors
+                                if (!date) {
+                                    const detailDateStr = $detail('[itemprop="startDate"]').attr('content') ||
+                                        $detail('.event-date').text() ||
+                                        $detail('.date-time').text() ||
+                                        $detail('time[datetime]').attr('datetime');
+                                    if (detailDateStr) {
+                                        date = normalizeDate(detailDateStr);
+                                        if (date) {
+                                            console.log(`  ✅ Extracted date from detail page: ${date}`);
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                // Detail page fetch failed, continue with what we have
+                            }
+                        }
+                        
                         if (!date) {
                             console.log(`Skipping event with unparseable date: "${title}" - dateStr: "${dateStr}"`);
                             continue; // Skip this event entirely

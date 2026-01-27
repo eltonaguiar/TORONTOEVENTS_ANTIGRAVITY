@@ -32,11 +32,10 @@ function fixInvalidEvents(): void {
         return true;
     });
 
-    // Fix Vision Board event date
+    // Fix Vision Board event date - only the specific one mentioned
     for (const event of validEvents) {
-        if (event.title.toLowerCase().includes('vision board') || 
-            event.url?.includes('vision-board-and-health-check-in')) {
-            
+        // Only fix the specific event URL mentioned by user
+        if (event.url?.includes('vision-board-and-health-check-in-event/100001980221561998')) {
             // Set to correct date: Tue, 27 Jan, 2026 at 05:00 pm EST
             const correctDate = new Date('2026-01-27T17:00:00-05:00');
             const oldDate = event.date;
@@ -52,6 +51,7 @@ function fixInvalidEvents(): void {
             fixedCount++;
             console.log(`✅ Fixed Vision Board event:`);
             console.log(`   Title: ${event.title}`);
+            console.log(`   URL: ${event.url}`);
             console.log(`   Old date: ${oldDate}`);
             console.log(`   New date: ${event.date}`);
             console.log(`   Toronto time: ${correctDate.toLocaleString('en-US', {timeZone: 'America/Toronto', weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'})}`);
