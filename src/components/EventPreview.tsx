@@ -27,12 +27,28 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
 
     // Smart Positioning Logic
     const getSmartPosition = () => {
-        if (!anchor || position === 'center' || isInline) return {};
+        // Always use fixed positioning relative to viewport
+        if (isInline) return {};
 
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const modalWidth = isChatbox ? 500 : (mode === 'split' ? 1200 : 896); // Approx max-w-4xl is 896px
 
+        // If center position or no anchor, center in viewport
+        if (position === 'center' || !anchor) {
+            return {
+                position: 'fixed' as const,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: `${modalWidth}px`,
+                maxWidth: '95vw',
+                maxHeight: '90vh',
+                margin: 0
+            };
+        }
+
+        // Smart positioning relative to anchor (for non-center positions)
         let top = anchor.top;
         let left = anchor.right + 20;
 
@@ -128,7 +144,7 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                 ${isInline ? 'w-full h-full flex flex-col' : `glass-panel shadow-2xl transition-all duration-500 pointer-events-auto rounded-[2.5rem] overflow-hidden flex flex-col ${modalWidthClass}`}
                 ${isChatbox && !isInline ? 'border-2 border-[var(--pk-500)]/30 animate-slide-up ring-4 ring-black/50' : ''}
                 ${anchor && position !== 'center' ? 'animate-zoom-in' : ''}
-                relative z-[101]
+                ${!isInline ? 'fixed' : 'relative'} z-[101]
             `}
             style={{
                 height: isInline ? '100%' : `${height}px`,

@@ -21,7 +21,7 @@ async function uploadFile(client: ftp.Client, localPath: string, remotePath: str
 }
 
 async function main() {
-    console.log('Starting deployment of FIXED_BLUR fixes...');
+    console.log('Starting deployment of 2nd row event overlay fixes...');
     const client = new ftp.Client();
     // client.ftp.verbose = true;
 
@@ -43,10 +43,10 @@ async function main() {
 
         const buildDir = path.join(process.cwd(), 'build');
         
-        // Upload index.html as index2.html (main target)
+        // Upload index.html as index3.html (main target)
         const indexHtml = path.join(buildDir, 'index.html');
         if (fs.existsSync(indexHtml)) {
-            await uploadFile(client, indexHtml, 'index2.html');
+            await uploadFile(client, indexHtml, 'index3.html');
         }
 
         // Upload other critical files
@@ -88,7 +88,7 @@ async function main() {
         }
 
         console.log('\n🎉 Deployment complete!');
-        console.log(`📍 Main page: ${config.remotePath}/index2.html`);
+        console.log(`📍 Main page: ${config.remotePath}/index3.html`);
     } catch (err) {
         console.error('❌ Deployment failed:', err);
         process.exit(1);
