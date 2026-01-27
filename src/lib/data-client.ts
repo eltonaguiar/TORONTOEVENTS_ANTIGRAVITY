@@ -39,7 +39,14 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     const events = await response.json();
     const eventCount = Array.isArray(events) ? events.length : 0;
     console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from GitHub (${EVENTS_URL})`);
-    return Array.isArray(events) ? events : [];
+    if (!Array.isArray(events)) {
+      console.error(`❌ [Data Source] Events is not an array! Type: ${typeof events}, Value:`, events);
+      return [];
+    }
+    if (eventCount === 0) {
+      console.warn(`⚠️ [Data Source] Warning: 0 events loaded from GitHub!`);
+    }
+    return events;
   } catch (error) {
     console.error('❌ [Data Source] Error fetching events from GitHub:', error);
     return [];
@@ -91,18 +98,24 @@ export function useEventsFromGitHub() {
       setError(null);
       
       try {
+        console.log('🔄 [useEventsFromGitHub] Starting to load events...');
         const fetchedEvents = await fetchEventsFromGitHub();
+        console.log(`📦 [useEventsFromGitHub] Received ${fetchedEvents.length} events`);
         if (mounted) {
           setEvents(fetchedEvents);
+          console.log(`✅ [useEventsFromGitHub] Set ${fetchedEvents.length} events to state`);
+        } else {
+          console.log('⚠️ [useEventsFromGitHub] Component unmounted, not setting events');
         }
       } catch (err) {
+        console.error('❌ [useEventsFromGitHub] Error loading events:', err);
         if (mounted) {
           setError(err instanceof Error ? err.message : 'Failed to load events');
-          console.error('Error loading events:', err);
         }
       } finally {
         if (mounted) {
           setLoading(false);
+          console.log('✅ [useEventsFromGitHub] Loading complete');
         }
       }
     }
