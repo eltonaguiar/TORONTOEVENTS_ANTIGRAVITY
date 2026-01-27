@@ -147,28 +147,52 @@ export class EventbriteScraper implements ScraperSource {
                                         }
 
                                         // Enhanced price extraction - get minimum price from all offers
+                                        // Handle both number and string prices, and currency codes
                                         let priceAmount: number | undefined;
-                                        let isFree = eventItem.isAccessibleForFree;
+                                        let isFree = eventItem.isAccessibleForFree === true;
                                         
                                         if (eventItem.offers) {
                                             const offers = Array.isArray(eventItem.offers) ? eventItem.offers : [eventItem.offers];
                                             const prices: number[] = [];
                                             
                                             for (const offer of offers) {
-                                                if (offer.price === 0 || offer.price === '0' || offer.price === '0.00') {
-                                                    isFree = true;
-                                                    prices.push(0);
-                                                } else if (offer.price) {
-                                                    const price = parseFloat(offer.price);
-                                                    if (!isNaN(price) && price >= 0) {
-                                                        prices.push(price);
+                                                // Handle price field (can be number, string, or formatted string)
+                                                if (offer.price !== undefined && offer.price !== null) {
+                                                    let priceValue: number;
+                                                    
+                                                    if (typeof offer.price === 'string') {
+                                                        // Remove currency symbols and parse
+                                                        priceValue = parseFloat(offer.price.replace(/[^\d.]/g, ''));
+                                                    } else {
+                                                        priceValue = parseFloat(String(offer.price));
+                                                    }
+                                                    
+                                                    if (!isNaN(priceValue)) {
+                                                        if (priceValue === 0 || priceValue === 0.0) {
+                                                            isFree = true;
+                                                            prices.push(0);
+                                                        } else if (priceValue > 0 && priceValue < 100000) {
+                                                            prices.push(priceValue);
+                                                        }
                                                     }
                                                 }
-                                                // Also check lowPrice and highPrice
-                                                if (offer.lowPrice) {
-                                                    const lowPrice = parseFloat(offer.lowPrice);
-                                                    if (!isNaN(lowPrice) && lowPrice >= 0) {
+                                                
+                                                // Also check lowPrice and highPrice (price ranges)
+                                                if (offer.lowPrice !== undefined && offer.lowPrice !== null) {
+                                                    const lowPrice = typeof offer.lowPrice === 'string'
+                                                        ? parseFloat(offer.lowPrice.replace(/[^\d.]/g, ''))
+                                                        : parseFloat(String(offer.lowPrice));
+                                                    if (!isNaN(lowPrice) && lowPrice >= 0 && lowPrice < 100000) {
                                                         prices.push(lowPrice);
+                                                    }
+                                                }
+                                                
+                                                if (offer.highPrice !== undefined && offer.highPrice !== null) {
+                                                    const highPrice = typeof offer.highPrice === 'string'
+                                                        ? parseFloat(offer.highPrice.replace(/[^\d.]/g, ''))
+                                                        : parseFloat(String(offer.highPrice));
+                                                    if (!isNaN(highPrice) && highPrice >= 0 && highPrice < 100000) {
+                                                        prices.push(highPrice);
                                                     }
                                                 }
                                             }
@@ -242,27 +266,52 @@ export class EventbriteScraper implements ScraperSource {
                                 }
 
                                 // Enhanced price extraction - get minimum price from all offers
+                                // Handle both number and string prices, and currency codes
                                 let priceAmount: number | undefined;
-                                let isFree = false;
+                                let isFree = item.isAccessibleForFree === true;
+                                
                                 if (item.offers) {
                                     const offers = Array.isArray(item.offers) ? item.offers : [item.offers];
                                     const prices: number[] = [];
                                     
                                     for (const offer of offers) {
-                                        if (offer.price === 0 || offer.price === '0' || offer.price === '0.00') {
-                                            isFree = true;
-                                            prices.push(0);
-                                        } else if (offer.price) {
-                                            const price = parseFloat(offer.price);
-                                            if (!isNaN(price) && price >= 0) {
-                                                prices.push(price);
+                                        // Handle price field (can be number, string, or formatted string)
+                                        if (offer.price !== undefined && offer.price !== null) {
+                                            let priceValue: number;
+                                            
+                                            if (typeof offer.price === 'string') {
+                                                // Remove currency symbols and parse
+                                                priceValue = parseFloat(offer.price.replace(/[^\d.]/g, ''));
+                                            } else {
+                                                priceValue = parseFloat(String(offer.price));
+                                            }
+                                            
+                                            if (!isNaN(priceValue)) {
+                                                if (priceValue === 0 || priceValue === 0.0) {
+                                                    isFree = true;
+                                                    prices.push(0);
+                                                } else if (priceValue > 0 && priceValue < 100000) {
+                                                    prices.push(priceValue);
+                                                }
                                             }
                                         }
-                                        // Also check lowPrice and highPrice
-                                        if (offer.lowPrice) {
-                                            const lowPrice = parseFloat(offer.lowPrice);
-                                            if (!isNaN(lowPrice) && lowPrice >= 0) {
+                                        
+                                        // Also check lowPrice and highPrice (price ranges)
+                                        if (offer.lowPrice !== undefined && offer.lowPrice !== null) {
+                                            const lowPrice = typeof offer.lowPrice === 'string'
+                                                ? parseFloat(offer.lowPrice.replace(/[^\d.]/g, ''))
+                                                : parseFloat(String(offer.lowPrice));
+                                            if (!isNaN(lowPrice) && lowPrice >= 0 && lowPrice < 100000) {
                                                 prices.push(lowPrice);
+                                            }
+                                        }
+                                        
+                                        if (offer.highPrice !== undefined && offer.highPrice !== null) {
+                                            const highPrice = typeof offer.highPrice === 'string'
+                                                ? parseFloat(offer.highPrice.replace(/[^\d.]/g, ''))
+                                                : parseFloat(String(offer.highPrice));
+                                            if (!isNaN(highPrice) && highPrice >= 0 && highPrice < 100000) {
+                                                prices.push(highPrice);
                                             }
                                         }
                                     }
@@ -320,14 +369,36 @@ export class EventbriteScraper implements ScraperSource {
         const nextWeek = new Date();
         nextWeek.setDate(today.getDate() + 7);
 
-        const eventsToEnrich = uniqueEvents.filter(e => {
-            const eventDate = new Date(e.date);
-            return eventDate >= today && eventDate <= nextWeek;
-        });
-        console.log(`Enriching ${eventsToEnrich.length} today/tomorrow events with real times...`);
+        // CRITICAL: Enrich events with prices from detail pages
+        // Prioritize events without prices, but enrich all for completeness
+        const eventsWithoutPrices = uniqueEvents.filter(e => !e.priceAmount || e.price === 'See tickets');
+        const eventsWithPrices = uniqueEvents.filter(e => e.priceAmount && e.price !== 'See tickets');
+        
+        // Enrich events without prices first, then others
+        const eventsToEnrich = [...eventsWithoutPrices, ...eventsWithPrices];
+        
+        console.log(`Enriching ${eventsToEnrich.length} events with detail page data (${eventsWithoutPrices.length} without prices, ${eventsWithPrices.length} with prices)...`);
         let successCount = 0;
+        let priceUpdateCount = 0;
+        
         for (const event of eventsToEnrich) {
             const enrichment = await EventbriteDetailScraper.enrichEvent(event.url);
+
+            // Update price from detail page if available (CRITICAL FIX)
+            if (enrichment.priceAmount !== undefined && enrichment.price !== undefined) {
+                // Use detail page price if:
+                // 1. We don't have a price yet, OR
+                // 2. The detail page price is different (more accurate), OR
+                // 3. The current price is "See tickets" (placeholder)
+                if (!event.priceAmount || event.price === 'See tickets' || 
+                    (enrichment.priceAmount !== event.priceAmount && enrichment.priceAmount >= 0)) {
+                    event.price = enrichment.price;
+                    event.priceAmount = enrichment.priceAmount;
+                    event.isFree = enrichment.priceAmount === 0;
+                    priceUpdateCount++;
+                    console.log(`  💰 Updated price for "${event.title.substring(0, 40)}": ${enrichment.price}`);
+                }
+            }
 
             if (enrichment.realTime) {
                 const normalized = normalizeDate(enrichment.realTime);
@@ -362,7 +433,8 @@ export class EventbriteScraper implements ScraperSource {
 
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        console.log(`✓ Enriched ${successCount}/${eventsToEnrich.length} events with details`);
+        console.log(`✓ Enriched ${successCount}/${uniqueEvents.length} events with details`);
+        console.log(`✓ Updated prices for ${priceUpdateCount} events from detail pages`);
 
         return {
             events: uniqueEvents,
