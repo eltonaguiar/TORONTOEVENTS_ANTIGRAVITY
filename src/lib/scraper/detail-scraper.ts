@@ -3,13 +3,36 @@ import { generateEventId, cleanText } from './utils';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
+export interface TicketTypeInfo {
+    name: string;
+    price?: number;
+    priceDisplay?: string;
+    available?: boolean;
+    soldOut?: boolean;
+}
+
+export interface LocationDetails {
+    venue?: string;
+    address?: string;
+    city?: string;
+    province?: string;
+    postalCode?: string;
+    isOnline?: boolean;
+    onlinePlatform?: string;
+}
+
 export interface EventEnrichment {
-    realTime?: string;
+    realTime?: string; // Start time (ISO 8601)
+    endTime?: string; // End time (ISO 8601)
     salesEnded: boolean;
     isRecurring: boolean;
     fullDescription?: string;
     price?: string;
     priceAmount?: number;
+    minPrice?: number;
+    maxPrice?: number;
+    ticketTypes?: TicketTypeInfo[];
+    locationDetails?: LocationDetails;
 }
 
 export class EventbriteDetailScraper {
@@ -33,24 +56,43 @@ export class EventbriteDetailScraper {
             const $ = cheerio.load(response.data);
             const bodyText = $('body').text();
 
-            // 1. Extract REAL time from JSON-LD
+            // 1. Extract REAL time from JSON-LD (start and end)
             const scripts = $('script[type="application/ld+json"]');
             for (let i = 0; i < scripts.length; i++) {
                 try {
                     const jsonText = $(scripts[i]).html();
                     if (!jsonText) continue;
                     const data = JSON.parse(jsonText);
-                    const type = data['@type'];
-                    if (type && typeof type === 'string' && type.includes('Event') && data.startDate) {
-                        result.realTime = data.startDate;
-                        break;
+                    
+                    // Handle both single Event objects and arrays
+                    const items = Array.isArray(data) ? data : [data];
+                    
+                    for (const item of items) {
+                        const itemType = item['@type'];
+                        if (itemType && typeof itemType === 'string' && itemType.includes('Event')) {
+                            if (item.startDate) {
+                                result.realTime = item.startDate;
+                            }
+                            if (item.endDate) {
+                                result.endTime = item.endDate;
+                            }
+                            // If we got both, we're done
+                            if (result.realTime && result.endTime) break;
+                        }
                     }
+                    if (result.realTime) break;
                 } catch { }
             }
 
-            // Fallback for time
+            // Fallback for time from HTML
             if (!result.realTime) {
                 result.realTime = $('time[datetime]').first().attr('datetime') || undefined;
+            }
+            if (!result.endTime) {
+                const timeElements = $('time[datetime]');
+                if (timeElements.length > 1) {
+                    result.endTime = timeElements.last().attr('datetime') || undefined;
+                }
             }
 
             // 2. Check Sales Status
@@ -185,9 +227,13 @@ export class EventbriteDetailScraper {
             // Method 3: Extract from body text patterns (fallback)
             if (prices.length === 0) {
                 const bodyPricePatterns = [
-                    /(?:from|starting at|tickets from)\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
+                    /(?:from|starting at|tickets from|regular price|price|cost|fee)\s*(?:is|for|of)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
                     /(?:CA\$|CAD|C\$)\s*(\d+(?:\.\d{2})?)/i,
-                    /\$\s*(\d+(?:\.\d{2})?)/i
+                    /\$\s*(\d+(?:\.\d{2})?)/i,
+                    // Match prices in context like "Regular price for this service is $449"
+                    /(?:regular|normal|standard|full)\s+price\s+(?:for|is|of)?\s*(?:this|the)?\s*(?:service|event|ticket)?\s*(?:is)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
+                    // Match "Get your discounted price today! Regular price for this service is $449"
+                    /(?:discounted|sale|special)\s+price\s+(?:today|now)?[^.]*?(?:regular|normal|full)\s+price[^.]*?(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i
                 ];
 
                 for (const pattern of bodyPricePatterns) {
@@ -200,18 +246,133 @@ export class EventbriteDetailScraper {
                         }
                     }
                 }
+                
+                // Also search for all price mentions in description to catch high prices
+                const allPriceMatches = bodyText.matchAll(/(?:CA\$|CAD|C\$|\$)\s*(\d{3,}(?:\.\d{2})?)/gi);
+                for (const match of allPriceMatches) {
+                    const p = parseFloat(match[1]);
+                    // Only consider prices over $100 as they're likely the actual ticket price
+                    if (!isNaN(p) && p >= 100 && p < 100000) {
+                        prices.push(p);
+                    }
+                }
             }
 
             // Set final price (use minimum if multiple prices found)
             if (prices.length > 0) {
                 priceAmount = Math.min(...prices);
+                const maxPrice = Math.max(...prices);
+                result.minPrice = priceAmount;
+                result.maxPrice = maxPrice > priceAmount ? maxPrice : undefined;
+                
                 if (priceAmount === 0) {
                     price = 'Free';
                 } else {
-                    price = `$${priceAmount}`;
+                    price = result.maxPrice ? `$${priceAmount} - $${result.maxPrice}` : `$${priceAmount}`;
                 }
                 result.price = price;
                 result.priceAmount = priceAmount;
+            }
+
+            // 4b. Extract ALL Ticket Types with prices
+            const ticketTypes: TicketTypeInfo[] = [];
+            
+            // Method 1: Extract from JSON-LD offers
+            for (let i = 0; i < scripts.length; i++) {
+                try {
+                    const jsonText = $(scripts[i]).html();
+                    if (!jsonText) continue;
+                    const data = JSON.parse(jsonText);
+                    const items = Array.isArray(data) ? data : [data];
+                    
+                    for (const item of items) {
+                        const itemType = item['@type'];
+                        if (itemType && typeof itemType === 'string' && itemType.includes('Event')) {
+                            if (item.offers) {
+                                const offers = Array.isArray(item.offers) ? item.offers : [item.offers];
+                                
+                                for (const offer of offers) {
+                                    let ticketPrice: number | undefined;
+                                    let ticketPriceDisplay: string | undefined;
+                                    
+                                    if (offer.price !== undefined && offer.price !== null) {
+                                        const p = typeof offer.price === 'string' 
+                                            ? parseFloat(offer.price.replace(/[^\d.]/g, ''))
+                                            : parseFloat(String(offer.price));
+                                        if (!isNaN(p) && p >= 0 && p < 100000) {
+                                            ticketPrice = p;
+                                            ticketPriceDisplay = p === 0 ? 'Free' : `$${p}`;
+                                        }
+                                    }
+                                    
+                                    const ticketName = offer.name || offer.category || 'General Admission';
+                                    ticketTypes.push({
+                                        name: ticketName,
+                                        price: ticketPrice,
+                                        priceDisplay: ticketPriceDisplay,
+                                        available: offer.availability !== 'SoldOut',
+                                        soldOut: offer.availability === 'SoldOut'
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } catch { }
+            }
+            
+            // Method 2: Extract from HTML ticket tables/lists
+            if (ticketTypes.length === 0) {
+                // Look for ticket selection elements
+                const ticketSelectors = [
+                    '[data-testid="ticket-type"]',
+                    '.ticket-type',
+                    '.ticket-tier',
+                    '.pricing-tier',
+                    '[class*="ticket"]',
+                    '[class*="pricing"]'
+                ];
+                
+                for (const selector of ticketSelectors) {
+                    const ticketElements = $(selector);
+                    if (ticketElements.length > 0) {
+                        ticketElements.each((_, el) => {
+                            const $el = $(el);
+                            const ticketName = $el.find('[class*="name"], [class*="title"], [class*="label"]').first().text().trim() || 
+                                             $el.text().split('$')[0].trim() || 'General Admission';
+                            
+                            const priceText = $el.text();
+                            const priceMatch = priceText.match(/(?:CA\$|CAD|C\$|\$)\s*(\d+(?:\.\d{2})?)/i);
+                            let ticketPrice: number | undefined;
+                            let ticketPriceDisplay: string | undefined;
+                            
+                            if (priceMatch) {
+                                ticketPrice = parseFloat(priceMatch[1]);
+                                ticketPriceDisplay = `$${ticketPrice}`;
+                            } else if (priceText.toLowerCase().includes('free')) {
+                                ticketPrice = 0;
+                                ticketPriceDisplay = 'Free';
+                            }
+                            
+                            const isSoldOut = priceText.toLowerCase().includes('sold out') || 
+                                            $el.find('[class*="sold"], [class*="unavailable"]').length > 0;
+                            
+                            if (ticketName && ticketName.length > 0) {
+                                ticketTypes.push({
+                                    name: ticketName,
+                                    price: ticketPrice,
+                                    priceDisplay: ticketPriceDisplay,
+                                    available: !isSoldOut,
+                                    soldOut: isSoldOut
+                                });
+                            }
+                        });
+                        if (ticketTypes.length > 0) break;
+                    }
+                }
+            }
+            
+            if (ticketTypes.length > 0) {
+                result.ticketTypes = ticketTypes;
             }
 
             // 5. Extract Full Description
@@ -220,7 +381,10 @@ export class EventbriteDetailScraper {
                 '[data-automation="listing-event-description"]',
                 '.event-description__content',
                 '.eds-text--left.eds-text--html', // Common generic text block
-                '#event-page-description'
+                '#event-page-description',
+                '[itemprop="description"]',
+                '.event-details__description',
+                '.description-content'
             ];
 
             for (const selector of descriptionSelectors) {
@@ -234,9 +398,122 @@ export class EventbriteDetailScraper {
                         .replace(/<[^>]+>/g, '');
 
                     const { cleanDescription } = require('./utils');
-                    result.fullDescription = cleanDescription(html);
-                    if (result.fullDescription && result.fullDescription.length > 100) break;
+                    const cleaned = cleanDescription(html);
+                    // Always use the longest description found
+                    if (!result.fullDescription || cleaned.length > result.fullDescription.length) {
+                        result.fullDescription = cleaned;
+                    }
+                    // If we found a substantial description, we can stop
+                    if (result.fullDescription && result.fullDescription.length > 500) break;
                 }
+            }
+            
+            // Fallback: Extract from JSON-LD description
+            if (!result.fullDescription || result.fullDescription.length < 100) {
+                for (let i = 0; i < scripts.length; i++) {
+                    try {
+                        const jsonText = $(scripts[i]).html();
+                        if (!jsonText) continue;
+                        const data = JSON.parse(jsonText);
+                        const items = Array.isArray(data) ? data : [data];
+                        
+                        for (const item of items) {
+                            if (item.description && typeof item.description === 'string') {
+                                const { cleanDescription } = require('./utils');
+                                const cleaned = cleanDescription(item.description);
+                                if (!result.fullDescription || cleaned.length > result.fullDescription.length) {
+                                    result.fullDescription = cleaned;
+                                }
+                            }
+                        }
+                    } catch { }
+                }
+            }
+
+            // 6. Extract Detailed Location Information
+            const locationDetails: LocationDetails = {};
+            
+            // Extract from JSON-LD
+            for (let i = 0; i < scripts.length; i++) {
+                try {
+                    const jsonText = $(scripts[i]).html();
+                    if (!jsonText) continue;
+                    const data = JSON.parse(jsonText);
+                    const items = Array.isArray(data) ? data : [data];
+                    
+                    for (const item of items) {
+                        const itemType = item['@type'];
+                        if (itemType && typeof itemType === 'string' && itemType.includes('Event')) {
+                            if (item.location) {
+                                const loc = item.location;
+                                
+                                // Handle both object and string formats
+                                if (typeof loc === 'object') {
+                                    if (loc.name) locationDetails.venue = loc.name;
+                                    if (loc.address) {
+                                        if (typeof loc.address === 'string') {
+                                            locationDetails.address = loc.address;
+                                        } else if (loc.address.streetAddress) {
+                                            locationDetails.address = loc.address.streetAddress;
+                                            if (loc.address.addressLocality) locationDetails.city = loc.address.addressLocality;
+                                            if (loc.address.addressRegion) locationDetails.province = loc.address.addressRegion;
+                                            if (loc.address.postalCode) locationDetails.postalCode = loc.address.postalCode;
+                                        }
+                                    }
+                                }
+                                
+                                // Check for online events
+                                if (item.eventAttendanceMode === 'OnlineEventAttendanceMode' || 
+                                    bodyText.toLowerCase().includes('online') ||
+                                    bodyText.toLowerCase().includes('zoom') ||
+                                    bodyText.toLowerCase().includes('googlemeet') ||
+                                    bodyText.toLowerCase().includes('virtual')) {
+                                    locationDetails.isOnline = true;
+                                    if (bodyText.toLowerCase().includes('zoom')) locationDetails.onlinePlatform = 'Zoom';
+                                    else if (bodyText.toLowerCase().includes('googlemeet')) locationDetails.onlinePlatform = 'GoogleMeet';
+                                    else if (bodyText.toLowerCase().includes('teams')) locationDetails.onlinePlatform = 'Microsoft Teams';
+                                    else locationDetails.onlinePlatform = 'Online';
+                                }
+                            }
+                        }
+                    }
+                } catch { }
+            }
+            
+            // Extract from HTML if not found in JSON-LD
+            if (!locationDetails.venue && !locationDetails.address) {
+                const venueSelectors = [
+                    '[data-testid="venue-name"]',
+                    '.venue-name',
+                    '.event-venue',
+                    '[itemprop="name"]'
+                ];
+                
+                for (const selector of venueSelectors) {
+                    const venueEl = $(selector);
+                    if (venueEl.length > 0) {
+                        locationDetails.venue = venueEl.text().trim();
+                        break;
+                    }
+                }
+                
+                const addressSelectors = [
+                    '[data-testid="venue-address"]',
+                    '.venue-address',
+                    '[itemprop="address"]'
+                ];
+                
+                for (const selector of addressSelectors) {
+                    const addrEl = $(selector);
+                    if (addrEl.length > 0) {
+                        locationDetails.address = addrEl.text().trim();
+                        break;
+                    }
+                }
+            }
+            
+            if (locationDetails.venue || locationDetails.address || locationDetails.isOnline) {
+                result.locationDetails = locationDetails;
             }
 
             return result;

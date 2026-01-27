@@ -369,7 +369,8 @@ export class EventbriteScraper implements ScraperSource {
         const nextWeek = new Date();
         nextWeek.setDate(today.getDate() + 7);
 
-        // CRITICAL: Enrich events with prices from detail pages
+        // CRITICAL: Enrich ALL events with comprehensive data from detail pages
+        // This ensures we capture: prices, ticket types, full descriptions, precise times, location details
         // Prioritize events without prices, but enrich all for completeness
         const eventsWithoutPrices = uniqueEvents.filter(e => !e.priceAmount || e.price === 'See tickets');
         const eventsWithPrices = uniqueEvents.filter(e => e.priceAmount && e.price !== 'See tickets');
@@ -377,7 +378,8 @@ export class EventbriteScraper implements ScraperSource {
         // Enrich events without prices first, then others
         const eventsToEnrich = [...eventsWithoutPrices, ...eventsWithPrices];
         
-        console.log(`Enriching ${eventsToEnrich.length} events with detail page data (${eventsWithoutPrices.length} without prices, ${eventsWithPrices.length} with prices)...`);
+        console.log(`Enriching ${eventsToEnrich.length} events with comprehensive detail page data (${eventsWithoutPrices.length} without prices, ${eventsWithPrices.length} with prices)...`);
+        console.log(`  📊 Extracting: prices, ticket types, full descriptions, start/end times, location details`);
         let successCount = 0;
         let priceUpdateCount = 0;
         
@@ -399,24 +401,103 @@ export class EventbriteScraper implements ScraperSource {
                     console.log(`  💰 Updated price for "${event.title.substring(0, 40)}": ${enrichment.price}`);
                 }
             }
+            
+            // Update min/max prices if available
+            if (enrichment.minPrice !== undefined) {
+                event.minPrice = enrichment.minPrice;
+            }
+            if (enrichment.maxPrice !== undefined) {
+                event.maxPrice = enrichment.maxPrice;
+            }
+            
+            // Update ticket types if available
+            if (enrichment.ticketTypes && enrichment.ticketTypes.length > 0) {
+                event.ticketTypes = enrichment.ticketTypes;
+                console.log(`  🎫 Found ${enrichment.ticketTypes.length} ticket types for "${event.title.substring(0, 40)}"`);
+            }
 
+            // Update start/end times (more precise than just dates)
             if (enrichment.realTime) {
                 const normalized = normalizeDate(enrichment.realTime);
                 if (normalized) {
                     event.date = normalized;
+                    event.startTime = enrichment.realTime; // Keep full ISO 8601 with time
                     successCount++;
                 }
             }
+            
+            if (enrichment.endTime) {
+                const normalizedEnd = normalizeDate(enrichment.endTime);
+                if (normalizedEnd) {
+                    event.endDate = normalizedEnd;
+                    event.endTime = enrichment.endTime; // Keep full ISO 8601 with time
+                }
+            }
 
+            // Update full description (always use longest available)
             if (enrichment.fullDescription) {
                 if (enrichment.fullDescription.length > (event.description?.length || 0)) {
                     event.description = enrichment.fullDescription;
+                    console.log(`  📝 Updated description (${enrichment.fullDescription.length} chars) for "${event.title.substring(0, 40)}"`);
                 }
 
                 // Double check language on full description if it wasn't caught by title
                 if (!isEnglish(event.description)) {
                     event.status = 'CANCELLED'; // Or separate status, but CANCELLED hides it currently
                     console.log(`  ⚠ Non-English description detected: ${event.title.substring(0, 40)}`);
+                }
+            }
+            
+            // Update location details
+            if (enrichment.locationDetails) {
+                event.locationDetails = enrichment.locationDetails;
+                
+                // Enhance location string if we have more details
+                if (enrichment.locationDetails.venue && !event.location.includes(enrichment.locationDetails.venue)) {
+                    event.location = enrichment.locationDetails.isOnline 
+                        ? `${enrichment.locationDetails.venue} (${enrichment.locationDetails.onlinePlatform || 'Online'})`
+                        : enrichment.locationDetails.venue;
+                }
+                
+                if (enrichment.locationDetails.address && !event.location.includes(enrichment.locationDetails.address)) {
+                    // Append address if venue name is already in location
+                    if (enrichment.locationDetails.venue && event.location.includes(enrichment.locationDetails.venue)) {
+                        event.location = `${event.location}, ${enrichment.locationDetails.address}`;
+                    }
+                }
+                
+                console.log(`  📍 Updated location details for "${event.title.substring(0, 40)}"`);
+            }
+            
+            // CRITICAL: If price still not found, extract from description text as fallback
+            // This catches cases where price is mentioned in description but not in JSON-LD
+            if (!event.priceAmount && event.description) {
+                const descText = event.description;
+                // Look for prices mentioned in description (especially high prices)
+                const pricePatterns = [
+                    /(?:regular|normal|full|standard)\s+price\s+(?:for|is|of)?\s*(?:this|the)?\s*(?:service|event|ticket)?\s*(?:is)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
+                    /(?:price|cost|fee)\s+(?:is|of|for)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/i,
+                    /(?:CA\$|CAD|C\$|\$)\s*(\d{3,}(?:\.\d{2})?)/g
+                ];
+                
+                const foundPrices: number[] = [];
+                for (const pattern of pricePatterns) {
+                    const matches = [...descText.matchAll(pattern)];
+                    for (const match of matches) {
+                        const price = parseFloat(match[1]);
+                        if (!isNaN(price) && price >= 0 && price < 100000) {
+                            foundPrices.push(price);
+                        }
+                    }
+                }
+                
+                if (foundPrices.length > 0) {
+                    const minPrice = Math.min(...foundPrices);
+                    event.priceAmount = minPrice;
+                    event.price = minPrice === 0 ? 'Free' : `$${minPrice}`;
+                    event.isFree = minPrice === 0;
+                    priceUpdateCount++;
+                    console.log(`  💰 Extracted price from description for "${event.title.substring(0, 40)}": ${event.price}`);
                 }
             }
 
@@ -431,8 +512,31 @@ export class EventbriteScraper implements ScraperSource {
                 console.log(`  ℹ Marked as Multi-Day: ${event.title.substring(0, 40)}`);
             }
 
+            // CRITICAL: Re-check expensive events after price enrichment
+            // Import shouldIncludeEvent to filter out expensive events that were enriched
+            const { shouldIncludeEvent } = require('../quality/score');
+            if (!shouldIncludeEvent(event)) {
+                console.log(`  ❌ Removing expensive event after enrichment: "${event.title.substring(0, 40)}" ($${event.priceAmount})`);
+                // Mark for removal instead of removing immediately (to avoid index issues)
+                event.status = 'CANCELLED';
+            }
+            
             await new Promise(resolve => setTimeout(resolve, 500));
         }
+        
+        // Remove expensive events that were marked during enrichment
+        const beforeFilter = uniqueEvents.length;
+        uniqueEvents = uniqueEvents.filter(e => {
+            if (e.status === 'CANCELLED' && e.priceAmount !== undefined && e.priceAmount > 150) {
+                return false; // Remove expensive events
+            }
+            return true;
+        });
+        const removedCount = beforeFilter - uniqueEvents.length;
+        if (removedCount > 0) {
+            console.log(`✓ Removed ${removedCount} expensive events after price enrichment`);
+        }
+        
         console.log(`✓ Enriched ${successCount}/${uniqueEvents.length} events with details`);
         console.log(`✓ Updated prices for ${priceUpdateCount} events from detail pages`);
 

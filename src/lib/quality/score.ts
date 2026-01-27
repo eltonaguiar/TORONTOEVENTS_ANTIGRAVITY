@@ -99,10 +99,37 @@ export function shouldIncludeEvent(event: Event): boolean {
     }
 
     // Reject expensive events (> $150)
+    // Also check description for high prices if priceAmount is missing
     if (event.priceAmount !== undefined && event.priceAmount > 150) {
         console.log(`Rejecting expensive event: "${event.title}" ($${event.priceAmount})`);
         return false;
     }
+    
+    // Fallback: Check description for high prices if priceAmount is undefined
+    // This catches cases where price extraction failed but price is mentioned in text
+    if (event.priceAmount === undefined && event.description) {
+        const descText = event.description.toLowerCase();
+        // Look for prices over $150 mentioned in description
+        const highPricePatterns = [
+            /(?:CA\$|CAD|C\$|\$)\s*(\d{3,}(?:\.\d{2})?)/g,
+            /(?:regular|normal|full|standard)\s+price[^.]*?(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi,
+            /(?:price|cost|fee)\s+(?:is|of|for)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi
+        ];
+        
+        for (const pattern of highPricePatterns) {
+            const matches = [...descText.matchAll(pattern)];
+            for (const match of matches) {
+                const price = parseFloat(match[1]);
+                if (!isNaN(price) && price > 150) {
+                    console.log(`Rejecting expensive event (price in description): "${event.title}" ($${price} mentioned in text)`);
+                    return false;
+                }
+            }
+        }
+    }
+    
+    // Additional safety: Check URL for price indicators if available
+    // Some Eventbrite URLs contain price hints in the page structure
 
     // Reject "garbage" topics (sales seminars, etc.)
     const spamKeywords = [

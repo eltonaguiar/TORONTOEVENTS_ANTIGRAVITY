@@ -115,8 +115,19 @@ export default function EventCard({ event, onPreview }: EventCardProps) {
                         <span className="text-xl font-bold text-white">{day}</span>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                        <div className="text-xs font-medium px-2 py-1 rounded-full bg-[var(--surface-3)] text-[var(--text-2)] border border-white/5">
+                        <div className={`text-xs font-medium px-2 py-1 rounded-full border ${
+                            event.price === 'Free' 
+                                ? 'bg-green-500/20 text-green-300 border-green-500/30' 
+                                : event.price === 'See tickets' || !event.priceAmount
+                                ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' 
+                                : event.priceAmount && event.priceAmount > 120
+                                ? 'bg-orange-500/20 text-orange-300 border-orange-500/30'
+                                : 'bg-[var(--surface-3)] text-[var(--text-2)] border-white/5'
+                        }`}>
                             {event.price}
+                            {(event.price === 'See tickets' || !event.priceAmount) && (
+                                <span className="ml-1 text-[9px]" title="Price not available - may be expensive">⚠️</span>
+                            )}
                         </div>
                     </div>
                 </div>

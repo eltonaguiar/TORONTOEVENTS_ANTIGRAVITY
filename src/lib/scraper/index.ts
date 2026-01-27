@@ -111,6 +111,13 @@ export async function runScraper() {
                 console.log(`Pruning past or low-quality existing event: ${existing.title}`);
                 continue;
             }
+            
+            // CRITICAL: Re-check expensive events - prices might have been updated
+            // This catches events that were previously missing prices but now have them
+            if (existing.priceAmount !== undefined && existing.priceAmount > 150) {
+                console.log(`Pruning expensive existing event: ${existing.title} ($${existing.priceAmount})`);
+                continue;
+            }
 
             // Check link status
             console.log(`Checking status for potentially removed event: ${existing.title}`);

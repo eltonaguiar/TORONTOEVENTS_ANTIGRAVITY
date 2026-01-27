@@ -240,8 +240,44 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 if (selectedSource && e.source !== selectedSource) return false;
                 if (selectedHost && e.host !== selectedHost) return false;
 
-                if (!showExpensive && e.priceAmount !== undefined && e.priceAmount > maxPrice) {
-                    return false;
+                // Filter expensive events
+                if (!showExpensive) {
+                    // Check priceAmount if available
+                    if (e.priceAmount !== undefined && e.priceAmount > maxPrice) {
+                        return false;
+                    }
+                    
+                    // Fallback: Check description for high prices if priceAmount is missing
+                    // This prevents expensive events from slipping through when price extraction fails
+                    if (e.priceAmount === undefined && e.description) {
+                        const descText = e.description.toLowerCase();
+                        // Look for prices over maxPrice mentioned in description
+                        const highPricePatterns = [
+                            /(?:CA\$|CAD|C\$|\$)\s*(\d{3,}(?:\.\d{2})?)/g,
+                            /(?:regular|normal|full|standard)\s+price[^.]*?(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi,
+                            /(?:price|cost|fee)\s+(?:is|of|for)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi,
+                            // Match patterns like "Regular price for this service is $449"
+                            /(?:regular|normal|full|standard)\s+price\s+(?:for|is|of)?\s*(?:this|the)?\s*(?:service|event|ticket)?\s*(?:is)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi
+                        ];
+                        
+                        for (const pattern of highPricePatterns) {
+                            const matches = [...descText.matchAll(pattern)];
+                            for (const match of matches) {
+                                const price = parseFloat(match[1]);
+                                if (!isNaN(price) && price > maxPrice) {
+                                    console.log(`Filtering expensive event (price in description): "${e.title}" ($${price})`);
+                                    return false; // Hide expensive event
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Additional safety: If price is "See tickets" and description is very short,
+                    // be more cautious - these might be expensive events with missing data
+                    if ((e.price === 'See tickets' || !e.priceAmount) && 
+                        (!e.description || e.description.length < 100)) {
+                        // Don't filter, but this will be flagged visually with warning icon
+                    }
                 }
 
                 const { isSoldOut: inferredSoldOut, genderSoldOut: inferredGenderOut } = inferSoldOutStatus(e.title + ' ' + (e.description || ''));
