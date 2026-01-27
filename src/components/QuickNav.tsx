@@ -295,7 +295,7 @@ END:VCALENDAR`;
                                 }}
                                 className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 hover:bg-white/5 text-[var(--text-2)] hover:text-white transition-all overflow-hidden"
                             >
-                                <span className="text-lg">⚙️</span> Toronto Events Settings
+                                <span className="text-lg">⚙️</span> System Settings
                             </button>
                         </div>
                     </nav>
