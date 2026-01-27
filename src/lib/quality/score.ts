@@ -128,7 +128,11 @@ export function shouldIncludeEvent(event: Event): boolean {
         }
     }
     
-    // Additional safety: Check URL for price indicators if available
+    // CRITICAL: Be permissive - only reject if we're CERTAIN it's bad
+    // Most validation should happen in the frontend where users can control filters
+    return true;
+    
+    // Additional safety: Check URL for price indicators if available (DISABLED - too aggressive)
     // Some Eventbrite URLs contain price hints in the page structure
 
     // Reject "garbage" topics (sales seminars, etc.)
