@@ -55,13 +55,49 @@ export class ThursdayScraper implements ScraperSource {
 
                     // Thursday pages usually have JSON-LD
                     const ldScript = $d('script[type="application/ld+json"]').html();
-                    let date = new Date().toISOString();
+                    
+                    // Helper function to get next Thursday
+                    const getNextThursday = (): string => {
+                        const now = new Date();
+                        const dayOfWeek = now.getDay(); // 0 = Sunday, 4 = Thursday
+                        const daysUntilThursday = (4 - dayOfWeek + 7) % 7 || 7; // Next Thursday (or today if it's Thursday)
+                        const nextThursday = new Date(now);
+                        nextThursday.setDate(now.getDate() + daysUntilThursday);
+                        nextThursday.setHours(19, 0, 0, 0); // Default to 7 PM
+                        return nextThursday.toISOString();
+                    };
+                    
+                    let date = getNextThursday(); // Default to next Thursday for Thursday events
                     let title = cleanText($d('h1').text() || $d('.event-title').text());
                     let description = cleanDescription($d('.event-description').text() || $d('.entry-content').text());
                     let image = $d('.event-image img').attr('src') || $d('.wp-post-image').attr('src');
                     let location = 'Toronto, ON';
                     let latitude: number | undefined;
                     let longitude: number | undefined;
+
+                    // Try to extract date from page text first
+                    const pageText = $d('body').text();
+                    const datePatterns = [
+                        // Match dates like "Thursday, January 30" or "Jan 30, 2026"
+                        /(?:Thursday|Friday|Saturday|Sunday|Monday|Tuesday|Wednesday)[,\s]+(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[,\s]+(\d{1,2})(?:[,\s]+(\d{4}))?/i,
+                        // Match dates like "January 30, 2026" or "Jan 30"
+                        /(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[,\s]+(\d{1,2})(?:[,\s]+(\d{4}))?/i,
+                        // Match ISO dates
+                        /\d{4}-\d{2}-\d{2}/,
+                        // Match dates like "1/30/2026" or "01/30/26"
+                        /\d{1,2}\/\d{1,2}\/\d{2,4}/
+                    ];
+                    
+                    for (const pattern of datePatterns) {
+                        const match = pageText.match(pattern);
+                        if (match) {
+                            const extractedDate = normalizeDate(match[0]);
+                            if (extractedDate) {
+                                date = extractedDate;
+                                break;
+                            }
+                        }
+                    }
 
                     if (ldScript) {
                         try {
@@ -71,7 +107,16 @@ export class ThursdayScraper implements ScraperSource {
 
                             if (eventData) {
                                 title = cleanText(eventData.name || title);
-                                date = normalizeDate(eventData.startDate) || date;
+                                // Only use JSON-LD date if it's valid and not today
+                                const jsonDate = normalizeDate(eventData.startDate);
+                                if (jsonDate) {
+                                    const parsedDate = new Date(jsonDate);
+                                    const today = new Date();
+                                    // Only use if it's a valid future date
+                                    if (!isNaN(parsedDate.getTime()) && parsedDate > today) {
+                                        date = jsonDate;
+                                    }
+                                }
                                 description = cleanDescription(eventData.description || description);
                                 if (eventData.image) {
                                     image = Array.isArray(eventData.image) ? eventData.image[0] : (typeof eventData.image === 'object' ? eventData.image.url : eventData.image);
@@ -87,6 +132,19 @@ export class ThursdayScraper implements ScraperSource {
                                 }
                             }
                         } catch (e) { }
+                    }
+                    
+                    // Final fallback: If title contains "Thursday" and date is still today, use next Thursday
+                    if (title.toLowerCase().includes('thursday')) {
+                        const currentDate = new Date(date);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        currentDate.setHours(0, 0, 0, 0);
+                        
+                        // If the date is today or in the past, use next Thursday
+                        if (currentDate <= today) {
+                            date = getNextThursday();
+                        }
                     }
 
                     if (!title) continue;
