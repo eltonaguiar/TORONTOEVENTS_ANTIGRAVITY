@@ -605,15 +605,42 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             console.error(`   View mode: ${settings.viewMode}`);
             
             // Sample first few events to see why they're filtered
-            const sampleEvents = sourceEvents.slice(0, 5);
+            const sampleEvents = sourceEvents.slice(0, 10);
             sampleEvents.forEach((e, idx) => {
                 const eventDate = new Date(e.date);
                 const isDateValid = !isNaN(eventDate.getTime());
-                const isPast = isDateValid && eventDate < now!;
+                const isPast = isDateValid && now && eventDate < now;
                 const isExpensive = e.priceAmount !== undefined && e.priceAmount > maxPrice;
-                const isSoldOut = e.isSoldOut === true;
-                console.error(`   Sample ${idx + 1}: "${e.title.substring(0, 40)}" - dateValid: ${isDateValid}, isPast: ${isPast}, isExpensive: ${isExpensive}, isSoldOut: ${isSoldOut}, date: ${e.date}`);
+                const { isSoldOut: inferredSoldOut } = inferSoldOutStatus(e.title + ' ' + (e.description || ''));
+                const isSoldOut = e.isSoldOut === true || inferredSoldOut;
+                const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
+                console.error(`   Sample ${idx + 1}: "${e.title.substring(0, 40)}"`);
+                console.error(`     - dateValid: ${isDateValid}, date: ${e.date}`);
+                console.error(`     - isPast: ${isPast}, isExpensive: ${isExpensive}, isSoldOut: ${isSoldOut}, isHidden: ${isHidden}`);
+                console.error(`     - priceAmount: ${e.priceAmount}, maxPrice: ${maxPrice}, showExpensive: ${showExpensive}`);
+                console.error(`     - location: ${e.location}`);
             });
+            
+            // EMERGENCY FALLBACK: If all events filtered, return at least invalid date events
+            console.warn(`⚠️ [Filter] EMERGENCY: Returning invalid date events to prevent empty feed`);
+            const invalidDateEvents = sourceEvents.filter(e => isNaN(new Date(e.date).getTime())).slice(0, 50);
+            if (invalidDateEvents.length > 0) {
+                console.warn(`⚠️ [Filter] Returning ${invalidDateEvents.length} invalid date events as fallback`);
+                return invalidDateEvents.sort((a: Event, b: Event) => {
+                    const { key, direction } = sortConfig;
+                    let valA: any = a[key as keyof Event];
+                    let valB: any = b[key as keyof Event];
+                    if (key === 'date') {
+                        valA = 0; // Invalid dates sort together
+                        valB = 0;
+                    }
+                    if (direction === 'asc') {
+                        return valA > valB ? 1 : -1;
+                    } else {
+                        return valA < valB ? 1 : -1;
+                    }
+                });
+            }
         }
         
         return filtered.sort((a: Event, b: Event) => {
