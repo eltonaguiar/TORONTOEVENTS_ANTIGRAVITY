@@ -5,6 +5,7 @@ import { Event } from '../lib/types';
 import { isMultiDay, inferSoldOutStatus } from '../lib/scraper/utils';
 import EventCard from './EventCard';
 import EventPreview from './EventPreview';
+import InlinePreviewWithIndicator from './InlinePreviewWithIndicator';
 import { useSettings } from '../context/SettingsContext';
 
 interface EventFeedProps {
@@ -685,15 +686,11 @@ export default function EventFeed({ events }: EventFeedProps) {
 
             {/* Main Content */}
             {settings.detailViewMode === 'inline' && previewEvent && (
-                <div className="mb-12 animate-slide-up">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-black uppercase tracking-widest text-[var(--pk-500)]">/ Inline Tactical Preview</span>
-                        <button onClick={() => setPreviewEvent(null)} className="text-xs font-bold text-[var(--text-3)] hover:text-white transition-colors">Close Preview ✕</button>
-                    </div>
-                    <div className="glass-panel overflow-hidden rounded-2xl border-2 border-[var(--pk-500)]/30 h-[80vh]">
-                        <EventPreview event={previewEvent} onClose={() => setPreviewEvent(null)} isInline />
-                    </div>
-                </div>
+                <InlinePreviewWithIndicator 
+                    event={previewEvent} 
+                    onClose={() => setPreviewEvent(null)}
+                    onSwitchToPopup={() => updateSettings({ detailViewMode: 'popup' })}
+                />
             )
             }
 

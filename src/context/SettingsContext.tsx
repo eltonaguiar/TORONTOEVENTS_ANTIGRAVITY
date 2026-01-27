@@ -24,7 +24,9 @@ interface Settings {
     hideGenderSoldOut: boolean;
     excludedKeywords: string[];
     previewHeight: number;
+    previewWidth: number;
     previewPosition: 'center' | 'bottom-right' | 'right' | 'left';
+    defaultPreviewPosition: 'center' | 'left' | 'right' | 'offset';
     isChatboxMode: boolean;
     userPostalCode: string;
     webpageScale: number;
@@ -69,7 +71,9 @@ const defaultSettings: Settings = {
     hideGenderSoldOut: false,
     excludedKeywords: ['50 and Up', '70s', '80s'],
     previewHeight: 600,
+    previewWidth: 896,
     previewPosition: 'center',
+    defaultPreviewPosition: 'offset',
     isChatboxMode: false,
     userPostalCode: '',
     webpageScale: 1.0,

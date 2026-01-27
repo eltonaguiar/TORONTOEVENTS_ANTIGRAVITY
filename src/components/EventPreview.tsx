@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Event } from '../lib/types';
 import { useSettings } from '../context/SettingsContext';
 import { inferSoldOutStatus } from '../lib/scraper/utils';
@@ -17,48 +18,198 @@ type Placement = 'center' | 'right' | 'left';
 export default function EventPreview({ event, onClose, isInline, anchor }: EventPreviewProps) {
     const { settings, updateSettings, toggleSavedEvent, setIsSettingsOpen } = useSettings();
     const [mode, setMode] = useState<PreviewMode>('details');
+    const [mounted, setMounted] = useState(false);
+    const [iframeError, setIframeError] = useState(false);
+    const [workaroundAttempt, setWorkaroundAttempt] = useState(0);
+    const [iframeUrl, setIframeUrl] = useState<string>('');
+    const [modalWidth, setModalWidth] = useState(settings.previewWidth || 896);
+    const [modalHeight, setModalHeight] = useState(settings.previewHeight || 600);
+    const [isResizing, setIsResizing] = useState(false);
+    const [resizeType, setResizeType] = useState<'width' | 'height' | 'both' | null>(null);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const modalRef = useRef<HTMLDivElement>(null);
+    const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // Reset error state when event changes
+    useEffect(() => {
+        setIframeError(false);
+        setWorkaroundAttempt(0);
+        setIframeUrl('');
+        if (errorTimeoutRef.current) {
+            clearTimeout(errorTimeoutRef.current);
+        }
+        // Reset modal size to saved defaults
+        setModalWidth(settings.previewWidth || 896);
+        setModalHeight(settings.previewHeight || 600);
+    }, [event.id, settings.previewWidth, settings.previewHeight]);
 
     // Use settings or local overrides
-    const height = settings.previewHeight || 600;
-    const position = settings.previewPosition || 'center';
+    const height = modalHeight;
+    const width = modalWidth;
+    // Use defaultPreviewPosition if set, otherwise use previewPosition
+    const effectivePosition = settings.defaultPreviewPosition === 'offset'
+        ? (settings.previewPosition || 'center')
+        : (settings.defaultPreviewPosition || settings.previewPosition || 'center');
+    const position = effectivePosition;
     const isChatbox = settings.isChatboxMode;
+
+    // Resize handlers
+    useEffect(() => {
+        if (!isResizing) return;
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!resizeStartRef.current || !resizeType) return;
+
+            const deltaX = e.clientX - resizeStartRef.current.x;
+            const deltaY = e.clientY - resizeStartRef.current.y;
+
+            if (resizeType === 'width' || resizeType === 'both') {
+                const newWidth = Math.max(400, Math.min(1400, resizeStartRef.current.width + deltaX));
+                setModalWidth(newWidth);
+            }
+
+            if (resizeType === 'height' || resizeType === 'both') {
+                const newHeight = Math.max(400, Math.min(1000, resizeStartRef.current.height + deltaY));
+                setModalHeight(newHeight);
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+            setResizeType(null);
+            resizeStartRef.current = null;
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isResizing, resizeType]);
+
+    const handleResizeStart = (e: React.MouseEvent, type: 'width' | 'height' | 'both') => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (modalRef.current) {
+            const rect = modalRef.current.getBoundingClientRect();
+            resizeStartRef.current = {
+                x: e.clientX,
+                y: e.clientY,
+                width: rect.width,
+                height: rect.height
+            };
+            setIsResizing(true);
+            setResizeType(type);
+        }
+    };
+
+    const handleSaveSize = () => {
+        updateSettings({
+            previewWidth: modalWidth,
+            previewHeight: modalHeight
+        });
+        // Show brief confirmation
+        const btn = document.querySelector('[data-save-size-btn]') as HTMLElement;
+        if (btn) {
+            const original = btn.innerHTML;
+            btn.innerHTML = '✓ Saved';
+            setTimeout(() => {
+                btn.innerHTML = original;
+            }, 2000);
+        }
+    };
 
     const isSaved = settings.savedEvents?.some((e) => e.id === event.id) ?? false;
 
     // Smart Positioning Logic
+    // CRITICAL: Always use fixed positioning relative to VIEWPORT, not document
+    // This ensures modals appear correctly even when user is scrolled down
     const getSmartPosition = () => {
         // Always use fixed positioning relative to viewport
         if (isInline) return {};
 
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-        const modalWidth = isChatbox ? 500 : (mode === 'split' ? 1200 : 896); // Approx max-w-4xl is 896px
+        const currentModalWidth = isChatbox ? 500 : (mode === 'split' ? 1200 : width);
 
-        // If center position or no anchor, center in viewport
-        if (position === 'center' || !anchor) {
+        // Handle default positioning preferences
+        if (settings.defaultPreviewPosition === 'center' || (position === 'center' && !anchor)) {
             return {
                 position: 'fixed' as const,
                 top: '50%',
                 left: '50%',
                 transform: 'translate(-50%, -50%)',
-                width: `${modalWidth}px`,
+                width: `${currentModalWidth}px`,
                 maxWidth: '95vw',
                 maxHeight: '90vh',
-                margin: 0
+                margin: 0,
+                zIndex: 101
             };
         }
 
-        // Smart positioning relative to anchor (for non-center positions)
+        if (settings.defaultPreviewPosition === 'left' && !anchor) {
+            return {
+                position: 'fixed' as const,
+                top: '50%',
+                left: '20px',
+                transform: 'translateY(-50%)',
+                width: `${currentModalWidth}px`,
+                maxWidth: '95vw',
+                maxHeight: '90vh',
+                margin: 0,
+                zIndex: 101
+            };
+        }
+
+        if (settings.defaultPreviewPosition === 'right' && !anchor) {
+            return {
+                position: 'fixed' as const,
+                top: '50%',
+                right: '20px',
+                left: 'auto',
+                transform: 'translateY(-50%)',
+                width: `${currentModalWidth}px`,
+                maxWidth: '95vw',
+                maxHeight: '90vh',
+                margin: 0,
+                zIndex: 101
+            };
+        }
+
+        // "offset" or smart positioning relative to anchor (default behavior)
+        if (!anchor) {
+            // No anchor, fallback to center
+            return {
+                position: 'fixed' as const,
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: `${currentModalWidth}px`,
+                maxWidth: '95vw',
+                maxHeight: '90vh',
+                margin: 0,
+                zIndex: 101
+            };
+        }
+
+        // Smart positioning relative to anchor (offset mode)
         let top = anchor.top;
         let left = anchor.right + 20;
 
         // Viewport Collision Detection
-        if (left + modalWidth > vw) {
-            left = anchor.left - modalWidth - 20;
+        if (left + currentModalWidth > vw) {
+            left = anchor.left - currentModalWidth - 20;
         }
 
         if (left < 0) {
-            left = (vw - modalWidth) / 2;
+            left = (vw - currentModalWidth) / 2;
             top = anchor.bottom + 20;
         }
 
@@ -66,15 +217,19 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
             top = vh - height - 20;
         }
 
-        if (top < 0) top = 20;
+        if (top < 20) top = 20;
+        if (left < 20) left = 20;
+        if (left + currentModalWidth > vw - 20) left = vw - currentModalWidth - 20;
 
         return {
             position: 'fixed' as const,
             top: `${top}px`,
             left: `${left}px`,
-            width: `${modalWidth}px`,
+            width: `${currentModalWidth}px`,
+            maxWidth: '95vw',
             margin: 0,
-            transform: 'none'
+            transform: 'none',
+            zIndex: 101
         };
     };
 
@@ -110,6 +265,92 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
 
     const absoluteUrl = getAbsoluteUrl(event.url);
 
+    // Generate workaround URLs for AllEvents.in
+    const getWorkaroundUrls = (baseUrl: string): string[] => {
+        if (!baseUrl.includes('allevents.in')) return [baseUrl];
+
+        const workarounds: string[] = [];
+
+        // Workaround 1: Try /amp/ version (already in getAbsoluteUrl, but ensure it's first)
+        if (baseUrl.includes('/event/') && !baseUrl.includes('/amp/')) {
+            workarounds.push(baseUrl.replace('/event/', '/amp/event/'));
+        }
+
+        // Workaround 2: Try with referrer policy bypass (using proxy-like approach)
+        // Add ?embed=true parameter
+        if (!baseUrl.includes('?embed=true')) {
+            workarounds.push(baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'embed=true');
+        }
+
+        // Workaround 3: Try mobile version
+        if (!baseUrl.includes('/m/')) {
+            workarounds.push(baseUrl.replace('allevents.in/', 'allevents.in/m/'));
+        }
+
+        // Workaround 4: Try with no referrer (using data URL approach won't work, so skip)
+        // Workaround 5: Original URL as last resort
+        workarounds.push(baseUrl);
+
+        return [...new Set(workarounds)]; // Remove duplicates
+    };
+
+    // Get current iframe URL based on workaround attempt
+    useEffect(() => {
+        if (event.source === 'AllEvents.in' || absoluteUrl.includes('allevents.in')) {
+            const workarounds = getWorkaroundUrls(absoluteUrl);
+            const url = workarounds[workaroundAttempt] || absoluteUrl;
+            setIframeUrl(url);
+        } else {
+            setIframeUrl(absoluteUrl);
+        }
+    }, [absoluteUrl, workaroundAttempt, event.source]);
+
+    // Handle iframe load error
+    const handleIframeError = () => {
+        if (errorTimeoutRef.current) {
+            clearTimeout(errorTimeoutRef.current);
+        }
+
+        // Wait a bit to see if it loads
+        errorTimeoutRef.current = setTimeout(() => {
+            if (iframeRef.current) {
+                try {
+                    // Try to access iframe content to detect if it loaded
+                    const iframe = iframeRef.current;
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+
+                    // If we can't access the document, it might be blocked
+                    if (!iframeDoc || iframeDoc.body?.textContent?.includes('blocked') || iframeDoc.body?.textContent?.includes('forbidden')) {
+                        const workarounds = getWorkaroundUrls(absoluteUrl);
+                        if (workaroundAttempt < workarounds.length - 1) {
+                            // Try next workaround
+                            setWorkaroundAttempt(workaroundAttempt + 1);
+                        } else {
+                            // All workarounds failed
+                            setIframeError(true);
+                        }
+                    }
+                } catch (e) {
+                    // Cross-origin error - try next workaround
+                    const workarounds = getWorkaroundUrls(absoluteUrl);
+                    if (workaroundAttempt < workarounds.length - 1) {
+                        setWorkaroundAttempt(workaroundAttempt + 1);
+                    } else {
+                        setIframeError(true);
+                    }
+                }
+            }
+        }, 3000); // Wait 3 seconds before declaring error
+    };
+
+    // Handle iframe load success
+    const handleIframeLoad = () => {
+        if (errorTimeoutRef.current) {
+            clearTimeout(errorTimeoutRef.current);
+        }
+        setIframeError(false);
+    };
+
     // Toronto Dating Hub Priority Check
     const isTDH = event.title.toLowerCase().includes('toronto dating hub') || (event.description || '').toLowerCase().includes('toronto dating hub');
     const isTDHBypassed = isTDH && event.source !== 'Eventbrite';
@@ -136,24 +377,51 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
         left: 'items-center justify-start p-4 bg-black/40 backdrop-blur-sm'
     };
 
-    const modalWidthClass = isChatbox ? 'w-[500px]' : (mode === 'split' ? 'max-w-[1200px] w-[90vw]' : 'max-w-4xl w-[95vw]');
-
     const content = (
         <div
+            ref={modalRef}
             className={`
-                ${isInline ? 'w-full h-full flex flex-col' : `glass-panel shadow-2xl transition-all duration-500 pointer-events-auto rounded-[2.5rem] overflow-hidden flex flex-col ${modalWidthClass}`}
+                ${isInline ? 'w-full h-full flex flex-col' : `glass-panel shadow-2xl transition-all duration-500 pointer-events-auto rounded-[2.5rem] overflow-hidden flex flex-col relative`}
                 ${isChatbox && !isInline ? 'border-2 border-[var(--pk-500)]/30 animate-slide-up ring-4 ring-black/50' : ''}
                 ${anchor && position !== 'center' ? 'animate-zoom-in' : ''}
-                ${!isInline ? 'fixed' : 'relative'} z-[101]
             `}
             style={{
                 height: isInline ? '100%' : `${height}px`,
+                width: isInline ? '100%' : `${width}px`,
                 backgroundColor: 'var(--surface-1)',
                 color: settings.popupFontColor,
+                // CRITICAL: Always use fixed positioning relative to viewport
+                // This ensures modal appears in viewport even when scrolled
+                position: isInline ? 'relative' : 'fixed',
                 ...smartStyle
             } as any}
             onClick={(e) => e.stopPropagation()}
         >
+            {/* Resize Handles */}
+            {!isInline && (
+                <>
+                    {/* Bottom-right corner resize handle */}
+                    <div
+                        onMouseDown={(e) => handleResizeStart(e, 'both')}
+                        className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize z-50 bg-[var(--pk-500)]/20 hover:bg-[var(--pk-500)]/40 rounded-tl-lg transition-colors flex items-center justify-center group"
+                        title="Drag to resize"
+                    >
+                        <div className="w-3 h-3 border-2 border-[var(--pk-500)] rounded-tl-lg group-hover:border-white transition-colors" />
+                    </div>
+                    {/* Right edge resize handle */}
+                    <div
+                        onMouseDown={(e) => handleResizeStart(e, 'width')}
+                        className="absolute top-1/2 right-0 -translate-y-1/2 w-2 h-16 cursor-ew-resize z-50 hover:bg-[var(--pk-500)]/30 transition-colors rounded-l"
+                        title="Drag to resize width"
+                    />
+                    {/* Bottom edge resize handle */}
+                    <div
+                        onMouseDown={(e) => handleResizeStart(e, 'height')}
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-2 cursor-ns-resize z-50 hover:bg-[var(--pk-500)]/30 transition-colors rounded-t"
+                        title="Drag to resize height"
+                    />
+                </>
+            )}
             {/* Visual Connector Line (Smart Arrow) */}
             {anchor && position !== 'center' && !isInline && (
                 <div
@@ -201,9 +469,41 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                         <span className="text-[10px] uppercase font-black text-white/40">Height</span>
                         <input
                             type="range" min="300" max="1000" step="50" value={height}
-                            onChange={(e) => updateSettings({ previewHeight: parseInt(e.target.value) })}
+                            onChange={(e) => setModalHeight(parseInt(e.target.value))}
+                            onMouseUp={() => updateSettings({ previewHeight: modalHeight })}
                             className="w-16 h-1 accent-[var(--pk-500)] cursor-pointer"
                         />
+                    </div>
+
+                    <button
+                        onClick={handleSaveSize}
+                        data-save-size-btn
+                        className="p-2 bg-white/5 hover:bg-[var(--pk-500)] text-white/40 hover:text-white rounded-xl transition-all border border-white/10"
+                        title="Save Current Size as Default"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                    </button>
+
+                    <div className="hidden md:flex bg-black/20 p-1 rounded-xl border border-white/5 gap-1">
+                        {[
+                            { id: 'center', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h16M4 16h16" /> },
+                            { id: 'left', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 8h10M4 16h10" /> },
+                            { id: 'right', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 8h10M10 16h10" /> },
+                            { id: 'offset', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /> }
+                        ].map((opt) => (
+                            <button
+                                key={opt.id}
+                                onClick={() => updateSettings({ defaultPreviewPosition: opt.id as any })}
+                                className={`p-1.5 rounded-lg transition-all ${settings.defaultPreviewPosition === opt.id ? 'bg-[var(--pk-500)] text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                                title={`Set Default Position: ${opt.id.charAt(0).toUpperCase() + opt.id.slice(1)}`}
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {opt.icon}
+                                </svg>
+                            </button>
+                        ))}
                     </div>
 
                     <button
@@ -351,14 +651,31 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             </div>
 
                             <div className="relative w-full rounded-3xl border-4 border-white/5 shadow-inner overflow-hidden bg-black/20" style={{ height: `${Math.max(400, height - 200)}px`, transition: 'height 0.3s ease' }}>
-                                {(event.source === 'Eventbrite' || absoluteUrl.includes('eventbrite') || event.source === 'AllEvents.in' || absoluteUrl.includes('allevents.in')) ? (
+                                {/* Always show link icon in top-right corner */}
+                                <a
+                                    href={absoluteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute top-4 right-4 z-50 p-3 bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white rounded-full shadow-2xl transition-all hover:scale-110 flex items-center justify-center group"
+                                    title="Open event in new tab"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    <span className="absolute -bottom-8 right-0 bg-black/90 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        Open in New Tab
+                                    </span>
+                                </a>
+
+                                {/* Eventbrite - always blocked */}
+                                {(event.source === 'Eventbrite' || absoluteUrl.includes('eventbrite')) ? (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-[#0a0a0b]">
                                         <div className="w-16 h-16 mb-4 rounded-full bg-[#F05537] flex items-center justify-center text-white text-3xl shadow-lg">
                                             🔒
                                         </div>
                                         <h4 className="text-xl font-bold text-white mb-2">External Content Protected</h4>
                                         <p className="text-sm text-[var(--text-2)] max-w-sm mb-6">
-                                            {event.source} does not allow embedded previews. Please open the event page directly.
+                                            Eventbrite does not allow embedded previews. Please open the event page directly.
                                         </p>
                                         <a
                                             href={absoluteUrl}
@@ -366,21 +683,51 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                                             rel="noopener noreferrer"
                                             className="px-6 py-3 bg-[#F05537] hover:bg-[#d14429] text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-orange-500/20"
                                         >
-                                            Open Event on {event.source} ↗
+                                            Open Event on Eventbrite ↗
+                                        </a>
+                                    </div>
+                                ) : iframeError && (event.source === 'AllEvents.in' || absoluteUrl.includes('allevents.in')) ? (
+                                    /* AllEvents.in - All workarounds failed */
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-[#0a0a0b]">
+                                        <div className="w-16 h-16 mb-4 rounded-full bg-yellow-600 flex items-center justify-center text-white text-3xl shadow-lg animate-pulse">
+                                            ⚠️
+                                        </div>
+                                        <h4 className="text-xl font-bold text-white mb-2">Failed to Load Preview</h4>
+                                        <p className="text-sm text-[var(--text-2)] max-w-sm mb-6">
+                                            AllEvents.in preview could not be loaded. Please open the event page directly using the link icon above.
+                                        </p>
+                                        <a
+                                            href={absoluteUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-yellow-500/20"
+                                        >
+                                            Open Event on AllEvents.in ↗
                                         </a>
                                     </div>
                                 ) : (
+                                    /* Try to load iframe with workarounds */
                                     <iframe
-                                        src={absoluteUrl}
+                                        ref={iframeRef}
+                                        src={iframeUrl || absoluteUrl}
                                         className="w-full h-full bg-white"
                                         title={`Preview: ${event.title}`}
-                                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+                                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+                                        onError={handleIframeError}
+                                        onLoad={handleIframeLoad}
+                                        referrerPolicy="no-referrer"
                                     />
                                 )}
                             </div>
 
-                            <p className="text-sm text-white/40 italic">
-                                If the preview doesn't load, <a href={absoluteUrl} target="_blank" className="text-[var(--pk-300)] underline hover:text-white transition-colors">click here to open the event page</a>.
+                            <p className="text-sm text-white/40 italic flex items-center gap-2">
+                                <span>If the preview doesn't load,</span>
+                                <a href={absoluteUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--pk-300)] underline hover:text-white transition-colors flex items-center gap-1">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    click here to open the event page
+                                </a>
                             </p>
                         </div>
                     </div>
@@ -388,13 +735,74 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
 
                 {/* FULL LIVE SITE PANE (When not in Details mode) */}
                 {mode === 'live' && (
-                    <div className="flex flex-col bg-white w-full h-full">
-                        <iframe
-                            src={absoluteUrl}
-                            className="w-full h-full border-none"
-                            title={`Live: ${event.title}`}
-                            sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-                        />
+                    <div className="flex flex-col bg-white w-full h-full relative">
+                        {/* Always show link icon in top-right corner */}
+                        <a
+                            href={absoluteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute top-4 right-4 z-50 p-3 bg-[var(--pk-500)] hover:bg-[var(--pk-600)] text-white rounded-full shadow-2xl transition-all hover:scale-110 flex items-center justify-center group"
+                            title="Open event in new tab"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            <span className="absolute -bottom-8 right-0 bg-black/90 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                Open in New Tab
+                            </span>
+                        </a>
+
+                        {/* Eventbrite - always blocked */}
+                        {(event.source === 'Eventbrite' || absoluteUrl.includes('eventbrite')) ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-white">
+                                <div className="w-16 h-16 mb-4 rounded-full bg-[#F05537] flex items-center justify-center text-white text-3xl shadow-lg">
+                                    🔒
+                                </div>
+                                <h4 className="text-xl font-bold text-gray-900 mb-2">External Content Protected</h4>
+                                <p className="text-sm text-gray-600 max-w-sm mb-6">
+                                    Eventbrite does not allow embedded previews. Please open the event page directly.
+                                </p>
+                                <a
+                                    href={absoluteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-6 py-3 bg-[#F05537] hover:bg-[#d14429] text-white font-bold rounded-xl transition-all shadow-lg"
+                                >
+                                    Open Event on Eventbrite ↗
+                                </a>
+                            </div>
+                        ) : iframeError && (event.source === 'AllEvents.in' || absoluteUrl.includes('allevents.in')) ? (
+                            /* AllEvents.in - All workarounds failed */
+                            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-white">
+                                <div className="w-16 h-16 mb-4 rounded-full bg-yellow-600 flex items-center justify-center text-white text-3xl shadow-lg animate-pulse">
+                                    ⚠️
+                                </div>
+                                <h4 className="text-xl font-bold text-gray-900 mb-2">Failed to Load Preview</h4>
+                                <p className="text-sm text-gray-600 max-w-sm mb-6">
+                                    AllEvents.in preview could not be loaded. Please open the event page directly using the link icon above.
+                                </p>
+                                <a
+                                    href={absoluteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-xl transition-all shadow-lg"
+                                >
+                                    Open Event on AllEvents.in ↗
+                                </a>
+                            </div>
+                        ) : (
+                            /* Try to load iframe with workarounds */
+                            <iframe
+                                ref={iframeRef}
+                                src={iframeUrl || absoluteUrl}
+                                className="w-full h-full border-none"
+                                title={`Live: ${event.title}`}
+                                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+                                onError={handleIframeError}
+                                onLoad={handleIframeLoad}
+                                referrerPolicy="no-referrer"
+                            />
+                        )}
                     </div>
                 )}
             </div>
@@ -402,13 +810,23 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
     );
 
     if (isInline) return content;
+    if (!mounted) return null;
 
-    return (
+    return createPortal(
         <div
-            className={`fixed inset-0 z-[100] flex transition-all duration-500 ${placementClasses[position as keyof typeof placementClasses]}`}
+            className={`fixed inset-0 z-[100] transition-all duration-500 ${position === 'center' ? 'pointer-events-none' : placementClasses[position as keyof typeof placementClasses]}`}
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                zIndex: 100
+            }}
             onClick={onClose}
         >
             {content}
-        </div>
+        </div>,
+        document.body
     );
 }
