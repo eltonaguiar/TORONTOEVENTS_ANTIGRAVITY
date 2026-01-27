@@ -593,11 +593,12 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     }, [validEvents, dateFilter, visibleCount, now, liveEvents]);
 
     const hasMoreEvents = useMemo(() => {
+        const safeValidEvents = validEvents || [];
         let totalEvents: Event[];
         if (dateFilter !== 'all') {
-            totalEvents = validEvents;
+            totalEvents = safeValidEvents;
         } else {
-            totalEvents = validEvents.filter(e => !isMultiDay(e));
+            totalEvents = safeValidEvents.filter(e => !isMultiDay(e));
         }
         return visibleCount < totalEvents.length;
     }, [validEvents, dateFilter, visibleCount]);
