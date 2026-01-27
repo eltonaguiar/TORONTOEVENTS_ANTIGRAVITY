@@ -163,7 +163,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     }, [dateFilter, selectedCategory, selectedSource, selectedHost, maxPrice, showExpensive, showStarted, searchQuery, settings.viewMode]);
 
     const handleExport = () => {
-        const eventsToExport = settings.savedEvents.length > 0 ? settings.savedEvents : validEvents;
+        const eventsToExport = settings.savedEvents.length > 0 ? settings.savedEvents : (validEvents || []);
         const headers = ['Title', 'Date', 'Location', 'Host', 'Price', 'URL', 'Categories'];
         const rows = eventsToExport.map((e: Event) => [
             `"${e.title.replace(/"/g, '""')}"`,
