@@ -11,11 +11,21 @@ const config = {
 
 async function uploadFile(client: ftp.Client, localPath: string, remotePath: string) {
     try {
+        // Check if file exists before attempting upload
+        if (!fs.existsSync(localPath)) {
+            console.log(`⚠️  File not found, skipping: ${path.basename(localPath)}`);
+            return;
+        }
         console.log(`Uploading ${path.basename(localPath)}...`);
         await client.uploadFrom(localPath, remotePath);
         console.log(`✅ Uploaded: ${remotePath}`);
     } catch (err) {
         console.error(`❌ Failed to upload ${localPath}:`, err);
+        // Don't throw for missing files - just log and continue
+        if (err instanceof Error && err.message.includes('No such file')) {
+            console.log(`⚠️  File missing, continuing deployment...`);
+            return;
+        }
         throw err;
     }
 }
@@ -155,6 +165,32 @@ async function main() {
             console.log('✅ 2XKO page uploaded');
         }
 
+        // Upload findstocks page
+        const findstocksDir = path.join(buildDir, 'findstocks');
+        if (fs.existsSync(findstocksDir)) {
+            console.log('📦 Uploading Find Stocks page...');
+            await client.uploadFromDir(findstocksDir, 'findstocks');
+            console.log('✅ Find Stocks page uploaded');
+        }
+
+        // Upload daily-stocks.json data file (if it exists)
+        const dailyStocksFile = path.join(process.cwd(), 'public', 'data', 'daily-stocks.json');
+        if (fs.existsSync(dailyStocksFile)) {
+            await client.ensureDir('data');
+            await uploadFile(client, dailyStocksFile, 'data/daily-stocks.json');
+            console.log('✅ Daily stocks data uploaded');
+        } else {
+            console.log('⚠️  daily-stocks.json not found, skipping...');
+        }
+
+        // Upload mentalhealthresources page (remote as MENTALHEALTHRESOURCES to match FTP/live URL)
+        const mentalHealthDir = path.join(buildDir, 'mentalhealthresources');
+        if (fs.existsSync(mentalHealthDir)) {
+            console.log('📦 Uploading Mental Health Resources page...');
+            await client.uploadFromDir(mentalHealthDir, 'MENTALHEALTHRESOURCES');
+            console.log('✅ Mental Health Resources page uploaded');
+        }
+
         // Upload error pages
         const notFoundDir = path.join(buildDir, '_not-found');
         if (fs.existsSync(notFoundDir)) {
@@ -174,9 +210,107 @@ async function main() {
             console.log('✅ WINDOWSFIXER page uploaded');
         }
 
+        // CRITICAL: Also deploy app to TORONTOEVENTS_ANTIGRAVITY subdirectory for redirect compatibility
+        // Build a version with basePath for the subdirectory
+        console.log('\n📦 Building version with basePath for TORONTOEVENTS_ANTIGRAVITY...');
+        const { execSync } = require('child_process');
+        try {
+            execSync('npx cross-env DEPLOY_TARGET=github npm run build', { 
+                stdio: 'inherit',
+                cwd: process.cwd()
+            });
+            console.log('✅ Built version with basePath');
+        } catch (buildErr) {
+            console.warn('⚠️ Failed to build basePath version, deploying root version to subdirectory instead');
+        }
+
+        const githubBuildDir = path.join(process.cwd(), 'build');
+        await client.cd(config.remotePath);
+        await client.ensureDir('TORONTOEVENTS_ANTIGRAVITY');
+        
+        // Upload index.html to basePath
+        const githubIndexHtml = path.join(githubBuildDir, 'index.html');
+        if (fs.existsSync(githubIndexHtml)) {
+            await uploadFile(client, githubIndexHtml, 'TORONTOEVENTS_ANTIGRAVITY/index.html');
+            console.log('✅ Uploaded index.html to TORONTOEVENTS_ANTIGRAVITY/');
+        } else if (fs.existsSync(indexHtml)) {
+            // Fallback to sftp build if github build failed
+            await uploadFile(client, indexHtml, 'TORONTOEVENTS_ANTIGRAVITY/index.html');
+            console.log('✅ Uploaded index.html to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
+        }
+
+        // Upload _next to basePath
+        const githubNextDir = path.join(githubBuildDir, '_next');
+        if (fs.existsSync(githubNextDir)) {
+            console.log('📦 Uploading _next to TORONTOEVENTS_ANTIGRAVITY...');
+            await client.uploadFromDir(githubNextDir, 'TORONTOEVENTS_ANTIGRAVITY/_next');
+            console.log('✅ _next directory uploaded to TORONTOEVENTS_ANTIGRAVITY/');
+        } else if (fs.existsSync(nextDir)) {
+            await client.uploadFromDir(nextDir, 'TORONTOEVENTS_ANTIGRAVITY/_next');
+            console.log('✅ _next directory uploaded to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
+        }
+
+        // Upload 2xko to basePath
+        const githubTwoXkoDir = path.join(githubBuildDir, '2xko');
+        if (fs.existsSync(githubTwoXkoDir)) {
+            console.log('📦 Uploading 2XKO page to TORONTOEVENTS_ANTIGRAVITY...');
+            await client.uploadFromDir(githubTwoXkoDir, 'TORONTOEVENTS_ANTIGRAVITY/2xko');
+            console.log('✅ 2XKO page uploaded to TORONTOEVENTS_ANTIGRAVITY/');
+        } else if (fs.existsSync(twoXkoDir)) {
+            await client.uploadFromDir(twoXkoDir, 'TORONTOEVENTS_ANTIGRAVITY/2xko');
+            console.log('✅ 2XKO page uploaded to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
+        }
+
+        // Upload findstocks to basePath
+        const githubFindstocksDir = path.join(githubBuildDir, 'findstocks');
+        if (fs.existsSync(githubFindstocksDir)) {
+            console.log('📦 Uploading Find Stocks page to TORONTOEVENTS_ANTIGRAVITY...');
+            await client.uploadFromDir(githubFindstocksDir, 'TORONTOEVENTS_ANTIGRAVITY/findstocks');
+            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/');
+        } else if (fs.existsSync(findstocksDir)) {
+            await client.uploadFromDir(findstocksDir, 'TORONTOEVENTS_ANTIGRAVITY/findstocks');
+            console.log('✅ Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
+        }
+
+        // Upload daily-stocks.json to basePath (if it exists)
+        const dailyStocksFileBasePath = path.join(process.cwd(), 'public', 'data', 'daily-stocks.json');
+        if (fs.existsSync(dailyStocksFileBasePath)) {
+            await client.ensureDir('TORONTOEVENTS_ANTIGRAVITY/data');
+            await uploadFile(client, dailyStocksFileBasePath, 'TORONTOEVENTS_ANTIGRAVITY/data/daily-stocks.json');
+            console.log('✅ Daily stocks data uploaded to TORONTOEVENTS_ANTIGRAVITY/data/');
+        } else {
+            console.log('⚠️  daily-stocks.json not found for basePath, skipping...');
+        }
+
+        // Upload mentalhealthresources to basePath
+        const githubMentalHealthDir = path.join(githubBuildDir, 'mentalhealthresources');
+        if (fs.existsSync(githubMentalHealthDir)) {
+            console.log('📦 Uploading Mental Health Resources to TORONTOEVENTS_ANTIGRAVITY...');
+            await client.uploadFromDir(githubMentalHealthDir, 'TORONTOEVENTS_ANTIGRAVITY/MENTALHEALTHRESOURCES');
+            console.log('✅ Mental Health Resources uploaded to TORONTOEVENTS_ANTIGRAVITY/');
+        } else if (fs.existsSync(mentalHealthDir)) {
+            await client.uploadFromDir(mentalHealthDir, 'TORONTOEVENTS_ANTIGRAVITY/MENTALHEALTHRESOURCES');
+            console.log('✅ Mental Health Resources uploaded to TORONTOEVENTS_ANTIGRAVITY/ (using root build)');
+        }
+
+        // Upload critical files to basePath
+        for (const file of criticalFiles) {
+            const githubFile = path.join(githubBuildDir, file);
+            const localFile = path.join(buildDir, file);
+            const fileToUpload = fs.existsSync(githubFile) ? githubFile : localFile;
+            if (fs.existsSync(fileToUpload)) {
+                try {
+                    await uploadFile(client, fileToUpload, `TORONTOEVENTS_ANTIGRAVITY/${file}`);
+                } catch (err) {
+                    console.log(`⚠️ Failed to upload ${file} to basePath, continuing...`);
+                }
+            }
+        }
+
         console.log('\n🎉 Deployment complete!');
         console.log(`📍 Main page: ${config.remotePath}/index3.html`);
         console.log(`📍 WINDOWSFIXER page: ${config.remotePath}/WINDOWSFIXER/index.html`);
+        console.log(`📍 Mental Health Resources: ${config.remotePath}/MENTALHEALTHRESOURCES/index.html`);
     } catch (err) {
         console.error('❌ Deployment failed:', err);
         process.exit(1);
