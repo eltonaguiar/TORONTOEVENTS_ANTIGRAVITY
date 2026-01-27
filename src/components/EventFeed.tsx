@@ -547,7 +547,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     });
 
     const singleDayEvents = validEvents.filter((e: Event) => !isMultiDay(e));
-    const multiDayEvents = validEvents.filter((e: Event) => {
+    const multiDayEvents = (validEvents || []).filter((e: Event) => {
         if (isMultiDay(e)) {
             // Only show multi-day/festivals that haven't ended yet
             return now && e.endDate ? new Date(e.endDate) >= now : true;
@@ -611,7 +611,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
     const separateMultiDayList = useMemo(() => {
         if (dateFilter !== 'all') return []; // We merged them
-        return validEvents.filter((e: Event) => isMultiDay(e));
+        return (validEvents || []).filter((e: Event) => isMultiDay(e));
     }, [validEvents, dateFilter]);
 
     return (
