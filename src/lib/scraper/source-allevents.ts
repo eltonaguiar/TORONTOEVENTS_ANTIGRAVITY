@@ -1,5 +1,5 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription, formatTorontoDate } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription, formatTorontoDate, isTBDDate } from './utils';
 import { EventbriteDetailScraper } from './detail-scraper';
 import { safeParseDate } from '../utils/dateHelpers';
 import axios from 'axios';
@@ -429,77 +429,98 @@ export class AllEventsScraper implements ScraperSource {
                             fullUrl = fullUrl.startsWith('/') ? `${domain}${fullUrl}` : `${domain}/${fullUrl}`;
                         }
 
-                        // Date - try multiple extraction methods
-                        let dateStr = card.find('[itemprop="startDate"]').attr('content') ||
-                            card.find('[data-date]').attr('data-date') ||
-                            card.find('.date, .time, .start-time').first().text();
-
-                        // Parse and validate date - REJECT if unparseable
-                        let date = normalizeDate(dateStr);
-                        
                         // CRITICAL: Always fetch detail page for AllEvents to get authoritative data-stime
                         // The listing page date might be incomplete or missing, but detail page has .event-time-label with data-stime
                         // This ensures we get the correct date even if listing shows a partial date
-                        if (!date || !dateStr || dateStr.length < 10 || dateStr.includes('TBD') || dateStr.includes('tbd')) {
-                            try {
-                                console.log(`  📅 Fetching detail page for accurate date: ${fullUrl}`);
-                                const detailResponse = await axios.get(fullUrl, {
-                                    headers: {
-                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                                    },
-                                    timeout: 10000
-                                });
-                                const $detail = cheerio.load(detailResponse.data);
-                                
-                                // Order matters: .event-time-label (data-stime) is authoritative, then JSON-LD, then HTML.
-                                // Never mark TBD if any of these exist.
-                                const fromLabel = extractDateFromEventTimeLabel($detail);
-                                if (fromLabel) {
-                                    date = fromLabel;
-                                    console.log(`  ✅ Extracted date from .event-time-label: ${date}`);
-                                }
-                                if (!date) {
-                                    const ldScript = $detail('script[type="application/ld+json"]').html();
-                                    if (ldScript) {
-                                        try {
-                                            const data = JSON.parse(ldScript);
-                                            const items = Array.isArray(data) ? data : [data];
-                                            const eventData = items.find((i: any) => 
-                                                i['@type'] === 'Event' || 
-                                                (Array.isArray(i['@type']) && i['@type'].includes('Event'))
-                                            );
-                                            if (eventData?.startDate) {
-                                                date = normalizeDate(eventData.startDate);
+                        // Priority: data-stime/data-etime attributes > JSON-LD startDate > HTML text
+                        // Never mark as TBD if data-stime or JSON-LD startDate exist
+                        let date: string | null = null;
+                        try {
+                            console.log(`  📅 Fetching detail page for accurate date: ${fullUrl}`);
+                            const detailResponse = await axios.get(fullUrl, {
+                                headers: {
+                                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                                },
+                                timeout: 10000
+                            });
+                            const $detail = cheerio.load(detailResponse.data);
+                            
+                            // FIRST: Try .event-time-label with data-stime (most authoritative)
+                            // This has concrete timestamps and should never be marked TBD
+                            const fromLabel = extractDateFromEventTimeLabel($detail);
+                            if (fromLabel) {
+                                date = fromLabel;
+                                console.log(`  ✅ Extracted date from .event-time-label (data-stime): ${date}`);
+                            }
+                            
+                            // SECOND: Try JSON-LD startDate (structured data)
+                            if (!date) {
+                                const ldScript = $detail('script[type="application/ld+json"]').html();
+                                if (ldScript) {
+                                    try {
+                                        const data = JSON.parse(ldScript);
+                                        const items = Array.isArray(data) ? data : [data];
+                                        const eventData = items.find((i: any) => 
+                                            i['@type'] === 'Event' || 
+                                            (Array.isArray(i['@type']) && i['@type'].includes('Event'))
+                                        );
+                                        if (eventData?.startDate) {
+                                            // Only check TBD on the actual date string, not the full page
+                                            const startDateStr = String(eventData.startDate).trim();
+                                            if (startDateStr && !isTBDDate(startDateStr)) {
+                                                date = normalizeDate(startDateStr);
                                                 if (date) {
                                                     console.log(`  ✅ Extracted date from JSON-LD: ${date}`);
                                                 }
                                             }
-                                        } catch (e) {
-                                            // JSON parsing failed
                                         }
+                                    } catch (e) {
+                                        // JSON parsing failed
                                     }
                                 }
-                                if (!date) {
-                                    const detailDateStr = $detail('[itemprop="startDate"]').attr('content') ||
-                                        $detail('.event-date').text() ||
-                                        $detail('.date-time').text() ||
-                                        $detail('time[datetime]').attr('datetime') ||
-                                        $detail('.event-time-label, [class*="event-time-label"]').first().text().trim();
-                                    if (detailDateStr) {
-                                        const s = detailDateStr.replace(/to\s+.*$/i, '').replace(/\([^)]*\)/g, '').split(/[\n.]/)[0].trim();
-                                        date = s ? normalizeDate(s) : null;
+                            }
+                            
+                            // THIRD: Try HTML text selectors (least reliable, may contain DST warnings)
+                            if (!date) {
+                                const detailDateStr = $detail('[itemprop="startDate"]').attr('content') ||
+                                    $detail('.event-date').text() ||
+                                    $detail('.date-time').text() ||
+                                    $detail('time[datetime]').attr('datetime') ||
+                                    $detail('.event-time-label, [class*="event-time-label"]').first().text().trim();
+                                if (detailDateStr) {
+                                    // Clean the text to remove DST warnings and other noise
+                                    const cleaned = detailDateStr
+                                        .replace(/to\s+.*$/i, '') // Remove end time
+                                        .replace(/\([^)]*\)/g, '') // Remove parentheses (DST warnings)
+                                        .replace(/\s*\.\s*The\s+event\s+timings.*$/i, '') // Remove trailing warnings
+                                        .replace(/\s*We\s+recommend.*$/i, '') // Remove recommendations
+                                        .split(/[\n.]/)[0] // Take first sentence
+                                        .trim();
+                                    // Only check TBD on the cleaned date string, not the full page
+                                    if (cleaned && !isTBDDate(cleaned)) {
+                                        date = normalizeDate(cleaned);
                                         if (date) {
-                                            console.log(`  ✅ Extracted date from detail page: ${date}`);
+                                            console.log(`  ✅ Extracted date from detail page HTML: ${date}`);
                                         }
                                     }
                                 }
-                            } catch (e) {
-                                // Detail page fetch failed, continue with what we have
+                            }
+                        } catch (e) {
+                            // Detail page fetch failed, try listing page as fallback
+                            console.log(`  ⚠️ Detail page fetch failed, trying listing page: ${e}`);
+                            const dateStr = card.find('[itemprop="startDate"]').attr('content') ||
+                                card.find('[data-date]').attr('data-date') ||
+                                card.find('.date, .time, .start-time').first().text();
+                            if (dateStr && !isTBDDate(dateStr)) {
+                                date = normalizeDate(dateStr);
                             }
                         }
                         
                         if (!date) {
-                            console.log(`Skipping event with unparseable date: "${title}" - dateStr: "${dateStr}"`);
+                            const originalDateStr = card.find('[itemprop="startDate"]').attr('content') ||
+                                card.find('[data-date]').attr('data-date') ||
+                                card.find('.date, .time, .start-time').first().text() || 'none';
+                            console.log(`Skipping event with unparseable date: "${title}" - original dateStr: "${originalDateStr}"`);
                             continue; // Skip this event entirely
                         }
 

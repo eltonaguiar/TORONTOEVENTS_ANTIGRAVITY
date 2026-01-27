@@ -45,14 +45,20 @@ export function safeParseDate(
         }
 
         // Clean up common scraping artifacts
+        // CRITICAL: Preserve ISO 8601 timezone offsets (e.g., -05:00, +05:00)
+        // Don't replace dashes in timezone offsets
         let cleanedStr = inputStr
             .replace(/\s+/g, ' ') // Multiple spaces
             .replace(/[•·⋅\u2022\u22c5\u00b7]/g, '|') // Bullet points
             .split('|')[0] // Take first part
-            .trim()
-            .replace(/\s*-\s*/g, ' ') // Replace dashes with spaces
-            .replace(/\s*at\s*$/i, '') // Remove trailing "at"
             .trim();
+        
+        // Only replace dashes that are NOT part of timezone offsets
+        // Pattern: don't replace if it's part of [+-]HH:MM at the end
+        if (!cleanedStr.match(/[+-]\d{2}:\d{2}$/)) {
+            cleanedStr = cleanedStr.replace(/\s*-\s*/g, ' '); // Replace dashes with spaces (but not timezone)
+        }
+        cleanedStr = cleanedStr.replace(/\s*at\s*$/i, '').trim();
 
         // Strategy 1: Try native Date() first (fastest for standard formats)
         // Handle Z timezone (UTC) explicitly
@@ -67,13 +73,29 @@ export function safeParseDate(
             return { date, isValid: true, rawInput: inputStr };
         }
 
-        // Strategy 2: Try parseISO for ISO 8601 formats
+        // Strategy 2: Try parseISO for ISO 8601 formats (handles timezone offsets like -05:00)
         try {
             const isoDate = parseISO(cleanedStr);
-            if (isValid(isoDate)) {
+            if (isValid(isoDate) && isoDate.getFullYear() > 2000 && isoDate.getFullYear() < 2100) {
                 return { date: isoDate, isValid: true, rawInput: inputStr };
             }
         } catch {}
+        
+        // Strategy 2b: If parseISO fails, try native Date with explicit timezone handling
+        // Some browsers/environments may not parse -05:00 correctly, so try alternative formats
+        const tzOffsetPattern = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})([+-]\d{2}):(\d{2})$/;
+        const tzMatch = cleanedStr.match(tzOffsetPattern);
+        if (tzMatch) {
+            // Format: 2026-01-27T19:00:00-05:00
+            // Try converting to format without colon: 2026-01-27T19:00:00-0500
+            try {
+                const withoutColon = `${tzMatch[1]}${tzMatch[2]}${tzMatch[3]}`;
+                const utcDate = new Date(withoutColon);
+                if (!isNaN(utcDate.getTime()) && utcDate.getFullYear() > 2000 && utcDate.getFullYear() < 2100) {
+                    return { date: utcDate, isValid: true, rawInput: inputStr };
+                }
+            } catch {}
+        }
 
         // Strategy 3: Try date-fns parse with common formats
         const dateFnsFormats = [
@@ -121,6 +143,14 @@ export function safeParseDate(
             "EEEE, MMM d, yyyy h:mm a",
             "EEE, MMMM d, yyyy 'at' h:mm a",
             "EEEE, MMMM d, yyyy 'at' h:mm a",
+            
+            // Weekday without year (common in Fatsoma: "Thu 8 Jan at 8:00 pm")
+            "EEE d MMM 'at' h:mm a",
+            "EEEE d MMM 'at' h:mm a",
+            "EEE d MMMM 'at' h:mm a",
+            "EEEE d MMMM 'at' h:mm a",
+            "EEE d MMM h:mm a",
+            "EEEE d MMM h:mm a",
             
             // Common event formats
             "EEEE, MMMM dd, yyyy 'at' HH:mm",

@@ -1,5 +1,6 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, formatTorontoDate } from './utils';
+import { safeParseDate } from '../utils/dateHelpers';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -46,19 +47,61 @@ export class FatsomaScraper implements ScraperSource {
                         const detailResponse = await axios.get(fullUrl, { timeout: 10000 });
                         const $d = cheerio.load(detailResponse.data);
 
-                        // Fatsoma has JSON-LD
-                        const script = $d('script[type="application/ld+json"]').html();
-                        let date = new Date().toISOString();
+                        // Extract date - try multiple sources
+                        let date: string | null = null;
                         let description = `Official Thursday™ Singles Event in Toronto.`;
                         let image = undefined;
 
+                        // FIRST: Try JSON-LD (most reliable if available)
+                        const script = $d('script[type="application/ld+json"]').html();
                         if (script) {
                             try {
                                 const data = JSON.parse(script);
-                                date = normalizeDate(data.startDate) || date;
+                                if (data.startDate) {
+                                    date = normalizeDate(data.startDate);
+                                    if (date) {
+                                        console.log(`  ✅ Extracted date from JSON-LD: ${date}`);
+                                    }
+                                }
                                 description = cleanText(data.description || description);
                                 image = data.image;
                             } catch { }
+                        }
+
+                        // SECOND: Try parsing human-readable date from "Event Time" block
+                        // Format: "Thu 8th Jan at 8:00 pm – Thu 8th Jan at 11:00 pm"
+                        if (!date) {
+                            // Look for common date selectors
+                            const dateText = $d('.event-time, .event-date, [class*="event-time"], [class*="event-date"]').first().text().trim() ||
+                                $d('time[datetime]').attr('datetime') ||
+                                $d('[itemprop="startDate"]').attr('content');
+                            
+                            if (dateText) {
+                                // Extract just the start date/time (before the "–" or "to")
+                                let startDateText = dateText
+                                    .split(/[–-]/)[0] // Take first part before dash
+                                    .replace(/^\s*(?:on|at|from)\s+/i, '') // Remove prefixes
+                                    .trim();
+                                
+                                // Remove ordinal suffixes (1st, 2nd, 3rd, 4th, etc.) for date-fns parsing
+                                // date-fns doesn't handle ordinals, so convert "8th" to "8"
+                                startDateText = startDateText.replace(/(\d+)(st|nd|rd|th)\b/gi, '$1');
+                                
+                                // Parse with safeParseDate which handles year-less dates and infers year
+                                const parsed = safeParseDate(startDateText, generateEventId(fullUrl), title);
+                                if (parsed.isValid && parsed.date) {
+                                    date = formatTorontoDate(parsed.date);
+                                    console.log(`  ✅ Extracted date from page text: ${date} (from "${startDateText}")`);
+                                } else {
+                                    console.log(`  ⚠️ Could not parse date from text: "${startDateText}"`);
+                                }
+                            }
+                        }
+
+                        // If still no date, skip this event (don't use new Date() fallback)
+                        if (!date) {
+                            console.log(`  ❌ Skipping event with unparseable date: "${title}"`);
+                            continue;
                         }
 
                         const event: Event = {

@@ -119,7 +119,11 @@ export class EventbriteScraper implements ScraperSource {
 
                                         const eventId = generateEventId(url);
                                         const date = normalizeDate(eventItem.startDate);
-                                        if (!date) continue; // REJECT events without valid dates - don't default to today
+                                        if (!date) {
+                                            // Log missing dates - likely due to JavaScript-rendered content
+                                            console.log(`  ⚠️ Skipping event without valid date (may need Puppeteer): "${title}"`);
+                                            continue; // REJECT events without valid dates - don't default to today
+                                        }
                                         const endDate = normalizeDate(eventItem.endDate) || undefined;
 
                                         let location = 'Toronto, ON';
@@ -265,7 +269,11 @@ export class EventbriteScraper implements ScraperSource {
 
                                 const eventId = generateEventId(url);
                                 const date = item.startDate ? normalizeDate(item.startDate) : null;
-                                if (!date) continue; // REJECT events without valid dates
+                                if (!date) {
+                                    // Log missing dates - likely due to JavaScript-rendered content
+                                    console.log(`  ⚠️ Skipping event without valid date (may need Puppeteer): "${title}"`);
+                                    continue; // REJECT events without valid dates - don't default to today
+                                }
                                 const endDate = item.endDate ? (normalizeDate(item.endDate) || undefined) : undefined;
 
                                 let location = 'Toronto, ON';
@@ -419,15 +427,19 @@ export class EventbriteScraper implements ScraperSource {
         const eventsToEnrich = [...eventsWithoutPrices, ...eventsWithPrices];
         
         // Check if Puppeteer is available (optional, for JavaScript-rendered content)
+        // Eventbrite pages often load dates via JavaScript, so Puppeteer is important for date extraction
         let usePuppeteer = false;
         try {
             const { isPuppeteerAvailable } = require('./puppeteer-scraper');
             usePuppeteer = isPuppeteerAvailable() && process.env.USE_PUPPETEER === 'true';
             if (usePuppeteer) {
-                console.log(`  🌐 Puppeteer enabled for dynamic content extraction`);
+                console.log(`  🌐 Puppeteer enabled for dynamic content extraction (dates, prices)`);
+            } else {
+                console.log(`  ⚠️ Puppeteer not enabled - some Eventbrite dates may be missing (set USE_PUPPETEER=true)`);
             }
         } catch {
             // Puppeteer not installed, use static scraping only
+            console.log(`  ⚠️ Puppeteer not available - some Eventbrite dates may be missing (install puppeteer)`);
         }
         
         console.log(`Enriching ${eventsToEnrich.length} events with comprehensive detail page data (${eventsWithoutPrices.length} without prices, ${eventsWithPrices.length} with prices)...`);
@@ -435,10 +447,17 @@ export class EventbriteScraper implements ScraperSource {
         let successCount = 0;
         let priceUpdateCount = 0;
         let puppeteerUsedCount = 0;
+        let dateExtractionFailures = 0;
         
         for (const event of eventsToEnrich) {
-            // Use Puppeteer for events that failed price extraction (if available)
-            const shouldUsePuppeteer = usePuppeteer && (!event.priceAmount || event.price === 'See tickets');
+            // Use Puppeteer for events that failed price extraction OR if date seems incomplete
+            // Eventbrite dates are often loaded via JavaScript, so use Puppeteer when available
+            const shouldUsePuppeteer = usePuppeteer && (
+                !event.priceAmount || 
+                event.price === 'See tickets' ||
+                !event.date || // Use Puppeteer if date is missing (shouldn't happen due to earlier filtering, but be safe)
+                event.date.includes('Invalid') // Use Puppeteer if date is invalid
+            );
             const enrichment = await EventbriteDetailScraper.enrichEvent(event.url, shouldUsePuppeteer);
             if (shouldUsePuppeteer) puppeteerUsedCount++;
 
@@ -473,12 +492,17 @@ export class EventbriteScraper implements ScraperSource {
             }
 
             // Update start/end times (more precise than just dates)
+            // This is critical for Eventbrite since dates are often loaded via JavaScript
             if (enrichment.realTime) {
                 const normalized = normalizeDate(enrichment.realTime);
                 if (normalized) {
                     event.date = normalized;
                     event.startTime = enrichment.realTime; // Keep full ISO 8601 with time
                     successCount++;
+                } else {
+                    // Log when date extraction fails even from detail page
+                    console.log(`  ⚠️ Could not normalize date from detail page: "${enrichment.realTime}" for "${event.title.substring(0, 40)}"`);
+                    dateExtractionFailures++;
                 }
             }
             
@@ -609,6 +633,9 @@ export class EventbriteScraper implements ScraperSource {
         console.log(`✓ Updated prices for ${priceUpdateCount} events from detail pages`);
         if (puppeteerUsedCount > 0) {
             console.log(`✓ Used Puppeteer for ${puppeteerUsedCount} events with dynamic content`);
+        }
+        if (dateExtractionFailures > 0) {
+            console.log(`⚠️ ${dateExtractionFailures} events had date extraction failures (may need Puppeteer)`);
         }
 
         return {
