@@ -7,6 +7,14 @@ export class ThursdayScraper implements ScraperSource {
     name = 'Thursday';
     private baseUrl = 'https://events.getthursday.com/toronto/';
 
+    private getTorontoDateParts(date: Date): string {
+        const torontoDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+        const year = torontoDate.getFullYear();
+        const month = String(torontoDate.getMonth() + 1).padStart(2, '0');
+        const day = String(torontoDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     async scrape(): Promise<ScraperResult> {
         const events: Event[] = [];
         const errors: string[] = [];
@@ -107,8 +115,17 @@ export class ThursdayScraper implements ScraperSource {
                         if (match) {
                             const extractedDate = normalizeDate(match[0]);
                             if (extractedDate) {
-                                date = extractedDate;
-                                break;
+                                const extractedDateObj = new Date(extractedDate);
+                                const today = new Date();
+                                const todayDayOfWeek = today.getDay(); // 0 = Sunday, 4 = Thursday
+                                const extractedDateStr = this.getTorontoDateParts(extractedDateObj);
+                                const todayStr = this.getTorontoDateParts(today);
+                                
+                                // Only use extracted date if it's in the future, or if it's today AND today is Thursday
+                                if (extractedDateObj > today || (todayDayOfWeek === 4 && extractedDateStr === todayStr)) {
+                                    date = extractedDate;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -121,13 +138,15 @@ export class ThursdayScraper implements ScraperSource {
 
                             if (eventData) {
                                 title = cleanText(eventData.name || title);
-                                // Only use JSON-LD date if it's valid and not today
+                                // Only use JSON-LD date if it's valid and not today (unless today is Thursday)
                                 const jsonDate = normalizeDate(eventData.startDate);
                                 if (jsonDate) {
                                     const parsedDate = new Date(jsonDate);
                                     const today = new Date();
-                                    // Only use if it's a valid future date
-                                    if (!isNaN(parsedDate.getTime()) && parsedDate > today) {
+                                    const todayDayOfWeek = today.getDay(); // 0 = Sunday, 4 = Thursday
+                                    // Only use if it's a valid future date, or if it's today AND today is Thursday
+                                    if (!isNaN(parsedDate.getTime()) && 
+                                        (parsedDate > today || (todayDayOfWeek === 4 && this.getTorontoDateParts(parsedDate) === this.getTorontoDateParts(today)))) {
                                         date = jsonDate;
                                     }
                                 }
@@ -148,15 +167,17 @@ export class ThursdayScraper implements ScraperSource {
                         } catch (e) { }
                     }
                     
-                    // Final fallback: If title contains "Thursday" and date is still today, use next Thursday
-                    if (title.toLowerCase().includes('thursday')) {
+                    // Final fallback: If title contains "Thursday" and date is still today (and today is NOT Thursday), use next Thursday
+                    if (title.toLowerCase().includes('thursday') || this.name === 'Thursday') {
                         const currentDate = new Date(date);
                         const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        currentDate.setHours(0, 0, 0, 0);
+                        const todayDayOfWeek = today.getDay(); // 0 = Sunday, 4 = Thursday
+                        const currentDateStr = this.getTorontoDateParts(currentDate);
+                        const todayStr = this.getTorontoDateParts(today);
                         
-                        // If the date is today or in the past, use next Thursday
-                        if (currentDate <= today) {
+                        // If the date is today but today is NOT Thursday, use next Thursday
+                        // Also if the date is in the past, use next Thursday
+                        if ((currentDateStr === todayStr && todayDayOfWeek !== 4) || currentDate < today) {
                             date = getNextThursday();
                         }
                     }

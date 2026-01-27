@@ -110,6 +110,14 @@ async function main() {
             console.log('✅ _next directory uploaded');
         }
 
+        // Upload 2xko page
+        const twoXkoDir = path.join(buildDir, '2xko');
+        if (fs.existsSync(twoXkoDir)) {
+            console.log('📦 Uploading 2XKO page...');
+            await client.uploadFromDir(twoXkoDir, '2xko');
+            console.log('✅ 2XKO page uploaded');
+        }
+
         // Upload error pages
         const notFoundDir = path.join(buildDir, '_not-found');
         if (fs.existsSync(notFoundDir)) {
