@@ -280,9 +280,53 @@
             font-size: 0.9em;
         }
         
+        .move-name-cell {
+            min-width: 200px;
+        }
+        
         .move-name {
             font-weight: 600;
             color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        
+        .input-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+            font-size: 0.85em;
+            align-items: center;
+        }
+        
+        .input-fgc {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .input-glyph {
+            background: #764ba2;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 1em;
+        }
+        
+        .input-keyboard {
+            background: #f0f0f0;
+            color: #2c3e50;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 0.85em;
+            font-weight: 500;
         }
         
         .frame-value {
@@ -846,6 +890,9 @@
             const sectionsHtml = sections.map(section => {
                 const movesHtml = section.moves.map(move => {
                     const moveName = move.name || move.move || 'Unknown';
+                    const input = move.input || move.inputNotation || '';
+                    const inputGlyph = move.inputGlyph || '';
+                    const keyboardButton = move.keyboardButton || getKeyboardButtonFromInput(input || moveName);
                     const startup = move.startup || move.start || '-';
                     const onHit = move.onHit || move.hit || move.hitAdvantage || '-';
                     const onBlock = move.onBlock || move.block || move.blockAdvantage || '-';
@@ -853,9 +900,22 @@
                     const damage = move.damage || move.dmg || '-';
                     const guard = move.guard || move.blockType || '-';
                     
+                    // Build input display with FGC notation, glyph, and keyboard button
+                    let inputDisplay = '';
+                    if (input || inputGlyph || keyboardButton) {
+                        const parts = [];
+                        if (input) parts.push(`<span class="input-fgc">${escapeHtml(input)}</span>`);
+                        if (inputGlyph) parts.push(`<span class="input-glyph">${escapeHtml(inputGlyph)}</span>`);
+                        if (keyboardButton) parts.push(`<span class="input-keyboard">${escapeHtml(keyboardButton)}</span>`);
+                        inputDisplay = `<div class="input-display">${parts.join(' ')}</div>`;
+                    }
+                    
                     return `
                         <tr>
-                            <td class="move-name">${escapeHtml(moveName)}</td>
+                            <td class="move-name-cell">
+                                <div class="move-name">${escapeHtml(moveName)}</div>
+                                ${inputDisplay}
+                            </td>
                             <td class="frame-value">${formatFrame(startup)}</td>
                             <td class="frame-value ${getFrameClass(onHit)}">${formatFrame(onHit)}</td>
                             <td class="frame-value ${getFrameClass(onBlock)}">${formatFrame(onBlock)}</td>
@@ -922,6 +982,35 @@
             if (num > 0) return 'positive';
             if (num < 0) return 'negative';
             return 'neutral';
+        }
+        
+        function getKeyboardButtonFromInput(input) {
+            if (!input) return '';
+            
+            // Extract button from FGC notation
+            const buttonMatch = input.match(/([LMH]|S[12]|T)$/i);
+            if (buttonMatch) {
+                const btn = buttonMatch[1].toUpperCase();
+                const mapping = {
+                    'L': 'Light',
+                    'M': 'Medium',
+                    'H': 'Heavy',
+                    'S1': 'Special 1',
+                    'S2': 'Special 2',
+                    'T': 'Tag'
+                };
+                return mapping[btn] || btn;
+            }
+            
+            // Check if it's a named move that might indicate the button
+            const nameLower = input.toLowerCase();
+            if (nameLower.includes('light') || nameLower.includes('l')) return 'Light';
+            if (nameLower.includes('medium') || nameLower.includes('m')) return 'Medium';
+            if (nameLower.includes('heavy') || nameLower.includes('h')) return 'Heavy';
+            if (nameLower.includes('special 1') || nameLower.includes('s1')) return 'Special 1';
+            if (nameLower.includes('special 2') || nameLower.includes('s2')) return 'Special 2';
+            
+            return '';
         }
         
         function escapeHtml(text) {

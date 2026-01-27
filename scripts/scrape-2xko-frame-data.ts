@@ -5,6 +5,9 @@ import * as path from 'path';
 
 interface Move {
   name: string;
+  input?: string; // FGC notation (e.g., "5L", "2M", "S1", "6S1")
+  inputGlyph?: string; // Visual glyph representation
+  keyboardButton?: string; // Keyboard button name (e.g., "Light", "Medium", "Special 1")
   startup?: number | string;
   onHit?: number | string;
   onBlock?: number | string;
@@ -37,6 +40,33 @@ function parseFrameValue(value: string): number | string {
   const cleaned = value.trim().replace(/[^\d+-]/g, '');
   const num = parseInt(cleaned);
   return isNaN(num) ? value.trim() : num;
+}
+
+function generateInputGlyph(input: string): string {
+  // Convert FGC notation to visual glyph representation
+  // Format: direction + button (e.g., "5L" → "→ L", "2M" → "↓ M", "6S1" → "→ S1")
+  const glyphs: { [key: string]: string } = {
+    '1': '↙', '2': '↓', '3': '↘',
+    '4': '←', '5': '', '6': '→',
+    '7': '↖', '8': '↑', '9': '↗'
+  };
+  
+  // Match direction + button
+  const match = input.match(/^([1-9]?)([LMH]|S[12]|T|j\.([0-9]+[LMH]))/i);
+  if (match) {
+    const direction = match[1] || '5';
+    const button = match[2] || match[3] || '';
+    const directionGlyph = glyphs[direction] || '';
+    const buttonGlyph = button.replace(/L/i, 'L').replace(/M/i, 'M').replace(/H/i, 'H')
+                              .replace(/S1/i, 'S1').replace(/S2/i, 'S2').replace(/T/i, 'T');
+    
+    if (match[0].startsWith('j.')) {
+      return `j.${directionGlyph}${buttonGlyph}`;
+    }
+    return directionGlyph ? `${directionGlyph} ${buttonGlyph}` : buttonGlyph;
+  }
+  
+  return input;
 }
 
 async function scrapeChampionFrameData(championName: string): Promise<Champion | null> {
@@ -164,21 +194,28 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
       });
 
       // Find which columns contain what data - more flexible matching
+      // wiki.play2xko.com uses: Move, Input, Startup, Active, Recovery, On Block, Assist?, Notes
       const moveCol = headers.findIndex(h => 
         h.includes('move') || h.includes('input') || h.includes('command') || 
-        h.includes('notation') || h === '' || h.length < 5
+        h.includes('notation') || h === '' || (h.length < 5 && !h.includes('risk'))
       );
+      const inputCol = headers.findIndex(h => h.includes('input'));
+      const moveColIndex = moveCol !== -1 ? moveCol : (inputCol !== -1 ? inputCol : 0);
       const startupCol = headers.findIndex(h => 
-        h.includes('startup') || h.includes('start') || h.includes('active')
+        h.includes('startup') || h.includes('start') || (h.includes('frame') && !h.includes('active'))
+      );
+      const activeCol = headers.findIndex(h => 
+        h.includes('active') || (h.includes('hitbox') && h.includes('duration'))
       );
       const onHitCol = headers.findIndex(h => 
-        h.includes('hit') && (h.includes('on') || h.includes('advantage') || h.includes('frame'))
+        (h.includes('hit') && (h.includes('on') || h.includes('advantage'))) || 
+        (h.includes('on') && h.includes('hit'))
       );
       const onBlockCol = headers.findIndex(h => 
         h.includes('block') && (h.includes('on') || h.includes('advantage') || h.includes('frame'))
       );
       const recoveryCol = headers.findIndex(h => 
-        h.includes('recovery') || h.includes('total') || h.includes('duration')
+        h.includes('recovery') || (h.includes('vulnerable') && h.includes('frame'))
       );
       const damageCol = headers.findIndex(h => 
         h.includes('damage') || h.includes('dmg')
@@ -186,6 +223,7 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
       const guardCol = headers.findIndex(h => 
         h.includes('guard') || h.includes('block type') || h.includes('property')
       );
+      const notesCol = headers.findIndex(h => h.includes('note'));
 
       // More lenient - if we have a move column and at least 2 data columns, try to parse
       if (moveCol === -1) {
@@ -206,8 +244,40 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
         const moveName = moveCol !== -1 ? $(cells[moveCol]).text().trim() : '';
         if (!moveName || moveName === '') return;
 
+        // Extract input notation from input column or move name
+        let inputNotation = '';
+        let keyboardButton = '';
+        
+        if (inputCol !== -1) {
+          const inputText = $(cells[inputCol]).text().trim();
+          // Extract FGC notation (e.g., "5L", "2M", "S1")
+          const fgcMatch = inputText.match(/(\d+[LMH]|[0-9]+S[12]|S[12]|T|2T|4T|6S[12]|j\.[0-9]+[LMH])/i);
+          if (fgcMatch) {
+            inputNotation = fgcMatch[1];
+          }
+          
+          // Extract keyboard button names
+          const buttonMatch = inputText.match(/(Light|Medium|Heavy|Special\s*[12]|L|M|H|S[12])/i);
+          if (buttonMatch) {
+            keyboardButton = buttonMatch[1];
+            // Normalize button names
+            keyboardButton = keyboardButton.replace(/Special\s*1/i, 'Special 1')
+                                           .replace(/Special\s*2/i, 'Special 2')
+                                           .replace(/^L$/i, 'Light')
+                                           .replace(/^M$/i, 'Medium')
+                                           .replace(/^H$/i, 'Heavy');
+          }
+        }
+        
+        // If no input column, try to extract from move name
+        if (!inputNotation && moveName.match(/^[0-9]+[LMH]|[0-9]+S[12]|S[12]|T|2T|4T/i)) {
+          inputNotation = moveName;
+        }
+
         const move: Move = {
           name: moveName,
+          input: inputNotation || undefined,
+          keyboardButton: keyboardButton || undefined,
           startup: startupCol !== -1 ? parseFrameValue($(cells[startupCol]).text()) : undefined,
           onHit: onHitCol !== -1 ? parseFrameValue($(cells[onHitCol]).text()) : undefined,
           onBlock: onBlockCol !== -1 ? parseFrameValue($(cells[onBlockCol]).text()) : undefined,
@@ -215,6 +285,27 @@ function extractMovesFromPage($: cheerio.CheerioAPI, championName: string): Move
           damage: damageCol !== -1 ? parseFrameValue($(cells[damageCol]).text()) : undefined,
           guard: guardCol !== -1 ? $(cells[guardCol]).text().trim() : undefined
         };
+        
+        // Generate input glyph if we have input notation
+        if (inputNotation) {
+          move.inputGlyph = generateInputGlyph(inputNotation);
+        }
+        
+        // Add active frames if available
+        if (activeCol !== -1) {
+          const activeValue = $(cells[activeCol]).text().trim();
+          if (activeValue && activeValue !== '-' && activeValue !== '') {
+            (move as any).active = parseFrameValue(activeValue);
+          }
+        }
+        
+        // Add notes if available
+        if (notesCol !== -1) {
+          const notesValue = $(cells[notesCol]).text().trim();
+          if (notesValue && notesValue !== '-' && notesValue !== '') {
+            (move as any).notes = notesValue;
+          }
+        }
 
         // Determine move type from name or context
         const nameLower = moveName.toLowerCase();

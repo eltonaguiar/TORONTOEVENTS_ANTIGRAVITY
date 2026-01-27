@@ -5,6 +5,9 @@
       "moves": [
         {
           "name": "5L",
+          "input": "5L",
+          "inputGlyph": "L",
+          "keyboardButton": "Light",
           "startup": 6,
           "onHit": 0,
           "onBlock": -1,
@@ -15,63 +18,90 @@
           "startup": 7,
           "onHit": -1,
           "onBlock": -2,
-          "type": "normal"
+          "type": "normal",
+          "input": "2L",
+          "inputGlyph": "↓ L",
+          "keyboardButton": "Light"
         },
         {
           "name": "3L",
           "startup": 9,
           "onHit": -1,
           "onBlock": -2,
-          "type": "normal"
+          "type": "normal",
+          "input": "3L",
+          "inputGlyph": "↘ L",
+          "keyboardButton": "Light"
         },
         {
           "name": "5M",
           "startup": 10,
           "onHit": -4,
           "onBlock": -5,
-          "type": "normal"
+          "type": "normal",
+          "input": "5M",
+          "inputGlyph": "M",
+          "keyboardButton": "Medium"
         },
         {
           "name": "2M",
           "startup": 10,
           "onHit": -2,
           "onBlock": -3,
-          "type": "normal"
+          "type": "normal",
+          "input": "2M",
+          "inputGlyph": "↓ M",
+          "keyboardButton": "Medium"
         },
         {
           "name": "3M",
           "startup": 22,
           "onHit": 5,
           "onBlock": -3,
-          "type": "normal"
+          "type": "normal",
+          "input": "3M",
+          "inputGlyph": "↘ M",
+          "keyboardButton": "Medium"
         },
         {
           "name": "5H",
           "startup": 13,
           "onHit": 1,
           "onBlock": -3,
-          "type": "normal"
+          "type": "normal",
+          "input": "5H",
+          "inputGlyph": "H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "2H",
           "startup": 13,
           "onHit": "Launch",
           "onBlock": -5,
-          "type": "normal"
+          "type": "normal",
+          "input": "2H",
+          "inputGlyph": "↓ H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "66H",
           "startup": 13,
           "onHit": 10,
           "onBlock": 1,
-          "type": "special"
+          "type": "special",
+          "input": "66H",
+          "inputGlyph": "66H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "2T",
           "startup": 12,
           "onHit": "Launch",
           "onBlock": -6,
-          "type": "special"
+          "type": "special",
+          "input": "2T",
+          "inputGlyph": "↓ T",
+          "keyboardButton": "Tag"
         }
       ]
     },
@@ -83,56 +113,80 @@
           "startup": 5,
           "onBlock": -2,
           "recovery": 20,
-          "type": "normal"
+          "type": "normal",
+          "input": "5L",
+          "inputGlyph": "L",
+          "keyboardButton": "Light"
         },
         {
           "name": "2L",
           "startup": 6,
           "onBlock": -1,
           "recovery": 20,
-          "type": "normal"
+          "type": "normal",
+          "input": "2L",
+          "inputGlyph": "↓ L",
+          "keyboardButton": "Light"
         },
         {
           "name": "5M",
           "startup": 8,
           "onBlock": -4,
           "recovery": 29,
-          "type": "normal"
+          "type": "normal",
+          "input": "5M",
+          "inputGlyph": "M",
+          "keyboardButton": "Medium"
         },
         {
           "name": "2M",
           "startup": 9,
           "onBlock": -4,
           "recovery": 30,
-          "type": "normal"
+          "type": "normal",
+          "input": "2M",
+          "inputGlyph": "↓ M",
+          "keyboardButton": "Medium"
         },
         {
           "name": "5H",
           "startup": 13,
           "onBlock": -7,
           "recovery": 40,
-          "type": "normal"
+          "type": "normal",
+          "input": "5H",
+          "inputGlyph": "H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "2H",
           "startup": 15,
           "onBlock": -8,
           "recovery": 41,
-          "type": "normal"
+          "type": "normal",
+          "input": "2H",
+          "inputGlyph": "↓ H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "3H",
           "startup": 18,
           "onBlock": -6,
           "recovery": 44,
-          "type": "normal"
+          "type": "normal",
+          "input": "3H",
+          "inputGlyph": "↘ H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "2T",
           "startup": 9,
           "onBlock": -6,
           "recovery": 43,
-          "type": "special"
+          "type": "special",
+          "input": "2T",
+          "inputGlyph": "↓ T",
+          "keyboardButton": "Tag"
         }
       ]
     },
@@ -146,7 +200,10 @@
           "recovery": 12,
           "onBlock": -2,
           "type": "normal",
-          "notes": "Fastest normal, safe pressure starter"
+          "notes": "Fastest normal, safe pressure starter",
+          "input": "5L",
+          "inputGlyph": "L",
+          "keyboardButton": "Light"
         },
         {
           "name": "2L",
@@ -155,7 +212,10 @@
           "recovery": 12,
           "onBlock": -3,
           "type": "normal",
-          "notes": "Fast low check, good stagger tool"
+          "notes": "Fast low check, good stagger tool",
+          "input": "2L",
+          "inputGlyph": "↓ L",
+          "keyboardButton": "Light"
         },
         {
           "name": "Prod",
@@ -173,7 +233,10 @@
           "recovery": 20,
           "onBlock": -5,
           "type": "normal",
-          "notes": "Long active frames, strong stagger"
+          "notes": "Long active frames, strong stagger",
+          "input": "2M",
+          "inputGlyph": "↓ M",
+          "keyboardButton": "Medium"
         },
         {
           "name": "j.2H",
@@ -182,7 +245,10 @@
           "recovery": 18,
           "onBlock": "-2~+15",
           "type": "normal",
-          "notes": "Cross-up splash; very plus when spaced"
+          "notes": "Cross-up splash; very plus when spaced",
+          "input": "j.2H",
+          "inputGlyph": "j.j.2H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "Rocket Grab",
@@ -200,7 +266,10 @@
           "recovery": 33,
           "onBlock": -16,
           "type": "normal",
-          "notes": "Huge recovery if baited"
+          "notes": "Huge recovery if baited",
+          "input": "2H",
+          "inputGlyph": "↓ H",
+          "keyboardButton": "Heavy"
         },
         {
           "name": "Spinning Turbine",
