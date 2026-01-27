@@ -278,11 +278,13 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     };
 
     const validEvents = useMemo(() => {
+        console.log(`🔍 [validEvents] Computing with now=${now?.toISOString()}, sourceEvents=${sourceEvents.length}, dateFilter=${dateFilter}, showStarted=${showStarted}`);
+        
         // CRITICAL FIX: If 'now' is not set, return events without date filtering
         // This prevents empty page on initial load
         if (!now) {
             console.log(`⚠️ [EventFeed] 'now' not set yet, showing ${sourceEvents.length} events without date filtering`);
-            return sourceEvents.filter((e: Event) => {
+            const filtered = sourceEvents.filter((e: Event) => {
                 // Apply basic filters that don't require 'now'
                 if (settings.viewMode === 'saved' && !settings.savedEvents?.some((saved: Event) => saved.id === e.id)) {
                     return false;
@@ -322,8 +324,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 
                 return true;
             });
+            console.log(`✅ [validEvents] No 'now' - returning ${filtered.length} events`);
+            return filtered;
         }
         
+        console.log(`🔄 [validEvents] 'now' is set, applying full filters...`);
         const filtered = sourceEvents
             .filter((e: Event) => {
                 // DEBUG: Log first few events to see what's being filtered
@@ -443,7 +448,10 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         if (isNaN(eventStartDate.getTime())) {
                             // Invalid date - show the event anyway (don't filter out)
                             // This fixes the "0 events" issue when dates are malformed
-                            console.log(`✅ [Filter] Including event with invalid date: "${e.title.substring(0, 50)}"`);
+                            const eventIndex = sourceEvents.indexOf(e);
+                            if (eventIndex < 5) {
+                                console.log(`✅ [Filter] Including event with invalid date: "${e.title.substring(0, 50)}"`);
+                            }
                         } else {
                             const eventEndDate = e.endDate
                                 ? new Date(e.endDate)
@@ -457,19 +465,22 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                                 // Only filter if event ENDED (not just started)
                                 if (!isNaN(eventEndDate.getTime()) && eventEndDate < graceTime) {
                                     const eventIndex = sourceEvents.indexOf(e);
-                                    if (eventIndex < 3) {
+                                    if (eventIndex < 5) {
                                         console.log(`❌ [Filter] Filtering ended event: "${e.title.substring(0, 50)}" (ended: ${eventEndDate.toISOString()}, now: ${now.toISOString()})`);
                                     }
                                     return false;
                                 }
                                 // DON'T filter events that just started - only filter if they ENDED
                                 // This is the key fix: we were filtering started events, now we only filter ended events
+                                
+                                // CRITICAL: Don't filter events that started but haven't ended yet
+                                // The old code was: if (eventStartDate < now) return false; - this was wrong!
                             } else {
                                 // Multi-Day in Feed: Hide if totally over (with grace period)
                                 const gracePeriod = 60 * 60 * 1000; // 1 hour
                                 if (!isNaN(eventEndDate.getTime()) && eventEndDate < new Date(now.getTime() - gracePeriod)) {
                                     const eventIndex = sourceEvents.indexOf(e);
-                                    if (eventIndex < 3) {
+                                    if (eventIndex < 5) {
                                         console.log(`❌ [Filter] Filtering ended multi-day event: "${e.title.substring(0, 50)}"`);
                                     }
                                     return false;
@@ -570,7 +581,20 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             console.error(`   Show started: ${showStarted}`);
             console.error(`   Hide sold out: ${settings.hideSoldOut}`);
             console.error(`   Max price: ${maxPrice}`);
+            console.error(`   Show expensive: ${showExpensive}`);
             console.error(`   Now: ${now?.toISOString()}`);
+            console.error(`   View mode: ${settings.viewMode}`);
+            
+            // Sample first few events to see why they're filtered
+            const sampleEvents = sourceEvents.slice(0, 5);
+            sampleEvents.forEach((e, idx) => {
+                const eventDate = new Date(e.date);
+                const isDateValid = !isNaN(eventDate.getTime());
+                const isPast = isDateValid && eventDate < now!;
+                const isExpensive = e.priceAmount !== undefined && e.priceAmount > maxPrice;
+                const isSoldOut = e.isSoldOut === true;
+                console.error(`   Sample ${idx + 1}: "${e.title.substring(0, 40)}" - dateValid: ${isDateValid}, isPast: ${isPast}, isExpensive: ${isExpensive}, isSoldOut: ${isSoldOut}, date: ${e.date}`);
+            });
         }
         
         return filtered.sort((a: Event, b: Event) => {
