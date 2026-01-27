@@ -10,37 +10,69 @@ export class AllEventsScraper implements ScraperSource {
     /**
      * Find Eventbrite link in AllEvents.in page
      * Returns the Eventbrite URL if found, null otherwise
+     * ENHANCED: More aggressive link detection
      */
     private findEventbriteLink($: cheerio.CheerioAPI): string | null {
-        // Look for Eventbrite links in various places
+        // Look for Eventbrite links in various places - expanded selectors
         const eventbriteSelectors = [
             'a[href*="eventbrite.com"]',
             'a[href*="eventbrite.ca"]',
             '.ticket-link[href*="eventbrite"]',
             '.buy-tickets[href*="eventbrite"]',
             '[data-ticket-url*="eventbrite"]',
-            '.event-ticket-link[href*="eventbrite"]'
+            '.event-ticket-link[href*="eventbrite"]',
+            'a[href*="/tickets"]', // Common pattern
+            '[class*="ticket"][href*="eventbrite"]',
+            '[class*="buy"][href*="eventbrite"]'
         ];
 
         for (const selector of eventbriteSelectors) {
-            const link = $(selector).first().attr('href');
-            if (link && (link.includes('eventbrite.com') || link.includes('eventbrite.ca'))) {
-                // Make absolute if relative
-                if (link.startsWith('http')) {
-                    return link;
-                } else if (link.startsWith('//')) {
-                    return `https:${link}`;
-                } else {
-                    return `https://www.eventbrite.ca${link.startsWith('/') ? '' : '/'}${link}`;
+            const links = $(selector);
+            for (let i = 0; i < links.length; i++) {
+                const link = $(links[i]).attr('href');
+                if (link && (link.includes('eventbrite.com') || link.includes('eventbrite.ca'))) {
+                    // Clean and normalize the URL
+                    let cleanUrl = link.trim();
+                    // Remove query parameters that might break the URL
+                    if (cleanUrl.includes('?')) {
+                        cleanUrl = cleanUrl.split('?')[0];
+                    }
+                    // Make absolute if relative
+                    if (cleanUrl.startsWith('http')) {
+                        return cleanUrl;
+                    } else if (cleanUrl.startsWith('//')) {
+                        return `https:${cleanUrl}`;
+                    } else {
+                        return `https://www.eventbrite.ca${cleanUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
+                    }
                 }
             }
         }
 
-        // Also check in text content for Eventbrite URLs
+        // Also check in text content for Eventbrite URLs - more patterns
         const pageText = $.text();
-        const eventbriteUrlMatch = pageText.match(/https?:\/\/(?:www\.)?eventbrite\.(?:com|ca)\/[^\s<>"']+/i);
-        if (eventbriteUrlMatch) {
-            return eventbriteUrlMatch[0];
+        const pageHtml = $.html();
+        
+        // Try multiple URL patterns
+        const urlPatterns = [
+            /https?:\/\/(?:www\.)?eventbrite\.(?:com|ca)\/e\/[^\s<>"']+/i,
+            /https?:\/\/(?:www\.)?eventbrite\.(?:com|ca)\/[^\s<>"']+/i,
+            /eventbrite\.(?:com|ca)\/e\/[^\s<>"']+/i
+        ];
+        
+        for (const pattern of urlPatterns) {
+            const match = pageText.match(pattern) || pageHtml.match(pattern);
+            if (match) {
+                let url = match[0];
+                if (!url.startsWith('http')) {
+                    url = `https://${url}`;
+                }
+                // Clean URL
+                if (url.includes('?')) {
+                    url = url.split('?')[0];
+                }
+                return url;
+            }
         }
 
         // Check JSON-LD for Eventbrite URLs
@@ -48,13 +80,25 @@ export class AllEventsScraper implements ScraperSource {
         for (let i = 0; i < scriptData.length; i++) {
             try {
                 const json = JSON.parse($(scriptData[i]).html() || '{}');
-                if (json.url && typeof json.url === 'string' && json.url.includes('eventbrite')) {
-                    return json.url;
-                }
-                if (json.offers && Array.isArray(json.offers)) {
-                    for (const offer of json.offers) {
-                        if (offer.url && offer.url.includes('eventbrite')) {
-                            return offer.url;
+                const items = Array.isArray(json) ? json : [json];
+                
+                for (const item of items) {
+                    if (item.url && typeof item.url === 'string' && item.url.includes('eventbrite')) {
+                        return item.url;
+                    }
+                    if (item.offers && Array.isArray(item.offers)) {
+                        for (const offer of item.offers) {
+                            if (offer.url && offer.url.includes('eventbrite')) {
+                                return offer.url;
+                            }
+                        }
+                    }
+                    // Check nested structures
+                    if (item['@graph'] && Array.isArray(item['@graph'])) {
+                        for (const graphItem of item['@graph']) {
+                            if (graphItem.url && graphItem.url.includes('eventbrite')) {
+                                return graphItem.url;
+                            }
                         }
                     }
                 }

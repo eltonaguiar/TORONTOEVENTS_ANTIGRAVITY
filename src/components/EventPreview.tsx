@@ -4,6 +4,12 @@ import { createPortal } from 'react-dom';
 import { Event } from '../lib/types';
 import { useSettings } from '../context/SettingsContext';
 import { inferSoldOutStatus } from '../lib/scraper/utils';
+import { safeParseDate, formatDateForDisplay, formatTimeForDisplay } from '../lib/utils/dateHelpers';
+import { safeParsePrice, formatPriceRange, formatPrice } from '../lib/utils/priceHelpers';
+import { safeGetDescription } from '../lib/utils/descriptionHelpers';
+import { formatLocation } from '../lib/utils/locationHelpers';
+import { getEventImage } from '../lib/utils/imageHelpers';
+import { getEventBadges } from '../lib/utils/badgeHelpers';
 
 interface EventPreviewProps {
     event: Event;
@@ -617,17 +623,26 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                 {/* DETAILS PANE (Requested Layout) */}
                 {(mode === 'details' || mode === 'split') && (
                     <div className={`flex flex-col overflow-y-auto custom-scrollbar ${mode === 'split' ? 'w-1/3 border-r border-white/10 shrink-0' : 'w-full'}`}>
-                        {event.image && (
-                            <div className="w-full h-80 shrink-0 relative">
-                                <img src={event.image} alt={event.title} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] via-transparent to-black/20" />
-                                {isSoldOut && (
-                                    <div className="absolute top-4 left-4 px-4 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">
-                                        Sold Out
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        {(() => {
+                            const eventImage = getEventImage(event.image, event.title);
+                            const isDefaultImage = eventImage === getEventImage(null);
+                            return (
+                                <div className="w-full h-80 shrink-0 relative">
+                                    <img 
+                                        src={eventImage} 
+                                        alt={isDefaultImage ? `${event.title} - Event image not available` : event.title} 
+                                        className="w-full h-full object-cover"
+                                        loading="lazy"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0b] via-transparent to-black/20" />
+                                    {isSoldOut && (
+                                        <div className="absolute top-4 left-4 px-4 py-1.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-2xl">
+                                            Sold Out
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* Toronto Dating Hub Priority Notice */}
                         {isTDHBypassed && (
@@ -671,35 +686,38 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                                     )}
                                     {/* Status Badges */}
                                     <div className="flex flex-wrap gap-2 mt-2">
-                                        {isSoldOut && (
-                                            <span className="px-3 py-1 bg-red-600/30 border border-red-600 rounded-full text-[10px] font-black uppercase tracking-widest text-red-400">
-                                                ⚠️ Sold Out
-                                            </span>
-                                        )}
-                                        {event.status === 'CANCELLED' && (
-                                            <span className="px-3 py-1 bg-red-600/30 border border-red-600 rounded-full text-[10px] font-black uppercase tracking-widest text-red-400">
-                                                ❌ Cancelled
-                                            </span>
-                                        )}
-                                        {event.status === 'MOVED' && (
-                                            <span className="px-3 py-1 bg-yellow-600/30 border border-yellow-600 rounded-full text-[10px] font-black uppercase tracking-widest text-yellow-400">
-                                                📍 Moved
-                                            </span>
-                                        )}
-                                        {event.isFree && (
-                                            <span className="px-3 py-1 bg-green-600/30 border border-green-600 rounded-full text-[10px] font-black uppercase tracking-widest text-green-400">
-                                                🎉 Free Event
-                                            </span>
-                                        )}
+                                        {(() => {
+                                            const badges = getEventBadges(event);
+                                            return badges.map((badge, idx) => (
+                                                <span 
+                                                    key={idx}
+                                                    className={`px-3 py-1 ${badge.bgColor} border ${badge.borderColor} rounded-full text-[10px] font-black uppercase tracking-widest ${badge.color}`}
+                                                    role="status"
+                                                    aria-label={badge.label}
+                                                >
+                                                    {badge.label}
+                                                </span>
+                                            ));
+                                        })()}
                                     </div>
                                 </div>
                                 {/* Prominent Price Display */}
                                 <div className="shrink-0 px-6 py-3 bg-[var(--pk-500)]/20 border-2 border-[var(--pk-500)] rounded-2xl">
                                     <div className="text-[10px] uppercase font-black text-white/60 tracking-widest mb-1">Price</div>
-                                    <div className="text-2xl font-black text-[var(--pk-300)]">{event.price || 'Free'}</div>
-                                    {event.priceAmount !== undefined && event.priceAmount > 0 && (
-                                        <div className="text-[9px] text-white/50 mt-0.5">CAD ${event.priceAmount.toFixed(2)}</div>
-                                    )}
+                                    {(() => {
+                                        const priceResult = safeParsePrice(event.price, event.priceAmount, event.id, event.title);
+                                        return (
+                                            <>
+                                                <div className="text-2xl font-black text-[var(--pk-300)]">{priceResult.price}</div>
+                                                {priceResult.priceAmount !== undefined && priceResult.priceAmount > 0 && (
+                                                    <div className="text-[9px] text-white/50 mt-0.5">CAD ${priceResult.priceAmount.toFixed(2)}</div>
+                                                )}
+                                                {!priceResult.isValid && (
+                                                    <div className="text-[9px] text-yellow-400/70 mt-0.5">⚠️ Price not available</div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                             <div className="flex flex-wrap gap-2 mb-6">
@@ -717,39 +735,56 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             <div className="space-y-1">
                                 <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📅 Date & Time</span>
                                 <div className="flex flex-col">
-                                    <span className="font-bold text-white">
-                                        {new Date(event.date).toLocaleDateString('en-US', { 
-                                            month: 'short', 
-                                            day: 'numeric',
-                                            year: new Date(event.date).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-                                        })}
-                                    </span>
-                                    <span className="text-[var(--pk-300)] text-sm font-bold">
-                                        {new Date(event.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' })}
-                                    </span>
-                                    {event.endDate && (
-                                        <>
-                                            <span className="text-[10px] text-white/40 mt-1">Until</span>
-                                            <span className="text-[var(--pk-400)] text-xs font-bold">
-                                                {new Date(event.endDate).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-                                            </span>
-                                            {(() => {
-                                                const start = new Date(event.date);
-                                                const end = new Date(event.endDate);
-                                                const durationMs = end.getTime() - start.getTime();
-                                                const hours = Math.floor(durationMs / (1000 * 60 * 60));
-                                                const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
-                                                if (hours > 0 || minutes > 0) {
-                                                    return (
-                                                        <span className="text-[9px] text-white/50 mt-0.5">
-                                                            ({hours > 0 ? `${hours}h ` : ''}{minutes > 0 ? `${minutes}m` : ''})
+                                    {(() => {
+                                        const startDateResult = safeParseDate(event.date, event.id, event.title);
+                                        const endDateResult = event.endDate ? safeParseDate(event.endDate, event.id, event.title) : null;
+                                        
+                                        if (!startDateResult.isValid) {
+                                            return (
+                                                <div className="text-yellow-400/70 text-sm">
+                                                    ⚠️ Invalid Date
+                                                </div>
+                                            );
+                                        }
+
+                                        const startDate = startDateResult.date!;
+                                        const currentYear = new Date().getFullYear();
+                                        const eventYear = startDate.getFullYear();
+                                        
+                                        return (
+                                            <>
+                                                <span className="font-bold text-white">
+                                                    {formatDateForDisplay(startDate, {
+                                                        includeYear: eventYear !== currentYear
+                                                    })}
+                                                </span>
+                                                <span className="text-[var(--pk-300)] text-sm font-bold">
+                                                    {formatTimeForDisplay(startDate)}
+                                                </span>
+                                                {endDateResult?.isValid && endDateResult.date && (
+                                                    <>
+                                                        <span className="text-[10px] text-white/40 mt-1">Until</span>
+                                                        <span className="text-[var(--pk-400)] text-xs font-bold">
+                                                            {formatTimeForDisplay(endDateResult.date)}
                                                         </span>
-                                                    );
-                                                }
-                                                return null;
-                                            })()}
-                                        </>
-                                    )}
+                                                        {(() => {
+                                                            const durationMs = endDateResult.date!.getTime() - startDate.getTime();
+                                                            const hours = Math.floor(durationMs / (1000 * 60 * 60));
+                                                            const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+                                                            if (hours > 0 || minutes > 0) {
+                                                                return (
+                                                                    <span className="text-[9px] text-white/50 mt-0.5">
+                                                                        ({hours > 0 ? `${hours}h ` : ''}{minutes > 0 ? `${minutes}m` : ''})
+                                                                    </span>
+                                                                );
+                                                            }
+                                                            return null;
+                                                        })()}
+                                                    </>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                             
@@ -757,7 +792,7 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             <div className="space-y-1">
                                 <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">📍 Location</span>
                                 <div className="flex flex-col">
-                                    <span className="font-bold text-white">{event.location}</span>
+                                    <span className="font-bold text-white" title={formatLocation(event)}>{formatLocation(event)}</span>
                                     {(event.latitude && event.longitude) && (
                                         <a
                                             href={`https://www.google.com/maps?q=${event.latitude},${event.longitude}`}
@@ -779,10 +814,35 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             <div className="space-y-1">
                                 <span className="text-[10px] uppercase font-black text-white/30 tracking-widest">💰 Price</span>
                                 <div className="flex flex-col">
-                                    <span className="font-bold text-white">{event.price || 'Free'}</span>
-                                    {event.priceAmount !== undefined && event.priceAmount > 0 && (
-                                        <span className="text-[10px] text-white/50">CAD ${event.priceAmount.toFixed(2)}</span>
-                                    )}
+                                    {(() => {
+                                        const priceResult = safeParsePrice(event.price, event.priceAmount, event.id, event.title);
+                                        
+                                        // Format based on user preference
+                                        let displayPrice = priceResult.price;
+                                        if (settings.priceDisplayFormat === 'range' && event.minPrice !== undefined && event.maxPrice !== undefined && event.minPrice !== event.maxPrice) {
+                                            displayPrice = formatPriceRange(event.minPrice, event.maxPrice);
+                                        } else if (settings.priceDisplayFormat === 'all-ticket-types' && event.ticketTypes && event.ticketTypes.length > 0) {
+                                            const ticketPrices = event.ticketTypes
+                                                .filter(t => t.price !== undefined)
+                                                .map(t => `${t.name}: ${t.priceDisplay || formatPrice(t.price)}`)
+                                                .join(', ');
+                                            if (ticketPrices) {
+                                                displayPrice = ticketPrices;
+                                            }
+                                        }
+                                        
+                                        return (
+                                            <>
+                                                <span className="font-bold text-white">{displayPrice}</span>
+                                                {priceResult.priceAmount !== undefined && priceResult.priceAmount > 0 && settings.priceDisplayFormat === 'single' && (
+                                                    <span className="text-[10px] text-white/50">CAD ${priceResult.priceAmount.toFixed(2)}</span>
+                                                )}
+                                                {!priceResult.isValid && (
+                                                    <span className="text-[9px] text-yellow-400/70">⚠️ Price not available</span>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                     {isSoldOut && (
                                         <span className="text-[9px] text-red-400 font-bold mt-1">SOLD OUT</span>
                                     )}
@@ -865,17 +925,20 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                             <h3 className="text-2xl font-black text-white uppercase tracking-tight">Description</h3>
                             <div className="prose prose-invert max-w-none leading-relaxed">
                                 <div className="text-base text-white/90 whitespace-pre-wrap break-words">
-                                    {event.description ? (
-                                        <div className="space-y-3">
-                                            {event.description.split('\n\n').map((paragraph, idx) => (
-                                                <p key={idx} className="mb-3 last:mb-0">
-                                                    {paragraph.trim()}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-white/50 italic">No further details provided by the host.</p>
-                                    )}
+                                    {(() => {
+                                        const description = safeGetDescription(event.description, 'No further details provided by the host.');
+                                        return description ? (
+                                            <div className="space-y-3">
+                                                {description.split('\n\n').map((paragraph, idx) => (
+                                                    <p key={idx} className="mb-3 last:mb-0">
+                                                        {paragraph.trim()}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-white/50 italic">No further details provided by the host.</p>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         </div>
@@ -1078,7 +1141,7 @@ export default function EventPreview({ event, onClose, isInline, anchor }: Event
                 height: '100vh',
                 zIndex: 100
             }}
-            onClick={onClose}
+            onClick={settings.autoCloseOnClickOutside ? onClose : undefined}
         >
             {content}
         </div>,

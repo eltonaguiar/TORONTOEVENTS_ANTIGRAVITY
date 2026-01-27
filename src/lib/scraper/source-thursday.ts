@@ -91,6 +91,81 @@ export class ThursdayScraper implements ScraperSource {
 
                     if (!title) continue;
 
+                    // Extract price from page
+                    let price = 'See App';
+                    let priceAmount: number | undefined;
+                    let minPrice: number | undefined;
+                    let maxPrice: number | undefined;
+                    let isFree = false;
+
+                    // Look for prices in the page text
+                    const bodyText = $d('body').text();
+                    const pricePatterns = [
+                        // Match "Early Bird $X" and "General Admission $Y"
+                        /(?:early bird|general admission|ticket)\s*(?:is|for|:)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/gi,
+                        // Match dollar amounts
+                        /\$\s*(\d+(?:\.\d{2})?)/g,
+                        // Match prices in text
+                        /(?:price|cost|ticket)\s*(?:is|of|for|:)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/gi
+                    ];
+
+                    const prices: number[] = [];
+                    for (const pattern of pricePatterns) {
+                        const matches = [...bodyText.matchAll(pattern)];
+                        for (const match of matches) {
+                            const p = parseFloat(match[1]);
+                            // Filter reasonable prices (between $0 and $200 for Thursday events)
+                            if (!isNaN(p) && p >= 0 && p <= 200) {
+                                // Filter out common false positives (years, ages, etc.)
+                                if (p !== 2024 && p !== 2025 && p !== 2026 && p !== 19 && p !== 21) {
+                                    prices.push(p);
+                                }
+                            }
+                        }
+                    }
+
+                    // Remove duplicates and sort
+                    const uniquePrices = [...new Set(prices)].sort((a, b) => a - b);
+
+                    if (uniquePrices.length > 0) {
+                        minPrice = uniquePrices[0];
+                        maxPrice = uniquePrices[uniquePrices.length - 1];
+                        priceAmount = minPrice;
+                        price = maxPrice > minPrice ? `$${minPrice} - $${maxPrice}` : `$${minPrice}`;
+                        isFree = minPrice === 0;
+                    }
+
+                    // Check JSON-LD for offers/prices
+                    if (ldScript && !priceAmount) {
+                        try {
+                            const data = JSON.parse(ldScript);
+                            const items = Array.isArray(data) ? data : [data];
+                            const eventData = items.find(i => i['@type'] === 'Event' || (Array.isArray(i['@type']) && i['@type'].includes('Event')));
+                            
+                            if (eventData?.offers) {
+                                const offers = Array.isArray(eventData.offers) ? eventData.offers : [eventData.offers];
+                                const offerPrices = offers
+                                    .map((o: any) => {
+                                        if (typeof o.price === 'number') return o.price;
+                                        if (typeof o.price === 'string') {
+                                            const match = o.price.match(/(\d+(?:\.\d{2})?)/);
+                                            return match ? parseFloat(match[1]) : null;
+                                        }
+                                        return null;
+                                    })
+                                    .filter((p: any) => p !== null && p >= 0 && p <= 200) as number[];
+
+                                if (offerPrices.length > 0) {
+                                    minPrice = Math.min(...offerPrices);
+                                    maxPrice = Math.max(...offerPrices);
+                                    priceAmount = minPrice;
+                                    price = maxPrice > minPrice ? `$${minPrice} - $${maxPrice}` : `$${minPrice}`;
+                                    isFree = minPrice === 0;
+                                }
+                            }
+                        } catch (e) { }
+                    }
+
                     const event: Event = {
                         id: generateEventId(link),
                         title: title,
@@ -100,8 +175,11 @@ export class ThursdayScraper implements ScraperSource {
                         host: 'Thursday App',
                         url: link,
                         image: image,
-                        price: 'See App', // Usually requires app for tickets
-                        isFree: false,
+                        price: price,
+                        priceAmount: priceAmount,
+                        minPrice: minPrice,
+                        maxPrice: maxPrice,
+                        isFree: isFree,
                         description: description,
                         latitude,
                         longitude,

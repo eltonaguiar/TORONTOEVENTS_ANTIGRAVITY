@@ -5,6 +5,8 @@ import EventFeed from '../components/EventFeed';
 import ChatAssistant from '../components/ChatAssistant';
 import AdUnit from '../components/AdUnit';
 import WindowsFixerPromo from '../components/WindowsFixerPromo';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { EventFeedSkeleton } from '../components/LoadingSkeleton';
 
 const VERSION = 'v0.5.0';
 
@@ -31,7 +33,7 @@ export default function Home() {
   const lastUpdated = formatLastUpdated(metadata?.lastUpdated || null);
 
   return (
-    <main className="min-h-screen pb-20">
+    <main className="min-h-screen">
       {/* Hero */}
       <header className="relative py-20 px-6 text-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[var(--pk-900)] to-[var(--surface-0)] opacity-50 -z-10" />
@@ -56,17 +58,18 @@ export default function Home() {
         <AdUnit slot="1234567890" format="horizontal" className="mb-8" />
       </div>
 
-      {eventsLoading ? (
-        <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[var(--pk-500)] border-t-transparent"></div>
-          <p className="mt-4 text-[var(--text-2)]">Loading events...</p>
-        </div>
-      ) : (
-        <>
-          <EventFeed events={allEvents} />
-          <ChatAssistant allEvents={allEvents} />
-        </>
-      )}
+      <ErrorBoundary>
+        {eventsLoading ? (
+          <div className="max-w-7xl mx-auto px-4 py-20">
+            <EventFeedSkeleton count={12} />
+          </div>
+        ) : (
+          <>
+            <EventFeed events={allEvents} />
+            <ChatAssistant allEvents={allEvents} />
+          </>
+        )}
+      </ErrorBoundary>
 
       {/* In-Feed Ad */}
       <div className="max-w-7xl mx-auto px-4 py-8">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, memo } from 'react';
 import { Event } from '../lib/types';
 import { isMultiDay, inferSoldOutStatus } from '../lib/scraper/utils';
 import EventCard from './EventCard';
@@ -8,6 +8,10 @@ import EventPreview from './EventPreview';
 import InlinePreviewWithIndicator from './InlinePreviewWithIndicator';
 import { useSettings } from '../context/SettingsContext';
 import { geocodePostalCode, geocodeAddress, getBrowserLocation } from '../lib/geolocation';
+import InfiniteScroll from './InfiniteScroll';
+import { EventFeedSkeleton } from './LoadingSkeleton';
+import { formatLocation } from '../lib/utils/locationHelpers';
+import { safeParseDate, formatDateForDisplay, formatTimeForDisplay } from '../lib/utils/dateHelpers';
 
 interface EventFeedProps {
     events: Event[];
@@ -50,6 +54,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     const [maxPrice, setMaxPrice] = useState<number>(120);
     const [showExpensive, setShowExpensive] = useState(false);
     const [showStarted, setShowStarted] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(20); // Initial visible events count
+    const [isLoading, setIsLoading] = useState(false);
+
+    // New Features
+    const { settings, updateSettings, importEvents, setIsSettingsOpen } = useSettings();
 
     // Haversine formula for distance
     const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -62,9 +71,6 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     };
-
-    // New Features
-    const { settings, updateSettings, importEvents, setIsSettingsOpen } = useSettings();
 
     // Geocoding Effect - Handle location based on locationSource setting
     useEffect(() => {
@@ -134,6 +140,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     // Removed local viewMode state
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: keyof Event | 'priceAmount', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'asc' });
+
+    // Reset visible count when filters change
+    useEffect(() => {
+        setVisibleCount(20);
+    }, [dateFilter, selectedCategory, selectedSource, selectedHost, maxPrice, showExpensive, showStarted, searchQuery, settings.viewMode]);
 
     const handleExport = () => {
         const eventsToExport = settings.savedEvents.length > 0 ? settings.savedEvents : validEvents;
@@ -489,30 +500,38 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         // Returning full list might cause flash. Returning empty is safer.
         // Actually, if we just rely on 'validEvents' handling 'now', it's fine.
 
+        let events: Event[];
         if (dateFilter !== 'all') {
             // MERGED VIEW Logic for Specific Dates (Today, Tomorrow, etc)
             // Goal: Show EVERYTHING happening on that day.
-
-            // 1. Force inclusion of Started events if filtering by specific date (Today)
-            // The user wants to see "Today's events". Even if it started at 10 AM and it's 2 PM, 
-            // it's still "Today's event". The 'Started' toggle usually hides things for the generic 'Upcoming' feed
-            // where you only care about future things. But for 'Today', you want to see the whole menu.
-
-            // We can't re-filter 'sourceEvents' easily here without duplicate logic. 
-            // But we can check if we should relax the 'validEvents' logic.
-            // Actually, I modified 'validEvents' to handle dateFilter logic inside it, BUT
-            // 'validEvents' has a "Started" check that runs BEFORE date check.
-
-            // Let's refactor 'validEvents' to be more permissive if dateFilter is active.
-            // (See validEvents change below).
-
-            return validEvents;
+            events = validEvents;
         } else {
             // Standard Split View for Global Feed
             // Here we respect the "Multi-Day" separation
-            return validEvents.filter(e => !isMultiDay(e));
+            events = validEvents.filter(e => !isMultiDay(e));
         }
-    }, [validEvents, dateFilter]);
+
+        // Apply pagination/infinite scroll limit
+        return events.slice(0, visibleCount);
+    }, [validEvents, dateFilter, visibleCount]);
+
+    const hasMoreEvents = useMemo(() => {
+        let totalEvents: Event[];
+        if (dateFilter !== 'all') {
+            totalEvents = validEvents;
+        } else {
+            totalEvents = validEvents.filter(e => !isMultiDay(e));
+        }
+        return visibleCount < totalEvents.length;
+    }, [validEvents, dateFilter, visibleCount]);
+
+    const loadMoreEvents = useCallback(() => {
+        if (!isLoading && hasMoreEvents) {
+            setIsLoading(true);
+            setVisibleCount(prev => Math.min(prev + 20, validEvents.length));
+            setTimeout(() => setIsLoading(false), 100);
+        }
+    }, [isLoading, hasMoreEvents, validEvents.length]);
 
     const separateMultiDayList = useMemo(() => {
         if (dateFilter !== 'all') return []; // We merged them
@@ -862,24 +881,40 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 </div>
 
                 {settings.viewLayout === 'feed' ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {displayEvents.map(event => {
-                            const endDate = event.endDate ? new Date(event.endDate) : new Date(new Date(event.date).getTime() + 3 * 60 * 60 * 1000);
-                            const isEnded = now && endDate < now;
+                    <InfiniteScroll
+                        hasMore={hasMoreEvents}
+                        loadMore={loadMoreEvents}
+                        loader={<EventFeedSkeleton count={4} />}
+                        endMessage={displayEvents.length > 0 ? "You've reached the end of the event list." : null}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {displayEvents.map(event => {
+                                const endDate = event.endDate ? new Date(event.endDate) : new Date(new Date(event.date).getTime() + 3 * 60 * 60 * 1000);
+                                const isEnded = now && endDate < now;
 
-                            return (
-                                <div key={event.id} className={`relative group h-[400px] ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}>
-                                    {/* Visual Indicator for Past Events in Saved View OR Today View */}
-                                    {((settings.viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
-                                        <div className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20">
-                                            PAST
-                                        </div>
-                                    )}
-                                    <EventCard event={event} onPreview={(rect) => handlePreview(event, rect)} />
-                                </div>
-                            )
-                        })}
-                    </div>
+                                return (
+                                    <div 
+                                        key={event.id} 
+                                        className={`relative group h-[400px] ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}
+                                        role="article"
+                                        aria-label={`Event: ${event.title}`}
+                                    >
+                                        {/* Visual Indicator for Past Events in Saved View OR Today View */}
+                                        {((settings.viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
+                                            <div 
+                                                className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20"
+                                                role="status"
+                                                aria-label="Past event"
+                                            >
+                                                PAST
+                                            </div>
+                                        )}
+                                        <EventCard event={event} onPreview={(rect) => handlePreview(event, rect)} />
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </InfiniteScroll>
                 ) : (
                     /* Table View */
                     <div className="glass-panel overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl overflow-x-auto">
@@ -900,7 +935,19 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                                                 key: col.key as any,
                                                 direction: sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
                                             })}
-                                            className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] cursor-pointer hover:bg-white/5 transition-colors"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    setSortConfig({
+                                                        key: col.key as any,
+                                                        direction: sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                                                    });
+                                                }
+                                            }}
+                                            tabIndex={0}
+                                            role="columnheader"
+                                            aria-sort={sortConfig.key === col.key ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                            className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] cursor-pointer hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--pk-500)]"
                                         >
                                             <div className="flex items-center gap-2">
                                                 {col.label}
@@ -924,11 +971,19 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-xs font-bold text-[var(--text-2)] whitespace-nowrap">
-                                                {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                                                {(() => {
+                                                    const dateResult = safeParseDate(event.date, event.id, event.title);
+                                                    if (dateResult.isValid && dateResult.date) {
+                                                        return formatDateForDisplay(dateResult.date, { includeTime: true });
+                                                    }
+                                                    return 'Invalid Date';
+                                                })()}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-xs font-bold text-[var(--text-3)] line-clamp-1">{event.location}</div>
+                                            <div className="text-xs font-bold text-[var(--text-3)] line-clamp-1" title={formatLocation(event)}>
+                                                {formatLocation(event)}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-xs font-bold text-[var(--pk-300)] whitespace-nowrap">{event.host}</div>

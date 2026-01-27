@@ -44,6 +44,8 @@ interface Settings {
     maxDistanceKm: number;
     locationSource: 'browser' | 'postal-code' | 'address';
     viewMode: 'feed' | 'saved';
+    priceDisplayFormat: 'single' | 'range' | 'all-ticket-types';
+    autoCloseOnClickOutside: boolean;
 }
 
 interface SettingsContextType {
@@ -92,6 +94,8 @@ const defaultSettings: Settings = {
     maxDistanceKm: 10, // Default to 10km radius
     locationSource: 'browser',
     viewMode: 'feed', // Default view mode
+    priceDisplayFormat: 'single', // Default: show single price or range
+    autoCloseOnClickOutside: true, // Default: close popup when clicking outside
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

@@ -229,6 +229,22 @@ export class EventbriteScraper implements ScraperSource {
                                             status: 'UPCOMING',
                                             lastUpdated: new Date().toISOString()
                                         };
+                                        
+                                        // Log raw data for events with missing prices/dates
+                                        if (!priceAmount || !date) {
+                                            const { logRawEventData } = require('../utils/rawDataLogger');
+                                            logRawEventData(
+                                                eventId,
+                                                title,
+                                                'Eventbrite',
+                                                url,
+                                                eventItem.startDate || date,
+                                                eventItem.offers?.[0]?.price || String(priceAmount || ''),
+                                                priceAmount,
+                                                eventItem.description
+                                            );
+                                        }
+                                        
                                         events.push(event);
                                     }
                                 }
@@ -348,6 +364,22 @@ export class EventbriteScraper implements ScraperSource {
                                     status: 'UPCOMING',
                                     lastUpdated: new Date().toISOString()
                                 };
+                                
+                                // Log raw data for events with missing prices/dates
+                                if (!priceAmount || !date) {
+                                    const { logRawEventData } = require('../utils/rawDataLogger');
+                                    logRawEventData(
+                                        eventId,
+                                        title,
+                                        'Eventbrite',
+                                        url,
+                                        item.startDate || date,
+                                        item.offers?.[0]?.price || String(priceAmount || ''),
+                                        priceAmount,
+                                        item.description
+                                    );
+                                }
+                                
                                 events.push(event);
                             }
                         }
@@ -378,13 +410,29 @@ export class EventbriteScraper implements ScraperSource {
         // Enrich events without prices first, then others
         const eventsToEnrich = [...eventsWithoutPrices, ...eventsWithPrices];
         
+        // Check if Puppeteer is available (optional, for JavaScript-rendered content)
+        let usePuppeteer = false;
+        try {
+            const { isPuppeteerAvailable } = require('./puppeteer-scraper');
+            usePuppeteer = isPuppeteerAvailable() && process.env.USE_PUPPETEER === 'true';
+            if (usePuppeteer) {
+                console.log(`  🌐 Puppeteer enabled for dynamic content extraction`);
+            }
+        } catch {
+            // Puppeteer not installed, use static scraping only
+        }
+        
         console.log(`Enriching ${eventsToEnrich.length} events with comprehensive detail page data (${eventsWithoutPrices.length} without prices, ${eventsWithPrices.length} with prices)...`);
         console.log(`  📊 Extracting: prices, ticket types, full descriptions, start/end times, location details`);
         let successCount = 0;
         let priceUpdateCount = 0;
+        let puppeteerUsedCount = 0;
         
         for (const event of eventsToEnrich) {
-            const enrichment = await EventbriteDetailScraper.enrichEvent(event.url);
+            // Use Puppeteer for events that failed price extraction (if available)
+            const shouldUsePuppeteer = usePuppeteer && (!event.priceAmount || event.price === 'See tickets');
+            const enrichment = await EventbriteDetailScraper.enrichEvent(event.url, shouldUsePuppeteer);
+            if (shouldUsePuppeteer) puppeteerUsedCount++;
 
             // Update price from detail page if available (CRITICAL FIX)
             if (enrichment.priceAmount !== undefined && enrichment.price !== undefined) {
@@ -542,6 +590,9 @@ export class EventbriteScraper implements ScraperSource {
         
         console.log(`✓ Enriched ${successCount}/${uniqueEvents.length} events with details`);
         console.log(`✓ Updated prices for ${priceUpdateCount} events from detail pages`);
+        if (puppeteerUsedCount > 0) {
+            console.log(`✓ Used Puppeteer for ${puppeteerUsedCount} events with dynamic content`);
+        }
 
         return {
             events: uniqueEvents,

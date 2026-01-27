@@ -267,6 +267,19 @@ export default function SettingsManager() {
                                             <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${settings.isChatboxMode ? 'right-1' : 'left-1'}`} />
                                         </button>
                                     </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
+                                        <div className="flex flex-col">
+                                            <span className="text-xs font-black uppercase tracking-tight">Auto-Close on Click Outside</span>
+                                            <span className="text-[10px] opacity-50 font-bold">Close popup when clicking outside</span>
+                                        </div>
+                                        <button
+                                            onClick={() => updateSettings({ autoCloseOnClickOutside: !settings.autoCloseOnClickOutside })}
+                                            className={`w-12 h-6 rounded-full transition-all relative ${settings.autoCloseOnClickOutside ? 'bg-[var(--pk-500)] shadow-[0_0_15px_rgba(var(--pk-500-rgb),0.5)]' : 'bg-gray-700'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${settings.autoCloseOnClickOutside ? 'right-1' : 'left-1'}`} />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Intelligent Filtering */}
@@ -382,6 +395,30 @@ export default function SettingsManager() {
                                                 )}
                                             </div>
                                         )}
+                                    </div>
+
+                                    {/* Price Display Format */}
+                                    <div className="space-y-4 p-4 bg-gradient-to-br from-[var(--pk-500)]/10 to-purple-500/10 rounded-2xl border border-[var(--pk-500)]/20">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)]">💰 Price Display Format</label>
+                                        <div className="space-y-2">
+                                            <p className="text-[9px] opacity-60 font-bold text-[var(--pk-200)]">Choose how prices are displayed on event cards</p>
+                                            <div className="grid grid-cols-1 gap-2">
+                                                {[
+                                                    { id: 'single', label: 'Single Price', desc: 'Show minimum price or "See tickets"' },
+                                                    { id: 'range', label: 'Price Range', desc: 'Show min - max when available (e.g., $25 - $75)' },
+                                                    { id: 'all-ticket-types', label: 'All Ticket Types', desc: 'List all ticket types with prices' }
+                                                ].map(format => (
+                                                    <button
+                                                        key={format.id}
+                                                        onClick={() => updateSettings({ priceDisplayFormat: format.id as any })}
+                                                        className={`p-3 rounded-xl border-2 transition-all text-left flex flex-col gap-1 ${settings.priceDisplayFormat === format.id ? 'border-[var(--pk-500)] bg-[var(--pk-500)]/20 shadow-[0_0_15px_rgba(var(--pk-500-rgb),0.3)]' : 'border-white/5 bg-black/20 opacity-60 hover:opacity-80'}`}
+                                                    >
+                                                        <span className="text-xs font-black uppercase tracking-tight">{format.label}</span>
+                                                        <span className="text-[9px] opacity-60 font-bold">{format.desc}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {/* Keyword Blacklist */}

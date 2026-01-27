@@ -51,7 +51,13 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
             inputStr = inputStr.replace(' - ', ' ');
         }
 
+        // Enhanced date parsing with better error handling
         let date = new Date(inputStr);
+        
+        // Log parsing attempts for debugging (only in development)
+        if (process.env.NODE_ENV === 'development' && isNaN(date.getTime())) {
+            console.log(`[Date Parsing] Attempting to parse: "${inputStr}"`);
+        }
 
         // Handle year-less dates (e.g., "Aug 21")
         if ((isNaN(date.getTime()) || date.getFullYear() === 2001) && inputStr.match(/[a-z]{3},\s+\d+\s+[a-z]{3}/i)) {

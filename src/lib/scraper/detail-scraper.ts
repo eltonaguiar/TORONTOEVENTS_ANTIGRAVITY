@@ -40,20 +40,48 @@ export class EventbriteDetailScraper {
      * Consolidates multiple checks into a single HTTP request to avoid rate limiting
      * and improve performance significantly.
      */
-    static async enrichEvent(eventUrl: string): Promise<EventEnrichment> {
+    static async enrichEvent(eventUrl: string, usePuppeteer: boolean = false): Promise<EventEnrichment> {
         const result: EventEnrichment = {
             salesEnded: false,
             isRecurring: false
         };
 
         try {
-            const response = await axios.get(eventUrl, {
-                timeout: 10000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            let html: string;
+            
+            // Use Puppeteer if requested and available (for JavaScript-rendered content)
+            if (usePuppeteer) {
+                try {
+                    const { scrapeWithPuppeteer } = require('./puppeteer-scraper');
+                    html = await scrapeWithPuppeteer({
+                        url: eventUrl,
+                        waitForSelector: '[data-testid="price"], .event-price',
+                        waitForTime: 3000
+                    });
+                    console.log(`  🌐 Used Puppeteer for ${eventUrl.substring(0, 60)}...`);
+                } catch (puppeteerError: any) {
+                    console.log(`  ⚠️ Puppeteer failed, falling back to static: ${puppeteerError.message}`);
+                    // Fall through to static scraping
+                    const response = await axios.get(eventUrl, {
+                        timeout: 10000,
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                        }
+                    });
+                    html = response.data;
                 }
-            });
-            const $ = cheerio.load(response.data);
+            } else {
+                // Static scraping (default, faster)
+                const response = await axios.get(eventUrl, {
+                    timeout: 10000,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    }
+                });
+                html = response.data;
+            }
+            
+            const $ = cheerio.load(html);
             const bodyText = $('body').text();
 
             // 1. Extract REAL time from JSON-LD (start and end)
@@ -125,7 +153,7 @@ export class EventbriteDetailScraper {
             // Strategy: JSON-LD first, then HTML selectors, then text patterns
             let priceAmount: number | undefined;
             let price: string | undefined;
-            const prices: number[] = [];
+            let prices: number[] = [];
 
             // Method 1: Extract from JSON-LD structured data (most reliable)
             for (let i = 0; i < scripts.length; i++) {
@@ -224,37 +252,60 @@ export class EventbriteDetailScraper {
                 }
             }
 
-            // Method 3: Extract from body text patterns (fallback)
+            // Method 3: Extract from body text patterns (fallback) - ENHANCED
             if (prices.length === 0) {
+                // Get all text from the page including title, meta tags, and body
+                const pageTitle = $('title').text() || '';
+                const metaDescription = $('meta[name="description"]').attr('content') || '';
+                const allText = `${pageTitle} ${metaDescription} ${bodyText}`;
+                
+                // Enhanced price patterns - more aggressive matching
                 const bodyPricePatterns = [
-                    /(?:from|starting at|tickets from|regular price|price|cost|fee)\s*(?:is|for|of)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
+                    // Match "From $X", "Starting at $X", "Tickets from $X"
+                    /(?:from|starting at|tickets from|price from|cost from)\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
+                    // Match "Regular price $X", "Price: $X", "Cost: $X"
+                    /(?:regular|normal|standard|full|ticket|event)\s+price\s*(?:is|for|of|:)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
+                    // Match "Price $X", "Cost $X", "Fee $X"
+                    /(?:price|cost|fee|ticket)\s*(?:is|of|for)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
+                    // Match currency codes with prices
                     /(?:CA\$|CAD|C\$)\s*(\d+(?:\.\d{2})?)/i,
+                    // Match dollar signs with prices
                     /\$\s*(\d+(?:\.\d{2})?)/i,
-                    // Match prices in context like "Regular price for this service is $449"
-                    /(?:regular|normal|standard|full)\s+price\s+(?:for|is|of)?\s*(?:this|the)?\s*(?:service|event|ticket)?\s*(?:is)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i,
-                    // Match "Get your discounted price today! Regular price for this service is $449"
-                    /(?:discounted|sale|special)\s+price\s+(?:today|now)?[^.]*?(?:regular|normal|full)\s+price[^.]*?(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i
+                    // Match prices in parentheses or brackets
+                    /[\(\[](?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)\s*(?:CAD|CA\$|C\$)?[\)\]]/i,
+                    // Match "Early Bird $X", "VIP $X", etc.
+                    /(?:early bird|vip|general|standard|premium|basic)\s*(?:ticket|price)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d+(?:\.\d{2})?)/i
                 ];
 
                 for (const pattern of bodyPricePatterns) {
-                    const matches = bodyText.match(pattern);
+                    const matches = allText.match(pattern);
                     if (matches && matches[1]) {
                         const p = parseFloat(matches[1]);
                         if (!isNaN(p) && p >= 0 && p < 100000) {
                             prices.push(p);
-                            break;
+                            // Don't break - collect all prices to find min/max
                         }
                     }
                 }
                 
-                // Also search for all price mentions in description to catch high prices
-                const allPriceMatches = bodyText.matchAll(/(?:CA\$|CAD|C\$|\$)\s*(\d{3,}(?:\.\d{2})?)/gi);
+                // Also search for ALL price mentions in text (not just high prices)
+                // This catches prices that might be in various formats
+                const allPriceMatches = allText.matchAll(/(?:CA\$|CAD|C\$|\$)\s*(\d+(?:\.\d{2})?)/gi);
                 for (const match of allPriceMatches) {
                     const p = parseFloat(match[1]);
-                    // Only consider prices over $100 as they're likely the actual ticket price
-                    if (!isNaN(p) && p >= 100 && p < 100000) {
-                        prices.push(p);
+                    // Accept any reasonable price (not just >$100)
+                    // Filter out obviously wrong prices (like years, phone numbers, etc.)
+                    if (!isNaN(p) && p >= 0 && p < 100000 && p !== 2026 && p !== 2025 && p !== 2024) {
+                        // Skip if it looks like a year (4 digits starting with 20)
+                        if (!(p >= 2000 && p <= 2099 && p % 1 === 0)) {
+                            prices.push(p);
+                        }
                     }
+                }
+                
+                // Remove duplicates and sort
+                if (prices.length > 0) {
+                    prices = [...new Set(prices)].sort((a, b) => a - b);
                 }
             }
 
