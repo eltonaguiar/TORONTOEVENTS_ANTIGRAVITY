@@ -7,6 +7,7 @@ import EventCard from './EventCard';
 import EventPreview from './EventPreview';
 import InlinePreviewWithIndicator from './InlinePreviewWithIndicator';
 import { useSettings } from '../context/SettingsContext';
+import { geocodePostalCode, geocodeAddress, getBrowserLocation } from '../lib/geolocation';
 
 interface EventFeedProps {
     events: Event[];
@@ -32,27 +33,18 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         setPreviewAnchor(anchor || null);
     };
 
-    // Runtime Sync: Pull latest database from GitHub
+    // Runtime Sync: Pull latest database from GitHub (redundant - page.tsx already uses useEventsFromGitHub)
+    // This is kept for backward compatibility but events should come from props
     useEffect(() => {
-        const fetchLatest = async () => {
-            try {
-                // Point to the raw JSON on the main branch
-                const response = await fetch('https://raw.githubusercontent.com/eltonaguiar/TORONTOEVENTS_ANTIGRAVITY/main/data/events.json');
-                if (response.ok) {
-                    const freshEvents = await response.json();
-                    if (Array.isArray(freshEvents) && freshEvents.length > 0) {
-                        console.log(`Synced ${freshEvents.length} events from database.`);
-                        setLiveEvents(freshEvents);
-                    }
-                }
-            } catch (err) {
-                console.error('Runtime sync failed:', err);
-            }
-        };
-
-        fetchLatest();
+        // Events are already loaded via useEventsFromGitHub in page.tsx
+        // This effect is mainly for setting the current time
         setNow(new Date());
-    }, []);
+        
+        // Update liveEvents if initialEvents prop changes
+        if (initialEvents && initialEvents.length > 0) {
+            setLiveEvents(initialEvents);
+        }
+    }, [initialEvents]);
 
     const [showMultiDay, setShowMultiDay] = useState(false);
     const [maxPrice, setMaxPrice] = useState<number>(120);
@@ -74,23 +66,69 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     // New Features
     const { settings, updateSettings, importEvents, setIsSettingsOpen } = useSettings();
 
-    // Geocoding Effect
+    // Geocoding Effect - Handle location based on locationSource setting
     useEffect(() => {
-        if (settings.userPostalCode && settings.userPostalCode.length >= 6) {
-            const postal = settings.userPostalCode.replace(/\s/g, '');
-            fetch(`https://api.zippopotam.us/ca/${postal.slice(0, 3)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.places && data.places[0]) {
-                        setUserCoords({
-                            lat: parseFloat(data.places[0].latitude),
-                            lng: parseFloat(data.places[0].longitude)
-                        });
-                    }
-                })
-                .catch(err => console.error('Geocoding error:', err));
+        if (!settings.enableLocationFilter) {
+            setUserCoords(null);
+            updateSettings({ userLatitude: null, userLongitude: null });
+            return;
         }
-    }, [settings.userPostalCode]);
+
+        const geocodeLocation = async () => {
+            try {
+                let coords: { lat: number; lng: number } | null = null;
+
+                if (settings.locationSource === 'postal-code') {
+                    if (settings.userPostalCode && settings.userPostalCode.length >= 6) {
+                        console.log(`📍 [Geocoding] Geocoding postal code: ${settings.userPostalCode}`);
+                        coords = await geocodePostalCode(settings.userPostalCode);
+                        if (coords) {
+                            console.log(`✅ [Geocoding] Postal code geocoded: ${coords.lat}, ${coords.lng}`);
+                        } else {
+                            console.warn(`⚠️ [Geocoding] Failed to geocode postal code: ${settings.userPostalCode}`);
+                        }
+                    }
+                } else if (settings.locationSource === 'address') {
+                    if (settings.userAddress && settings.userAddress.trim().length > 0) {
+                        console.log(`📍 [Geocoding] Geocoding address: ${settings.userAddress}`);
+                        coords = await geocodeAddress(settings.userAddress);
+                        if (coords) {
+                            console.log(`✅ [Geocoding] Address geocoded: ${coords.lat}, ${coords.lng}`);
+                        } else {
+                            console.warn(`⚠️ [Geocoding] Failed to geocode address: ${settings.userAddress}`);
+                        }
+                    }
+                } else if (settings.locationSource === 'browser') {
+                    console.log(`📍 [Geocoding] Requesting browser location...`);
+                    try {
+                        coords = await getBrowserLocation();
+                        if (coords) {
+                            console.log(`✅ [Geocoding] Browser location obtained: ${coords.lat}, ${coords.lng}`);
+                        }
+                    } catch (err) {
+                        console.warn(`⚠️ [Geocoding] Browser geolocation failed:`, err);
+                    }
+                }
+
+                if (coords) {
+                    setUserCoords(coords);
+                    updateSettings({ 
+                        userLatitude: coords.lat, 
+                        userLongitude: coords.lng 
+                    });
+                } else {
+                    setUserCoords(null);
+                    updateSettings({ userLatitude: null, userLongitude: null });
+                }
+            } catch (error) {
+                console.error('❌ [Geocoding] Error:', error);
+                setUserCoords(null);
+                updateSettings({ userLatitude: null, userLongitude: null });
+            }
+        };
+
+        geocodeLocation();
+    }, [settings.enableLocationFilter, settings.locationSource, settings.userPostalCode, settings.userAddress, updateSettings]);
 
     // Geocoding Effect logic remains...
     // Removed local viewMode state
@@ -377,8 +415,19 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         }
                     }
                     if (dateFilter === ('nearby' as any)) {
-                        // For Nearby we just filter for things that HAVE lat/long
+                        // For Nearby we filter by distance from user location
                         if (!e.latitude || !e.longitude) return false;
+                        if (!userCoords) return false;
+                        
+                        const distance = calculateDistance(
+                            userCoords.lat,
+                            userCoords.lng,
+                            e.latitude,
+                            e.longitude
+                        );
+                        
+                        // Only show events within maxDistanceKm
+                        if (distance > settings.maxDistanceKm) return false;
                     }
                 }
 
@@ -400,7 +449,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     return valA < valB ? 1 : -1;
                 }
             });
-    }, [sourceEvents, settings.viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, now, userCoords, sortConfig]);
+    }, [sourceEvents, settings.viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, settings.maxDistanceKm, now, userCoords, sortConfig]);
 
     const activeFilters = useMemo(() => {
         const filters = [];

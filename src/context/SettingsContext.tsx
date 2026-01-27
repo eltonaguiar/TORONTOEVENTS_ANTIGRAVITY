@@ -29,6 +29,7 @@ interface Settings {
     defaultPreviewPosition: 'center' | 'left' | 'right' | 'offset';
     isChatboxMode: boolean;
     userPostalCode: string;
+    userAddress: string; // Separate field for address input
     webpageScale: number;
     configPanelWidth: number;
     configPanelHeight: number;
@@ -76,6 +77,7 @@ const defaultSettings: Settings = {
     defaultPreviewPosition: 'offset',
     isChatboxMode: false,
     userPostalCode: '',
+    userAddress: '',
     webpageScale: 1.0,
     configPanelWidth: 450,
     configPanelHeight: 800,

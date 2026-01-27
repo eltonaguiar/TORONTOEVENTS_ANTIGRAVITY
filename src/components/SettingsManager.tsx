@@ -348,8 +348,8 @@ export default function SettingsManager() {
                                                         <input
                                                             type="text"
                                                             placeholder="123 Queen St W, Toronto"
-                                                            value={settings.userPostalCode}
-                                                            onChange={(e) => updateSettings({ userPostalCode: e.target.value })}
+                                                            value={settings.userAddress}
+                                                            onChange={(e) => updateSettings({ userAddress: e.target.value })}
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[var(--pk-500)] shadow-inner"
                                                         />
                                                     </div>

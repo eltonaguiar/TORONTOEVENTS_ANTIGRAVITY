@@ -22,6 +22,7 @@ export interface EventsMetadata {
  */
 export async function fetchEventsFromGitHub(): Promise<Event[]> {
   try {
+    console.log(`📦 [Data Source] Fetching events from GitHub: ${EVENTS_URL}`);
     const response = await fetch(EVENTS_URL, {
       cache: 'no-store', // Always fetch fresh data
       headers: {
@@ -34,9 +35,11 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     }
     
     const events = await response.json();
+    const eventCount = Array.isArray(events) ? events.length : 0;
+    console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from GitHub (${EVENTS_URL})`);
     return Array.isArray(events) ? events : [];
   } catch (error) {
-    console.error('Error fetching events from GitHub:', error);
+    console.error('❌ [Data Source] Error fetching events from GitHub:', error);
     return [];
   }
 }
@@ -46,6 +49,7 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
  */
 export async function fetchMetadataFromGitHub(): Promise<EventsMetadata | null> {
   try {
+    console.log(`📊 [Data Source] Fetching metadata from GitHub: ${METADATA_URL}`);
     const response = await fetch(METADATA_URL, {
       cache: 'no-store',
       headers: {
@@ -54,12 +58,15 @@ export async function fetchMetadataFromGitHub(): Promise<EventsMetadata | null> 
     });
     
     if (!response.ok) {
+      console.warn(`⚠️ [Data Source] Metadata fetch returned ${response.status}: ${response.statusText}`);
       return null;
     }
     
-    return await response.json();
+    const metadata = await response.json();
+    console.log(`✅ [Data Source] Metadata loaded from GitHub - Last updated: ${metadata?.lastUpdated || 'Unknown'}, Total events: ${metadata?.totalEvents || 0}`);
+    return metadata;
   } catch (error) {
-    console.error('Error fetching metadata from GitHub:', error);
+    console.error('❌ [Data Source] Error fetching metadata from GitHub:', error);
     return null;
   }
 }

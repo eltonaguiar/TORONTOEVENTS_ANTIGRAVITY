@@ -9,13 +9,14 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 60 # Prevent hanging jobs
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: main # Use main branch, or change to your default branch
+          ref: main
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,24 +28,64 @@ jobs:
         run: npm ci
       
       - name: Run scraper
-        run: npm run scrape
+        id: scrape
+        run: |
+          echo "🚀 Starting event scraper..."
+          echo "📅 Run time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          npm run scrape || exit 1
+          echo "✅ Scraper completed successfully"
         env:
           NODE_ENV: production
+      
+      - name: Verify scraped data
+        run: |
+          echo "🔍 Verifying scraped data..."
+          if [ ! -f "data/events.json" ]; then
+            echo "❌ Error: events.json not found"
+            exit 1
+          fi
+          
+          EVENT_COUNT=$(jq 'length' data/events.json 2>/dev/null || echo "0")
+          echo "📊 Events scraped: $EVENT_COUNT"
+          
+          if [ "$EVENT_COUNT" -lt 100 ]; then
+            echo "⚠️ Warning: Low event count ($EVENT_COUNT). This may indicate an issue."
+          fi
+          
+          if [ -f "data/metadata.json" ]; then
+            LAST_UPDATED=$(jq -r '.lastUpdated' data/metadata.json 2>/dev/null || echo "Unknown")
+            TOTAL_EVENTS=$(jq -r '.totalEvents' data/metadata.json 2>/dev/null || echo "0")
+            SOURCES=$(jq -r '.sources | join(", ")' data/metadata.json 2>/dev/null || echo "Unknown")
+            echo "📋 Metadata:"
+            echo "   Last Updated: $LAST_UPDATED"
+            echo "   Total Events: $TOTAL_EVENTS"
+            echo "   Sources: $SOURCES"
+          fi
       
       - name: Check for changes
         id: verify-changed
         run: |
           if [ -n "$(git status --porcelain data/events.json data/metadata.json)" ]; then
+            echo "✅ Changes detected in events.json or metadata.json"
             echo "changed=true" >> $GITHUB_OUTPUT
           else
+            echo "ℹ️ No changes detected - data is up to date"
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
       
       - name: Commit and push changes
         if: steps.verify-changed.outputs.changed == 'true'
         run: |
+          echo "💾 Committing and pushing changes..."
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add data/events.json data/metadata.json
-          git commit -m "Auto-update events: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" || exit 0
-          git push origin HEAD:main || git push origin HEAD:master || exit 0
+          
+          # Get event count for commit message
+          EVENT_COUNT=$(jq 'length' data/events.json 2>/dev/null || echo "0")
+          COMMIT_MSG="Auto-update events: $EVENT_COUNT events ($(date -u +'%Y-%m-%d %H:%M:%S UTC'))"
+          
+          git commit -m "$COMMIT_MSG" || exit 0
+          git push origin HEAD:main || exit 0
+          echo "✅ Changes pushed to GitHub successfully"
+          echo "🌐 Events are now available at: https://raw.githubusercontent.com/${{ github.repository }}/main/data/events.json"
