@@ -24,10 +24,27 @@ export default function RootLayout({
       <head>
         <meta name="google" content="notranslate" />
         <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7893721225790912"
-          crossOrigin="anonymous"
-        ></script>
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Load AdSense asynchronously with error handling
+              (function() {
+                try {
+                  var script = document.createElement('script');
+                  script.async = true;
+                  script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7893721225790912';
+                  script.crossOrigin = 'anonymous';
+                  script.onerror = function() {
+                    // Silently handle AdSense load errors - ads are optional
+                    console.warn('AdSense script failed to load (this is OK if ads are disabled or network is restricted)');
+                  };
+                  document.head.appendChild(script);
+                } catch (e) {
+                  console.warn('AdSense script initialization failed:', e);
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body className={inter.className}>
         <SettingsProvider>

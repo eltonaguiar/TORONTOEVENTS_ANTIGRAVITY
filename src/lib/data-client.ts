@@ -21,18 +21,15 @@ export interface EventsMetadata {
  * Fetch events from GitHub raw JSON with fallback to FTP site
  */
 export async function fetchEventsFromGitHub(): Promise<Event[]> {
-  // Try GitHub first
+  // Try GitHub first - but skip if CORS is likely to fail
+  // GitHub raw URLs should work, but if CORS fails, we'll fallback immediately
   try {
     console.log(`📦 [Data Source] Fetching events from GitHub: ${EVENTS_URL}`);
+    // Use simple fetch without custom headers to avoid CORS preflight issues
     const response = await fetch(EVENTS_URL + '?t=' + Date.now(), {
-      cache: 'no-store', // Always fetch fresh data
-      mode: 'cors', // Explicitly allow CORS
-      credentials: 'omit', // Don't send credentials
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-      }
+      cache: 'no-store',
+      // Don't set mode explicitly - let browser handle it
+      // Don't set custom headers that trigger preflight
     });
     
     if (!response.ok) {
@@ -60,8 +57,17 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
           throw new Error('GitHub returned 0 events - using fallback');
         }
         return events;
-  } catch (error) {
-    console.error('❌ [Data Source] Error fetching events from GitHub:', error);
+  } catch (error: any) {
+    // Check if it's a CORS error - if so, skip GitHub and go straight to FTP
+    const isCorsError = error?.message?.includes('CORS') || 
+                       error?.message?.includes('Failed to fetch') ||
+                       error?.name === 'TypeError';
+    
+    if (isCorsError) {
+      console.warn('⚠️ [Data Source] CORS error with GitHub - skipping and using FTP fallback directly');
+    } else {
+      console.error('❌ [Data Source] Error fetching events from GitHub:', error);
+    }
     console.log('🔄 [Data Source] Attempting fallback to FTP site...');
     
     // Fallback to FTP site - try multiple paths
@@ -132,13 +138,10 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
 export async function fetchMetadataFromGitHub(): Promise<EventsMetadata | null> {
   try {
     console.log(`📊 [Data Source] Fetching metadata from GitHub: ${METADATA_URL}`);
+    // Use simple fetch without custom headers to avoid CORS preflight issues
     const response = await fetch(METADATA_URL + '?t=' + Date.now(), {
       cache: 'no-store',
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-      }
+      // Don't set custom headers that trigger preflight
     });
     
     if (!response.ok) {
@@ -149,8 +152,25 @@ export async function fetchMetadataFromGitHub(): Promise<EventsMetadata | null> 
     const metadata = await response.json();
     console.log(`✅ [Data Source] Metadata loaded from GitHub - Last updated: ${metadata?.lastUpdated || 'Unknown'}, Total events: ${metadata?.totalEvents || 0}`);
     return metadata;
-  } catch (error) {
-    console.error('❌ [Data Source] Error fetching metadata from GitHub:', error);
+  } catch (error: any) {
+    // Silently handle metadata fetch errors - it's not critical
+    const isCorsError = error?.message?.includes('CORS') || 
+                       error?.message?.includes('Failed to fetch') ||
+                       error?.name === 'TypeError';
+    if (!isCorsError) {
+      console.error('❌ [Data Source] Error fetching metadata from GitHub:', error);
+    }
+    // Try FTP fallback for metadata
+    try {
+      const fallbackResponse = await fetch('/metadata.json?t=' + Date.now(), { cache: 'no-store' });
+      if (fallbackResponse.ok) {
+        const metadata = await fallbackResponse.json();
+        console.log(`✅ [Data Source] Metadata loaded from FTP fallback`);
+        return metadata;
+      }
+    } catch (fallbackErr) {
+      // Ignore fallback errors
+    }
     return null;
   }
 }
