@@ -15,7 +15,10 @@
     "deploy:sftp": "npm run build:sftp && tsx scripts/deploy-simple.ts",
     "deploy:sftp:github": "npm run build:sftp:github && tsx scripts/deploy-simple.ts",
     "refresh:all": "tsx scripts/refresh-and-deploy.ts",
-    "sync:deploy": "tsx scripts/sync-and-deploy.ts"
+    "sync:deploy": "tsx scripts/sync-and-deploy.ts",
+    "scrape:2xko": "tsx scripts/scrape-2xko-frame-data.ts",
+    "update:2xko:github": "tsx scripts/update-2xko-github.ts",
+    "2xko:full": "npm run scrape:2xko && npm run update:2xko:github"
   },
   "dependencies": {
     "axios": "^1.13.3",

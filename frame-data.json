@@ -1,0 +1,142 @@
+{
+  "champions": [
+    {
+      "name": "Ekko",
+      "moves": [
+        {
+          "name": "5L",
+          "startup": 6,
+          "onHit": 0,
+          "onBlock": -1,
+          "type": "normal"
+        },
+        {
+          "name": "2L",
+          "startup": 7,
+          "onHit": -1,
+          "onBlock": -2,
+          "type": "normal"
+        },
+        {
+          "name": "3L",
+          "startup": 9,
+          "onHit": -1,
+          "onBlock": -2,
+          "type": "normal"
+        },
+        {
+          "name": "5M",
+          "startup": 10,
+          "onHit": -4,
+          "onBlock": -5,
+          "type": "normal"
+        },
+        {
+          "name": "2M",
+          "startup": 10,
+          "onHit": -2,
+          "onBlock": -3,
+          "type": "normal"
+        },
+        {
+          "name": "3M",
+          "startup": 22,
+          "onHit": 5,
+          "onBlock": -3,
+          "type": "normal"
+        },
+        {
+          "name": "5H",
+          "startup": 13,
+          "onHit": 1,
+          "onBlock": -3,
+          "type": "normal"
+        },
+        {
+          "name": "2H",
+          "startup": 13,
+          "onHit": "Launch",
+          "onBlock": -5,
+          "type": "normal"
+        },
+        {
+          "name": "66H",
+          "startup": 13,
+          "onHit": 10,
+          "onBlock": 1,
+          "type": "special"
+        },
+        {
+          "name": "2T",
+          "startup": 12,
+          "onHit": "Launch",
+          "onBlock": -6,
+          "type": "special"
+        }
+      ]
+    },
+    {
+      "name": "Ahri",
+      "moves": [
+        {
+          "name": "5L",
+          "startup": 5,
+          "onBlock": -2,
+          "recovery": 20,
+          "type": "normal"
+        },
+        {
+          "name": "2L",
+          "startup": 6,
+          "onBlock": -1,
+          "recovery": 20,
+          "type": "normal"
+        },
+        {
+          "name": "5M",
+          "startup": 8,
+          "onBlock": -4,
+          "recovery": 29,
+          "type": "normal"
+        },
+        {
+          "name": "2M",
+          "startup": 9,
+          "onBlock": -4,
+          "recovery": 30,
+          "type": "normal"
+        },
+        {
+          "name": "5H",
+          "startup": 13,
+          "onBlock": -7,
+          "recovery": 40,
+          "type": "normal"
+        },
+        {
+          "name": "2H",
+          "startup": 15,
+          "onBlock": -8,
+          "recovery": 41,
+          "type": "normal"
+        },
+        {
+          "name": "3H",
+          "startup": 18,
+          "onBlock": -6,
+          "recovery": 44,
+          "type": "normal"
+        },
+        {
+          "name": "2T",
+          "startup": 9,
+          "onBlock": -6,
+          "recovery": 43,
+          "type": "special"
+        }
+      ]
+    }
+  ],
+  "lastUpdated": "2026-01-27T14:07:44.229Z",
+  "source": "2XKO Wiki (https://2xko.wiki)"
+}
