@@ -25,6 +25,8 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [selectedSource, setSelectedSource] = useState<string | null>(null);
     const [selectedHost, setSelectedHost] = useState<string | null>(null);
+    // CRITICAL: Default to 'all' to prevent "0 events" on load when "Today" has no events
+    // Users can manually select "Today" if they want, but default should show all events
     const [dateFilter, setDateFilter] = useState<DateFilter>('all');
     const [now, setNow] = useState<Date | null>(null);
 
@@ -502,9 +504,14 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 if (hasInvalidDate) {
                     // Do NOT return false. Skip date-range checks below; event passes through.
                     // This is the exact fix: invalid dates were disqualifying; they should be included.
-                }
-
-                if (dateFilter !== 'all' && now && !hasInvalidDate) {
+                    // CRITICAL: Invalid dates should show in ALL filters (Today, This Week, etc.), not just "All Dates"
+                    // This prevents "0 events" when user has "Today" selected and events have bad dates
+                    const eventIndex = sourceEvents.indexOf(e);
+                    if (eventIndex < 5) {
+                        console.log(`✅ [Filter] Including invalid date event in ${dateFilter} filter: "${e.title.substring(0, 50)}"`);
+                    }
+                    // Skip to return true - invalid dates pass through all filters
+                } else if (dateFilter !== 'all' && now && !hasInvalidDate) {
                     const todayStr = getTorontoDateParts(now);
                     const [y, m, d] = todayStr.split('-').map(Number);
                     const todayStart = new Date(y, m - 1, d);
@@ -513,9 +520,21 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     if (dateFilter === 'today') {
                         const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
                         if (isMultiDay(e)) {
-                            if (!isNaN(eEndDate.getTime()) && (eEndDate < todayStart || eventStartDate > todayEnd)) return false;
+                            if (!isNaN(eEndDate.getTime()) && (eEndDate < todayStart || eventStartDate > todayEnd)) {
+                                const eventIndex = sourceEvents.indexOf(e);
+                                if (eventIndex < 5) {
+                                    console.log(`❌ [Filter] Event not today (multi-day): "${e.title.substring(0, 50)}"`);
+                                }
+                                return false;
+                            }
                         } else {
-                            if (!isToday(e.date)) return false;
+                            if (!isToday(e.date)) {
+                                const eventIndex = sourceEvents.indexOf(e);
+                                if (eventIndex < 5) {
+                                    console.log(`❌ [Filter] Event not today: "${e.title.substring(0, 50)}" (date: ${e.date})`);
+                                }
+                                return false;
+                            }
                         }
                     }
                     if (dateFilter === 'tomorrow') {
