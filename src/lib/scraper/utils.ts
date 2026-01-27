@@ -41,6 +41,20 @@ export function normalizeDate(dateInput: string | Date | undefined): string | nu
     try {
         let inputStr = typeof dateInput === 'string' ? dateInput.trim() : dateInput.toISOString();
 
+        // CRITICAL FIX: Detect and fix malformed timezone offsets BEFORE parsing
+        // Pattern: 2026-01-27T17:00:0005:00 or 2026-01-27T17:00:0004:00
+        const malformedPattern = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})0{3,4}([+-]?\d{1,2}):(\d{2})$/;
+        const match = inputStr.match(malformedPattern);
+        if (match) {
+            const [, base, offsetHours, offsetMins] = match;
+            const sign = offsetHours.startsWith('-') ? '-' : (offsetHours.startsWith('+') ? '+' : '-');
+            const hours = Math.abs(parseInt(offsetHours.replace(/[+-]/, '')));
+            const mins = parseInt(offsetMins);
+            const fixedOffset = `${sign}${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            inputStr = `${base}${fixedOffset}`;
+            console.log(`  🔧 Fixed malformed timezone: ${dateInput} → ${inputStr}`);
+        }
+
         // Check for TBD/unknown dates first
         if (isTBDDate(inputStr)) {
             return null; // Don't default to any date if it's TBD
