@@ -1,5 +1,6 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
 import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription } from './utils';
+import { EventbriteDetailScraper } from './detail-scraper';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -7,9 +8,67 @@ export class AllEventsScraper implements ScraperSource {
     name = 'AllEvents.in';
 
     /**
-     * Fetch event detail page for enhanced data extraction
+     * Find Eventbrite link in AllEvents.in page
+     * Returns the Eventbrite URL if found, null otherwise
      */
-    private async fetchEventDetails(url: string): Promise<{ description?: string; price?: string; priceAmount?: number }> {
+    private findEventbriteLink($: cheerio.CheerioAPI): string | null {
+        // Look for Eventbrite links in various places
+        const eventbriteSelectors = [
+            'a[href*="eventbrite.com"]',
+            'a[href*="eventbrite.ca"]',
+            '.ticket-link[href*="eventbrite"]',
+            '.buy-tickets[href*="eventbrite"]',
+            '[data-ticket-url*="eventbrite"]',
+            '.event-ticket-link[href*="eventbrite"]'
+        ];
+
+        for (const selector of eventbriteSelectors) {
+            const link = $(selector).first().attr('href');
+            if (link && (link.includes('eventbrite.com') || link.includes('eventbrite.ca'))) {
+                // Make absolute if relative
+                if (link.startsWith('http')) {
+                    return link;
+                } else if (link.startsWith('//')) {
+                    return `https:${link}`;
+                } else {
+                    return `https://www.eventbrite.ca${link.startsWith('/') ? '' : '/'}${link}`;
+                }
+            }
+        }
+
+        // Also check in text content for Eventbrite URLs
+        const pageText = $.text();
+        const eventbriteUrlMatch = pageText.match(/https?:\/\/(?:www\.)?eventbrite\.(?:com|ca)\/[^\s<>"']+/i);
+        if (eventbriteUrlMatch) {
+            return eventbriteUrlMatch[0];
+        }
+
+        // Check JSON-LD for Eventbrite URLs
+        const scriptData = $('script[type="application/ld+json"]');
+        for (let i = 0; i < scriptData.length; i++) {
+            try {
+                const json = JSON.parse($(scriptData[i]).html() || '{}');
+                if (json.url && typeof json.url === 'string' && json.url.includes('eventbrite')) {
+                    return json.url;
+                }
+                if (json.offers && Array.isArray(json.offers)) {
+                    for (const offer of json.offers) {
+                        if (offer.url && offer.url.includes('eventbrite')) {
+                            return offer.url;
+                        }
+                    }
+                }
+            } catch { }
+        }
+
+        return null;
+    }
+
+    /**
+     * Fetch event detail page for enhanced data extraction
+     * Tries to follow Eventbrite links to get accurate prices from the original source
+     */
+    private async fetchEventDetails(url: string): Promise<{ description?: string; price?: string; priceAmount?: number; minPrice?: number; maxPrice?: number; ticketTypes?: any[] }> {
         try {
             const response = await axios.get(url, {
                 responseType: 'arraybuffer',
@@ -22,6 +81,39 @@ export class AllEventsScraper implements ScraperSource {
 
             const html = Buffer.from(response.data).toString('utf8');
             const $ = cheerio.load(html);
+
+            // FIRST: Try to find Eventbrite link and extract from original source
+            const eventbriteUrl = this.findEventbriteLink($);
+            if (eventbriteUrl) {
+                console.log(`  🔗 Found Eventbrite link: ${eventbriteUrl} - extracting from original source...`);
+                try {
+                    // Add small delay to avoid rate limiting
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const enrichment = await EventbriteDetailScraper.enrichEvent(eventbriteUrl);
+                    
+                    // Use Eventbrite data if available
+                    if (enrichment.priceAmount !== undefined || enrichment.minPrice !== undefined) {
+                        const priceDisplay = enrichment.minPrice !== undefined 
+                            ? `$${enrichment.minPrice}${enrichment.maxPrice ? ` - $${enrichment.maxPrice}` : ''}`
+                            : enrichment.price || 'See tickets';
+                        console.log(`  ✅ Extracted price from Eventbrite: ${priceDisplay}`);
+                        return {
+                            description: enrichment.fullDescription,
+                            price: enrichment.price,
+                            priceAmount: enrichment.priceAmount,
+                            minPrice: enrichment.minPrice,
+                            maxPrice: enrichment.maxPrice,
+                            ticketTypes: enrichment.ticketTypes
+                        };
+                    } else {
+                        console.log(`  ⚠️ Eventbrite link found but no price extracted, falling back to AllEvents.in`);
+                    }
+                } catch (e: any) {
+                    console.log(`  ⚠️ Failed to extract from Eventbrite (${e.message}), falling back to AllEvents.in`);
+                    // Fall through to AllEvents.in extraction
+                }
+            }
 
             // Extract description with paragraph preservation
             let description = '';
@@ -121,6 +213,7 @@ export class AllEventsScraper implements ScraperSource {
 
             return { description, price, priceAmount };
         } catch (e) {
+            console.log(`  ⚠️ Error fetching AllEvents.in details: ${e}`);
             return {};
         }
     }
@@ -266,25 +359,31 @@ export class AllEventsScraper implements ScraperSource {
                         }
 
                         // Always fetch detail page for better price and description data
-                        // This ensures we get accurate pricing (especially for events with multiple ticket tiers)
+                        // This will try to follow Eventbrite links to get prices from original source
                         const details = await this.fetchEventDetails(fullUrl);
                         if (details.description && (!description || description.length < details.description.length)) {
                             description = details.description;
                         }
-                        // Use detail page price if:
-                        // 1. We don't have a price yet, OR
-                        // 2. The detail page price is lower (to avoid showing premium tier prices)
-                        if (details.price && details.priceAmount) {
+                        
+                        // Use detail page price if available (prefer Eventbrite prices from original source)
+                        if (details.price && details.priceAmount !== undefined) {
                             if (!priceAmount || price === 'See Tickets') {
                                 price = details.price;
                                 priceAmount = details.priceAmount;
+                                // Update isFree if price is 0
+                                if (details.priceAmount === 0) {
+                                    isFree = true;
+                                }
                             } else if (details.priceAmount < priceAmount) {
                                 // Use lower price if detail page has a better (lower) price
                                 price = details.price;
                                 priceAmount = details.priceAmount;
+                                if (details.priceAmount === 0) {
+                                    isFree = true;
+                                }
                             }
                         }
-
+                        
                         // Extract tags if any
                         const tags: string[] = [];
                         card.find('.tags a, .categories a, .event-tags span').each((_, tagEl) => {
@@ -292,13 +391,14 @@ export class AllEventsScraper implements ScraperSource {
                             if (t && !tags.includes(t)) tags.push(t);
                         });
 
-                        const event: Event = {
+                        // Also capture min/max prices and ticket types if available from Eventbrite
+                        const eventData: any = {
                             id: generateEventId(fullUrl),
                             title,
                             date,
                             location,
                             source: 'AllEvents.in',
-                            host: location.split(',')[0], // Usually the venue/organizer
+                            host: location.split(',')[0],
                             url: fullUrl,
                             image,
                             price,
@@ -310,7 +410,25 @@ export class AllEventsScraper implements ScraperSource {
                             status: 'UPCOMING',
                             lastUpdated: new Date().toISOString()
                         };
-                        console.log(`Successfully scraped AllEvents item: ${title}`);
+                        
+                        // Add comprehensive data if extracted from Eventbrite
+                        if (details.minPrice !== undefined) {
+                            eventData.minPrice = details.minPrice;
+                        }
+                        if (details.maxPrice !== undefined) {
+                            eventData.maxPrice = details.maxPrice;
+                        }
+                        if (details.ticketTypes && details.ticketTypes.length > 0) {
+                            eventData.ticketTypes = details.ticketTypes;
+                        }
+
+                        const event: Event = eventData;
+                        const priceInfo = details.minPrice !== undefined 
+                            ? ` (Price from Eventbrite: $${details.minPrice}${details.maxPrice ? ` - $${details.maxPrice}` : ''})`
+                            : details.priceAmount !== undefined && details.priceAmount > 0
+                            ? ` (Price: $${details.priceAmount})`
+                            : '';
+                        console.log(`Successfully scraped AllEvents item: ${title}${priceInfo}`);
                         events.push(event);
 
                     } catch (e) {
