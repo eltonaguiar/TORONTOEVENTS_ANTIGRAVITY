@@ -26,6 +26,8 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     console.log(`📦 [Data Source] Fetching events from GitHub: ${EVENTS_URL}`);
     const response = await fetch(EVENTS_URL + '?t=' + Date.now(), {
       cache: 'no-store', // Always fetch fresh data
+      mode: 'cors', // Explicitly allow CORS
+      credentials: 'omit', // Don't send credentials
       headers: {
         'Accept': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -34,10 +36,19 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     });
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch events: ${response.statusText}`);
+      throw new Error(`Failed to fetch events: ${response.status} ${response.statusText}`);
     }
     
-    const events = await response.json();
+    // Parse response - GitHub returns text/plain but it's JSON
+    const text = await response.text();
+    let events;
+    try {
+      events = JSON.parse(text);
+    } catch (parseError) {
+      console.error(`❌ [Data Source] Failed to parse GitHub response as JSON:`, parseError);
+      throw new Error('Invalid JSON response from GitHub');
+    }
+    
     const eventCount = Array.isArray(events) ? events.length : 0;
     console.log(`✅ [Data Source] Successfully loaded ${eventCount} events from GitHub (${EVENTS_URL})`);
     if (!Array.isArray(events)) {
@@ -46,6 +57,7 @@ export async function fetchEventsFromGitHub(): Promise<Event[]> {
     }
     if (eventCount === 0) {
       console.warn(`⚠️ [Data Source] Warning: 0 events loaded from GitHub!`);
+      throw new Error('GitHub returned 0 events');
     }
     return events;
   } catch (error) {
