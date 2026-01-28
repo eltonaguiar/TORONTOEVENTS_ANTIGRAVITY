@@ -1,5 +1,7 @@
 # TORONTOEVENTS_ANTIGRAVITY // STOCKSUNIFY Engine
 
+[![STOCKSUNIFY CI](https://github.com/eltonaguiar/TORONTOEVENTS_ANTIGRAVITY/actions/workflows/ci.yml/badge.svg)](https://github.com/eltonaguiar/TORONTOEVENTS_ANTIGRAVITY/actions/workflows/ci.yml)
+
 This repository contains the full source code and data for the STOCKSUNIFY V1 and V2 algorithmic stock selection engines. It serves as the primary development and data generation environment.
 
 ---
@@ -88,4 +90,16 @@ npm install
   ```bash
   npm run dev
   ```
+
+---
+
+## 🧪 Testing
+
+This project uses [Vitest](https://vitest.dev/) for unit testing to ensure the quality and correctness of the core algorithmic logic. The test suite is run automatically on every push and pull request to the `main` branch via the CI workflow.
+
+### Run Test Suite
+To run all unit tests, use the following command:
+```bash
+npm test
+```
 ---
