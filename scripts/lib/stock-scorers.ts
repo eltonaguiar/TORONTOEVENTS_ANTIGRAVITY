@@ -3,8 +3,8 @@
  * Implements CAN SLIM, Technical Momentum, and Composite Rating
  */
 
-import { StockData } from './stock-data-fetcher';
-import { PriceHistory } from './stock-indicators';
+import { StockData } from "./stock-data-fetcher-enhanced";
+import { PriceHistory } from "./stock-indicators";
 import {
   calculateRSI,
   calculateMovingAverage,
@@ -15,8 +15,8 @@ import {
   calculateBollingerBands,
   calculateATR,
   calculateVolumeZScore,
-  calculateZScore
-} from './stock-indicators';
+  calculateZScore,
+} from "./stock-indicators";
 
 export interface StockScore {
   symbol: string;
@@ -24,11 +24,11 @@ export interface StockScore {
   price: number;
   change: number;
   changePercent: number;
-  rating: 'STRONG BUY' | 'BUY' | 'HOLD' | 'SELL';
-  timeframe: '24h' | '3d' | '7d' | '2w' | '1m' | '3m' | '6m' | '1y';
+  rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL";
+  timeframe: "24h" | "3d" | "7d" | "2w" | "1m" | "3m" | "6m" | "1y";
   algorithm: string;
   score: number;
-  risk: 'Low' | 'Medium' | 'High' | 'Very High';
+  risk: "Low" | "Medium" | "High" | "Very High";
   stopLoss?: number;
   indicators: {
     rsi?: number;
@@ -59,7 +59,7 @@ export function scoreCANSLIM(data: StockData): StockScore | null {
     close: h.close,
     volume: h.volume,
     high: h.high,
-    low: h.low
+    low: h.low,
   }));
 
   const prices = history.map((h: any) => h.close);
@@ -103,23 +103,23 @@ export function scoreCANSLIM(data: StockData): StockScore | null {
   if (volZ > 2.0) score += 5;
 
   // Determine rating with Trend Filter
-  let rating: 'STRONG BUY' | 'BUY' | 'HOLD' | 'SELL' = 'HOLD';
-  if (score >= 80 && isAbove200MA) rating = 'STRONG BUY';
-  else if (score >= 60 && isAbove200MA) rating = 'BUY';
-  else if (score < 40 || !isAbove200MA) rating = 'SELL';
+  let rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL" = "HOLD";
+  if (score >= 80 && isAbove200MA) rating = "STRONG BUY";
+  else if (score >= 60 && isAbove200MA) rating = "BUY";
+  else if (score < 40 || !isAbove200MA) rating = "SELL";
 
   // Determine timeframe (based on stage-2 and RS)
-  let timeframe: '3m' | '6m' | '1y' = '3m';
-  if (rsRating >= 95 && stage2) timeframe = '1y';
-  else if (rsRating >= 85) timeframe = '6m';
+  let timeframe: "3m" | "6m" | "1y" = "3m";
+  if (rsRating >= 95 && stage2) timeframe = "1y";
+  else if (rsRating >= 85) timeframe = "6m";
 
   // Risk assessment
-  let risk: 'Low' | 'Medium' | 'High' = 'Medium';
-  if (data.marketCap && data.marketCap > 10_000_000_000) risk = 'Low';
-  else if (data.marketCap && data.marketCap < 1_000_000_000) risk = 'High';
+  let risk: "Low" | "Medium" | "High" = "Medium";
+  if (data.marketCap && data.marketCap > 10_000_000_000) risk = "Low";
+  else if (data.marketCap && data.marketCap < 1_000_000_000) risk = "High";
 
   // ATR-based Stop Loss (2 * ATR)
-  const stopLoss = data.price - (atr * 2);
+  const stopLoss = data.price - atr * 2;
 
   return {
     symbol: data.symbol,
@@ -129,7 +129,7 @@ export function scoreCANSLIM(data: StockData): StockScore | null {
     changePercent: data.changePercent,
     rating,
     timeframe,
-    algorithm: 'CAN SLIM',
+    algorithm: "CAN SLIM",
     score: Math.min(100, score),
     risk,
     stopLoss: Math.round(stopLoss * 100) / 100,
@@ -139,8 +139,8 @@ export function scoreCANSLIM(data: StockData): StockScore | null {
       stage2Uptrend: stage2,
       volumeSurge: calculateVolumeSurge(data.volume, data.avgVolume),
       volumeZScore: Math.round(volZ * 100) / 100,
-      atr: Math.round(atr * 100) / 100
-    }
+      atr: Math.round(atr * 100) / 100,
+    },
   };
 }
 
@@ -148,7 +148,10 @@ export function scoreCANSLIM(data: StockData): StockScore | null {
  * Technical Momentum Screener
  * Best for: Short-term momentum (24h - 1 week)
  */
-export function scoreTechnicalMomentum(data: StockData, timeframe: '24h' | '3d' | '7d' = '7d'): StockScore | null {
+export function scoreTechnicalMomentum(
+  data: StockData,
+  timeframe: "24h" | "3d" | "7d" = "7d",
+): StockScore | null {
   if (!data.history || data.history.length < 20) return null;
 
   const history: PriceHistory[] = data.history.map((h: any) => ({
@@ -156,7 +159,7 @@ export function scoreTechnicalMomentum(data: StockData, timeframe: '24h' | '3d' 
     close: h.close,
     volume: h.volume,
     high: h.high,
-    low: h.low
+    low: h.low,
   }));
 
   const prices = history.map((h: any) => h.close);
@@ -176,16 +179,17 @@ export function scoreTechnicalMomentum(data: StockData, timeframe: '24h' | '3d' 
   // Timeframe-based scoring
   let score = 0;
 
-  if (timeframe === '24h') {
+  if (timeframe === "24h") {
     // 24-hour focus: Volume Z-Score (40), RSI Z-Score (30), Breakout (30)
     if (volZ > 3.0) score += 40;
     else if (volZ > 1.5) score += 30;
 
-    if (rsiZ < -2.0) score += 30; // Oversold panic
+    if (rsiZ < -2.0)
+      score += 30; // Oversold panic
     else if (rsiZ > 2.0) score += 20; // Momentum blowoff
 
     if (breakout) score += 30;
-  } else if (timeframe === '3d') {
+  } else if (timeframe === "3d") {
     // 3-day: Vol Z (30), Breakout (30), RSI (25), Volatility (15)
     if (volZ > 2.0) score += 30;
     if (breakout) score += 30;
@@ -208,21 +212,21 @@ export function scoreTechnicalMomentum(data: StockData, timeframe: '24h' | '3d' 
   }
 
   // Determine rating
-  let rating: 'STRONG BUY' | 'BUY' | 'HOLD' | 'SELL' = 'HOLD';
-  if (score >= 75) rating = 'STRONG BUY';
-  else if (score >= 50) rating = 'BUY';
-  else if (score < 30) rating = 'SELL';
+  let rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL" = "HOLD";
+  if (score >= 75) rating = "STRONG BUY";
+  else if (score >= 50) rating = "BUY";
+  else if (score < 30) rating = "SELL";
 
   // Risk
-  let risk: 'Low' | 'Medium' | 'High' | 'Very High' = 'High';
+  let risk: "Low" | "Medium" | "High" | "Very High" = "High";
   if (data.price >= 10 && data.marketCap && data.marketCap > 1_000_000_000) {
-    risk = 'Medium';
+    risk = "Medium";
   } else if (data.price < 4) {
-    risk = 'Very High';
+    risk = "Very High";
   }
 
   // ATR-based Stop Loss (1.5 * ATR for short-term)
-  const stopLoss = data.price - (atr * 1.5);
+  const stopLoss = data.price - atr * 1.5;
 
   return {
     symbol: data.symbol,
@@ -232,7 +236,7 @@ export function scoreTechnicalMomentum(data: StockData, timeframe: '24h' | '3d' 
     changePercent: data.changePercent,
     rating,
     timeframe,
-    algorithm: 'Technical Momentum',
+    algorithm: "Technical Momentum",
     score: Math.min(100, score),
     risk,
     stopLoss: Math.round(stopLoss * 100) / 100,
@@ -243,8 +247,8 @@ export function scoreTechnicalMomentum(data: StockData, timeframe: '24h' | '3d' 
       volumeZScore: Math.round(volZ * 100) / 100,
       breakout,
       bollingerSqueeze: bollinger.squeeze,
-      atr: Math.round(atr * 100) / 100
-    }
+      atr: Math.round(atr * 100) / 100,
+    },
   };
 }
 
@@ -260,7 +264,7 @@ export function scoreComposite(data: StockData): StockScore | null {
     close: h.close,
     volume: h.volume,
     high: h.high,
-    low: h.low
+    low: h.low,
   }));
 
   const prices = history.map((h: any) => h.close);
@@ -275,8 +279,8 @@ export function scoreComposite(data: StockData): StockScore | null {
   const relVol = atr / data.price;
   const isTrending = prices[prices.length - 1] > sma50;
 
-  const regime = relVol > 0.04 ? 'stress' :
-    (relVol < 0.02 && isTrending) ? 'bull' : 'neutral';
+  const regime =
+    relVol > 0.04 ? "stress" : relVol < 0.02 && isTrending ? "bull" : "neutral";
 
   let score = 0;
 
@@ -295,26 +299,26 @@ export function scoreComposite(data: StockData): StockScore | null {
   if (data.marketCap && data.marketCap > 1_000_000_000) score += 10;
 
   // Regime adjustment (20 points)
-  if (regime === 'bull') score += 20;
-  else if (regime === 'neutral') score += 15;
+  if (regime === "bull") score += 20;
+  else if (regime === "neutral") score += 15;
   else score += 5; // stress regime = lower score
 
   // Determine rating
-  let rating: 'STRONG BUY' | 'BUY' | 'HOLD' | 'SELL' = 'HOLD';
-  if (score >= 70) rating = 'STRONG BUY';
-  else if (score >= 50) rating = 'BUY';
-  else if (score < 30) rating = 'SELL';
+  let rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL" = "HOLD";
+  if (score >= 70) rating = "STRONG BUY";
+  else if (score >= 50) rating = "BUY";
+  else if (score < 30) rating = "SELL";
 
   // Timeframe: Medium-term for composite
-  const timeframe: '1m' | '3m' = '1m';
+  const timeframe: "1m" | "3m" = "1m";
 
   // Risk
-  let risk: 'Low' | 'Medium' | 'High' = 'Medium';
-  if (data.marketCap && data.marketCap > 10_000_000_000) risk = 'Low';
-  else if (data.price < 5) risk = 'High';
+  let risk: "Low" | "Medium" | "High" = "Medium";
+  if (data.marketCap && data.marketCap > 10_000_000_000) risk = "Low";
+  else if (data.price < 5) risk = "High";
 
   // ATR-based Stop Loss (2.5 * ATR for composite/swing)
-  const stopLoss = data.price - (atr * 2.5);
+  const stopLoss = data.price - atr * 2.5;
 
   return {
     symbol: data.symbol,
@@ -324,14 +328,14 @@ export function scoreComposite(data: StockData): StockScore | null {
     changePercent: data.changePercent,
     rating,
     timeframe,
-    algorithm: 'Composite Rating',
+    algorithm: "Composite Rating",
     score: Math.min(100, score),
     risk,
     stopLoss: Math.round(stopLoss * 100) / 100,
     indicators: {
       rsi: Math.round(rsi),
       volumeZScore: Math.round(volZ * 100) / 100,
-      atr: Math.round(atr * 100) / 100
-    }
+      atr: Math.round(atr * 100) / 100,
+    },
   };
 }
