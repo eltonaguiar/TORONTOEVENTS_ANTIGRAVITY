@@ -5,7 +5,7 @@
  */
 
 import { fetchMultipleStocks, fetchStockData } from '../../lib/stock-data-fetcher-enhanced';
-import { scoreRAR, scoreVAM, scoreLSP, V2Pick } from './strategies';
+import { scoreRAR, scoreVAM, scoreLSP, scoreScientificCANSLIM, scoreAdversarialTrend, V2Pick } from './strategies';
 
 // The "Standard" Scientific Universe
 const V2_UNIVERSE = [
@@ -48,7 +48,16 @@ export async function generateScientificPicks(): Promise<V2Pick[]> {
         // 3. Run LSP (Liquidity Shielded)
         const lsp = scoreLSP(data);
         if (lsp) v2Picks.push(lsp);
+
+        // 4. Run SCS (Scientific CAN SLIM)
+        const scs = scoreScientificCANSLIM(data, spyData || undefined);
+        if (scs) v2Picks.push(scs);
+
+        // 5. Run AT (Adversarial Trend)
+        const at = scoreAdversarialTrend(data);
+        if (at) v2Picks.push(at);
     }
+
 
 
     // Sort by scientific score

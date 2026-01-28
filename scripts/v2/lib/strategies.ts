@@ -204,3 +204,95 @@ export function scoreLSP(data: StockData): V2Pick | null {
     };
 }
 
+/**
+ * Strategy D: Scientific CAN SLIM (SCS)
+ * Traditional growth + Regime filtering + Fundamental Lag protection
+ */
+export function scoreScientificCANSLIM(data: StockData, marketData?: StockData): V2Pick | null {
+    if (!data.history || data.history.length < 200) return null;
+
+    // 1. Regime Guard
+    let isBullishRegime = true;
+    if (marketData && marketData.history) {
+        const spyPrices = marketData.history.map(h => h.close);
+        const spySMA200 = spyPrices.slice(-200).reduce((a, b) => a + b, 0) / 200;
+        isBullishRegime = marketData.price > spySMA200;
+    }
+    if (!isBullishRegime) return null;
+
+    const prices = data.history.map(h => h.close);
+    const sma200 = prices.slice(-200).reduce((a, b) => a + b, 0) / 200;
+
+    // Trend Filter
+    if (data.price < sma200) return null;
+
+    // 2. Yearly Return as RS Proxy
+    const yearlyReturn = (data.price - prices[0]) / prices[0];
+
+    // 3. Scoring
+    let score = 50;
+    if (yearlyReturn > 0.40) score += 20;
+    if (data.pe && data.pe < 40) score += 10;
+    if (data.marketCap && data.marketCap > 1_000_000_000) score += 10;
+
+    // 4. Slippage Penalty
+    const adjustedReturn = (yearlyReturn * 100) - 1.5;
+
+    if (score > 60) {
+        return {
+            symbol: data.symbol,
+            name: data.name,
+            score: Math.round(Math.min(100, score)),
+            rating: score > 85 ? 'STRONG BUY' : 'BUY',
+            algorithm: 'Scientific CAN SLIM (V2)',
+            timeframe: '1y',
+            risk: 'Medium',
+            metrics: { yearlyReturn, pe: data.pe, sma200, adjustedReturn },
+            v2_hash: 'scs-v2.0.0-alpha'
+        };
+    }
+    return null;
+}
+
+/**
+ * Strategy E: Adversarial Trend (AT)
+ * Uses volatility-normalized trend following
+ */
+export function scoreAdversarialTrend(data: StockData): V2Pick | null {
+    if (!data.history || data.history.length < 50) return null;
+
+    const prices = data.history.map(h => h.close);
+    const sma20 = prices.slice(-20).reduce((a, b) => a + b, 0) / 20;
+    const sma50 = prices.slice(-50).reduce((a, b) => a + b, 0) / 50;
+
+    // Golden Cross / Trend Alignment
+    if (sma20 <= sma50 || data.price <= sma20) return null;
+
+    // Volatility Normalization
+    const returns = [];
+    for (let i = 1; i < prices.length; i++) {
+        returns.push(Math.abs(prices[i] - prices[i - 1]) / prices[i - 1]);
+    }
+    const avgVolatilty = returns.slice(-20).reduce((a, b) => a + b, 0) / 20;
+
+    const trendStrength = (data.price - sma50) / sma50;
+    const scoreVal = (trendStrength / (avgVolatilty + 0.01)) * 5;
+    const score = Math.min(100, Math.max(0, scoreVal + 40));
+
+    if (score > 65) {
+        return {
+            symbol: data.symbol,
+            name: data.name,
+            score: Math.round(score),
+            rating: score > 85 ? 'STRONG BUY' : 'BUY',
+            algorithm: 'Adversarial Trend (V2)',
+            timeframe: '1m',
+            risk: 'Medium',
+            metrics: { trendStrength, avgVolatilty, signalDensity: scoreVal },
+            v2_hash: 'at-v2.0.0-alpha'
+        };
+    }
+    return null;
+}
+
+
