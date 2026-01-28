@@ -314,6 +314,17 @@ END:VCALENDAR`;
                             >
                                 <span className="text-lg">⚙️</span> System Settings
                             </button>
+
+                            {/* Secondary Contact Link at base of Network */}
+                            <button
+                                onClick={() => {
+                                    scrollToFooter();
+                                    setIsOpen(false);
+                                }}
+                                className="w-full text-center px-4 py-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-[var(--pk-400)]/60 hover:text-[var(--pk-400)] transition-all border border-dashed border-white/5 hover:border-[var(--pk-500)]/30 mt-4 group"
+                            >
+                                <span className="opacity-20 group-hover:opacity-100 transition-opacity">---</span> 📧 Contact Support <span className="opacity-20 group-hover:opacity-100 transition-opacity">---</span>
+                            </button>
                         </div>
 
                         {/* Contact Support Section */}

@@ -458,6 +458,18 @@ export default function SettingsManager() {
                             <div className="pt-10 border-t border-white/10 opacity-30 text-center space-y-2 pb-10">
                                 <p className="text-[10px] font-black uppercase tracking-[0.3em]">Antigravity UI Systems</p>
                                 <p className="text-[10px] font-bold">All parameters synced to local environment.</p>
+
+                                <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)]">Support Nexus</p>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col items-center gap-3">
+                                        <div className="text-[14px] font-mono text-white select-all">
+                                            support<span className="text-[var(--pk-500)]">@</span>findtorontoevents.ca
+                                        </div>
+                                        <p className="text-[9px] font-bold uppercase tracking-tighter text-[var(--text-3)]">
+                                            Direct encrypted uplink • Response: 24-48h
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
