@@ -3,384 +3,983 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>STOCKSUNIFY2 // Scientific Audit</title>
+        <title>STOCKSUNIFY - AI-Powered Stock Picks</title>
         <link rel="stylesheet" href="style.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
         <div class="container">
-            <h1>STOCKSUNIFY2 // Scientific Audit</h1>
-            <p>
-                This page provides a static, daily snapshot of the output from
-                the STOCKSUNIFY V2 engine. It is designed for transparency and
-                to showcase the results of the scientific, multi-strategy
-                approach to stock selection. The methodologies and picks are
-                updated daily.
-            </p>
-
-            <h2>Latest Audit Summary</h2>
-            <table class="summary-table">
-                <thead>
-                    <tr>
-                        <th>Audit Date</th>
-                        <th>Market Regime</th>
-                        <th>Total Picks</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>2026-01-28</td>
-                        <td class="regime-bullish">BULLISH</td>
-                        <td>20</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h2>Picks of the Day</h2>
-            <p>The top 10 scoring picks from the latest V2 engine run.</p>
-            <table class="picks-table">
-                <thead>
-                    <tr>
-                        <th>Symbol</th>
-                        <th>Name</th>
-                        <th>Algorithm</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>LRCX</td>
-                        <td>Lam Research Corporation</td>
-                        <td>Volatility-Adjusted Momentum (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>JNJ</td>
-                        <td>Johnson & Johnson</td>
-                        <td>Volatility-Adjusted Momentum (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>XOM</td>
-                        <td>Exxon Mobil Corporation</td>
-                        <td>Volatility-Adjusted Momentum (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>MRK</td>
-                        <td>Merck & Co., Inc.</td>
-                        <td>Volatility-Adjusted Momentum (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>SLB</td>
-                        <td>SLB N.V.</td>
-                        <td>Volatility-Adjusted Momentum (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>FCX</td>
-                        <td>Freeport-McMoRan Inc.</td>
-                        <td>Volatility-Adjusted Momentum (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>RIVN</td>
-                        <td>Rivian Automotive, Inc.</td>
-                        <td>Regime-Aware Reversion (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>GM</td>
-                        <td>General Motors Company</td>
-                        <td>Volatility-Adjusted Momentum (V2)</td>
-                        <td>100</td>
-                    </tr>
-                    <tr>
-                        <td>JPM</td>
-                        <td>JPMorgan Chase & Co.</td>
-                        <td>Regime-Aware Reversion (V2)</td>
-                        <td>98</td>
-                    </tr>
-                    <tr>
-                        <td>BAC</td>
-                        <td>Bank of America Corporation</td>
-                        <td>Regime-Aware Reversion (V2)</td>
-                        <td>98</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h2>Strategy Deep Dive</h2>
-            <p>
-                This table outlines the methodology, pros, cons, and current
-                status of each primary algorithm in the V1 and V2 engines.
-            </p>
-            <div class="table-wrapper">
-                <table class="deep-dive-table">
-                    <thead>
-                        <tr>
-                            <th>Strategy</th>
-                            <th>Pros</th>
-                            <th>Cons</th>
-                            <th>Current State</th>
-                            <th>Ideal Stock Type</th>
-                            <th>Holding Period</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong
-                                    >V2: Regime-Aware Reversion (RAR)</strong
-                                >
-                            </td>
-                            <td>
-                                Market-aware (shuts down in bear markets).
-                                Simple, robust logic (RSI mean-reversion).
-                            </td>
-                            <td>
-                                Only works for stocks already in a long-term
-                                uptrend.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No (Forward-tested via Truth Engine)
-                            </td>
-                            <td>
-                                Quality, large-cap stocks in a confirmed uptrend
-                                experiencing a short-term pullback.
-                            </td>
-                            <td>7 Days</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong
-                                    >V2: Volatility-Adjusted Momentum
-                                    (VAM)</strong
-                                >
-                            </td>
-                            <td>
-                                Prioritizes smooth, low-volatility gains (high
-                                Martin Ratio). Excellent for risk-adjusted
-                                returns.
-                            </td>
-                            <td>
-                                May underperform in speculative "junk-on"
-                                rallies.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No (Forward-tested via Truth Engine)
-                            </td>
-                            <td>
-                                Any stock with consistent, non-erratic price
-                                appreciation.
-                            </td>
-                            <td>1 Month</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong
-                                    >V2: Liquidity-Shielded Penny (LSP)</strong
-                                >
-                            </td>
-                            <td>
-                                Specifically designed for high-risk stocks.
-                                "Slippage Torture Test" validates liquidity.
-                            </td>
-                            <td>
-                                Inherently very high risk. Model is sensitive to
-                                execution costs.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No (Forward-tested via Truth Engine)
-                            </td>
-                            <td>
-                                Penny stocks (sub-$5) with high volume and
-                                catalysts.
-                            </td>
-                            <td>24 Hours</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong>V2: Scientific CAN SLIM (SCS)</strong>
-                            </td>
-                            <td>
-                                Improves on V1 CAN SLIM with a market regime
-                                filter.
-                            </td>
-                            <td>
-                                Still lacks fundamental data (earnings, etc.)
-                                that the full CAN SLIM model requires.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No (Forward-tested via Truth Engine)
-                            </td>
-                            <td>Mid to large-cap growth stocks.</td>
-                            <td>1 Year</td>
-                        </tr>
-                        <tr>
-                            <td><strong>V2: Adversarial Trend (AT)</strong></td>
-                            <td>
-                                Volatility-normalized, making it more stable
-                                than pure price momentum.
-                            </td>
-                            <td>
-                                Can be slower to react than simpler momentum
-                                strategies.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No (Forward-tested via Truth Engine)
-                            </td>
-                            <td>
-                                Stocks with strong, established trends in any
-                                sector.
-                            </td>
-                            <td>1 Month</td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <strong
-                                    >V2: Institutional Footprint (IF)</strong
-                                >
-                            </td>
-                            <td>
-                                Uses Volume Z-Score to detect statistically
-                                significant institutional activity.
-                            </td>
-                            <td>
-                                Volume spikes can sometimes be misleading (e.g.,
-                                ETF rebalancing).
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No (Forward-tested via Truth Engine)
-                            </td>
-                            <td>
-                                Mid to large-cap stocks showing signs of
-                                accumulation.
-                            </td>
-                            <td>7 Days</td>
-                        </tr>
-                        <tr>
-                            <td><strong>V1: CAN SLIM (Classic)</strong></td>
-                            <td>Based on a historically proven methodology.</td>
-                            <td>
-                                Technical-only implementation. Is not
-                                market-regime aware.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No
-                            </td>
-                            <td>Growth stocks, typically $10+.</td>
-                            <td>3-12 Months</td>
-                        </tr>
-                        <tr>
-                            <td><strong>V1: Technical Momentum</strong></td>
-                            <td>
-                                Multi-timeframe (24h, 3d, 7d) provides
-                                flexibility.
-                            </td>
-                            <td>
-                                Can be noisy and produce false breakouts without
-                                a volatility filter.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No
-                            </td>
-                            <td>
-                                Any stock with short-term catalysts. High risk
-                                for penny stocks.
-                            </td>
-                            <td>24h to 7d</td>
-                        </tr>
-                        <tr>
-                            <td><strong>V1: Composite Rating</strong></td>
-                            <td>
-                                Multi-factor approach provides a balanced
-                                "general quality" score.
-                            </td>
-                            <td>
-                                Uses fixed, heuristic weights for its factors.
-                                Simple regime detection.
-                            </td>
-                            <td>
-                                <strong>Implemented</strong>: Yes<br /><strong
-                                    >Job Setup</strong
-                                >: Yes (Daily)<br /><strong>Backtested</strong>:
-                                No
-                            </td>
-                            <td>
-                                Any stock, good for general watchlist ranking.
-                            </td>
-                            <td>1-3 Months</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <h2>Validation Methodology</h2>
-            <p>
-                This section outlines the standardized, multi-phase process for
-                developing, testing, and validating any stock selection
-                algorithm within the STOCKSUNIFY ecosystem.
-            </p>
-            <div class="card-container">
-                <div class="card">
-                    <h3>Phase 1: In-Sample Optimization</h3>
-                    <p>
-                        The algorithm's parameters are tuned on a historical
-                        dataset (e.g., 2020-2023) to find the optimal settings
-                        that maximize a target metric like Sharpe Ratio. This
-                        phase is for discovery and fitting.
-                    </p>
+            <!-- Hero Section -->
+            <header class="hero">
+                <div class="hero-badge">V2.1 Scientific Engine</div>
+                <h1>STOCKSUNIFY</h1>
+                <p class="hero-subtitle">
+                    AI-Powered Algorithmic Stock Selection with Transparent
+                    Performance Tracking
+                </p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-value">6</span>
+                        <span class="stat-label">Algorithms</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">30</span>
+                        <span class="stat-label">Daily Picks</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">101</span>
+                        <span class="stat-label">Stock Universe</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value regime-bull">BULL</span>
+                        <span class="stat-label">Market Regime</span>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Phase 2: Out-of-Sample Validation</h3>
-                    <p>
-                        The optimized algorithm is run once on unseen data
-                        (e.g., 2024-Present). If its performance degrades
-                        significantly (e.g., >30%) from the in-sample results,
-                        it is considered overfit and rejected.
-                    </p>
+            </header>
+
+            <!-- Quick Summary for Beginners -->
+            <section class="beginner-guide">
+                <h2>New to Stock Investing?</h2>
+                <div class="guide-cards">
+                    <div class="guide-card">
+                        <div class="guide-icon">🎯</div>
+                        <h3>What We Do</h3>
+                        <p>
+                            Our algorithms analyze 101 stocks daily using
+                            technical indicators, momentum signals, and market
+                            conditions to identify potential opportunities.
+                        </p>
+                    </div>
+                    <div class="guide-card">
+                        <div class="guide-icon">📊</div>
+                        <h3>How to Read Picks</h3>
+                        <p>
+                            <strong>STRONG BUY</strong> = High confidence.
+                            <strong>BUY</strong> = Good opportunity. Each pick
+                            includes entry price, stop-loss, and holding time.
+                        </p>
+                    </div>
+                    <div class="guide-card">
+                        <div class="guide-icon">⚠️</div>
+                        <h3>Risk Warning</h3>
+                        <p>
+                            All investments carry risk. Never invest more than
+                            you can afford to lose. Our picks are suggestions,
+                            not financial advice.
+                        </p>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Phase 3: Live Forward-Testing</h3>
-                    <p>
-                        The "Truth Engine" tracks the real-world performance of
-                        deployed algorithms by checking their results after the
-                        recommended holding period. This provides the ultimate,
-                        unbiased measure of success.
-                    </p>
+            </section>
+
+            <!-- Today's Top Picks -->
+            <section class="picks-section">
+                <h2>
+                    Today's Top Picks
+                    <span class="date-badge">January 28, 2026</span>
+                </h2>
+                <p class="section-desc">
+                    Our highest-conviction selections across all algorithms.
+                    Click any stock for details on Yahoo Finance.
+                </p>
+
+                <!-- STRONG BUY Picks -->
+                <h3 class="rating-header strong-buy">STRONG BUY Picks</h3>
+                <div class="picks-grid">
+                    <!-- GM -->
+                    <div class="pick-card strong-buy">
+                        <div class="pick-header">
+                            <div class="pick-symbol">
+                                <a
+                                    href="https://finance.yahoo.com/quote/GM"
+                                    target="_blank"
+                                    >GM</a
+                                >
+                                <span class="pick-name">General Motors</span>
+                            </div>
+                            <div class="pick-score">100</div>
+                        </div>
+                        <div class="pick-algo">Technical Momentum (3d)</div>
+                        <div class="pick-explanation">
+                            <strong>Why we picked it:</strong> Exceptional
+                            volume surge (3x average) combined with price
+                            breakout and Bollinger squeeze pattern. This setup
+                            often precedes significant moves.
+                        </div>
+                        <div class="trade-plan">
+                            <div class="trade-row">
+                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-value">$86.81</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-value stop">$82.42</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label"
+                                    >Target (+2:1 R:R)</span
+                                >
+                                <span class="trade-value target">$95.59</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-value">3 days</span>
+                            </div>
+                        </div>
+                        <div class="pick-meta">
+                            <span class="risk-badge high">High Risk</span>
+                            <span class="investor-type"
+                                >Best for: Swing Traders</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- VTRS -->
+                    <div class="pick-card strong-buy">
+                        <div class="pick-header">
+                            <div class="pick-symbol">
+                                <a
+                                    href="https://finance.yahoo.com/quote/VTRS"
+                                    target="_blank"
+                                    >VTRS</a
+                                >
+                                <span class="pick-name">Viatris Inc.</span>
+                            </div>
+                            <div class="pick-score">90</div>
+                        </div>
+                        <div class="pick-algo">Alpha Predator (3d)</div>
+                        <div class="pick-explanation">
+                            <strong>Why we picked it:</strong> Strong ADX trend
+                            strength (44.8), confirmed VCP pattern, and
+                            institutional accumulation detected. Multiple
+                            indicators aligning for potential upside.
+                        </div>
+                        <div class="trade-plan">
+                            <div class="trade-row">
+                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-value">$13.19</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-value stop">$12.43</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label"
+                                    >Target (+2:1 R:R)</span
+                                >
+                                <span class="trade-value target">$14.71</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-value">3-7 days</span>
+                            </div>
+                        </div>
+                        <div class="pick-meta">
+                            <span class="risk-badge medium">Medium Risk</span>
+                            <span class="investor-type"
+                                >Best for: Position Traders</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- PFE -->
+                    <div class="pick-card strong-buy">
+                        <div class="pick-header">
+                            <div class="pick-symbol">
+                                <a
+                                    href="https://finance.yahoo.com/quote/PFE"
+                                    target="_blank"
+                                    >PFE</a
+                                >
+                                <span class="pick-name">Pfizer Inc.</span>
+                            </div>
+                            <div class="pick-score">85</div>
+                        </div>
+                        <div class="pick-algo">Technical Momentum (3d)</div>
+                        <div class="pick-explanation">
+                            <strong>Why we picked it:</strong> Volume spike
+                            (2.5x) with price breakout. Bollinger squeeze
+                            indicates volatility contraction before expansion.
+                            RSI at 64.5 shows momentum without being overbought.
+                        </div>
+                        <div class="trade-plan">
+                            <div class="trade-row">
+                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-value">$26.63</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-value stop">$25.69</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label"
+                                    >Target (+2:1 R:R)</span
+                                >
+                                <span class="trade-value target">$28.51</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-value">3 days</span>
+                            </div>
+                        </div>
+                        <div class="pick-meta">
+                            <span class="risk-badge high">High Risk</span>
+                            <span class="investor-type"
+                                >Best for: Swing Traders</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- DUK -->
+                    <div class="pick-card strong-buy">
+                        <div class="pick-header">
+                            <div class="pick-symbol">
+                                <a
+                                    href="https://finance.yahoo.com/quote/DUK"
+                                    target="_blank"
+                                    >DUK</a
+                                >
+                                <span class="pick-name">Duke Energy</span>
+                            </div>
+                            <div class="pick-score">80</div>
+                        </div>
+                        <div class="pick-algo">Technical Momentum (7d)</div>
+                        <div class="pick-explanation">
+                            <strong>Why we picked it:</strong> Utility stock
+                            showing breakout with tight Bollinger squeeze. Low
+                            volatility sector play with defensive
+                            characteristics during market uncertainty.
+                        </div>
+                        <div class="trade-plan">
+                            <div class="trade-row">
+                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-value">$120.89</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-value stop">$117.57</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label"
+                                    >Target (+2:1 R:R)</span
+                                >
+                                <span class="trade-value target">$127.53</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-value">7 days</span>
+                            </div>
+                        </div>
+                        <div class="pick-meta">
+                            <span class="risk-badge high">High Risk</span>
+                            <span class="investor-type"
+                                >Best for: Defensive Play</span
+                            >
+                        </div>
+                    </div>
+
+                    <!-- SBUX -->
+                    <div class="pick-card strong-buy">
+                        <div class="pick-header">
+                            <div class="pick-symbol">
+                                <a
+                                    href="https://finance.yahoo.com/quote/SBUX"
+                                    target="_blank"
+                                    >SBUX</a
+                                >
+                                <span class="pick-name">Starbucks</span>
+                            </div>
+                            <div class="pick-score">70</div>
+                        </div>
+                        <div class="pick-algo">Composite Rating (1m)</div>
+                        <div class="pick-explanation">
+                            <strong>Why we picked it:</strong> Strong YTD
+                            performance (+14%), volume confirmation, and
+                            balanced technical/fundamental profile. Good for
+                            longer-term position building.
+                        </div>
+                        <div class="trade-plan">
+                            <div class="trade-row">
+                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-value">$96.20</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-value stop">$89.80</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label"
+                                    >Target (+2:1 R:R)</span
+                                >
+                                <span class="trade-value target">$109.00</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-value">1 month</span>
+                            </div>
+                        </div>
+                        <div class="pick-meta">
+                            <span class="risk-badge medium">Medium Risk</span>
+                            <span class="investor-type"
+                                >Best for: Investors</span
+                            >
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <!-- BUY Picks -->
+                <h3 class="rating-header buy">BUY Picks (Top 10)</h3>
+                <div class="picks-table-wrapper">
+                    <table class="picks-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Company</th>
+                                <th>Algorithm</th>
+                                <th>Score</th>
+                                <th>Entry</th>
+                                <th>Stop Loss</th>
+                                <th>Hold</th>
+                                <th>Risk</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/WMT"
+                                        target="_blank"
+                                        >WMT</a
+                                    >
+                                </td>
+                                <td>Walmart Inc.</td>
+                                <td>Alpha Predator</td>
+                                <td>80</td>
+                                <td>$117.52</td>
+                                <td class="stop">$111.43</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/CAT"
+                                        target="_blank"
+                                        >CAT</a
+                                    >
+                                </td>
+                                <td>Caterpillar Inc.</td>
+                                <td>Alpha Predator</td>
+                                <td>80</td>
+                                <td>$642.10</td>
+                                <td class="stop">$603.85</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/NEE"
+                                        target="_blank"
+                                        >NEE</a
+                                    >
+                                </td>
+                                <td>NextEra Energy</td>
+                                <td>Alpha Predator</td>
+                                <td>80</td>
+                                <td>$87.59</td>
+                                <td class="stop">$83.48</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/HUT"
+                                        target="_blank"
+                                        >HUT</a
+                                    >
+                                </td>
+                                <td>Hut 8 Corp.</td>
+                                <td>Alpha Predator</td>
+                                <td>80</td>
+                                <td>$62.15</td>
+                                <td class="stop">$52.10</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/XOM"
+                                        target="_blank"
+                                        >XOM</a
+                                    >
+                                </td>
+                                <td>Exxon Mobil</td>
+                                <td>Alpha Predator</td>
+                                <td>75</td>
+                                <td>$137.51</td>
+                                <td class="stop">$131.35</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/CVX"
+                                        target="_blank"
+                                        >CVX</a
+                                    >
+                                </td>
+                                <td>Chevron Corp.</td>
+                                <td>Alpha Predator</td>
+                                <td>75</td>
+                                <td>$169.90</td>
+                                <td class="stop">$163.11</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/GOOGL"
+                                        target="_blank"
+                                        >GOOGL</a
+                                    >
+                                </td>
+                                <td>Alphabet Inc.</td>
+                                <td>Alpha Predator</td>
+                                <td>70</td>
+                                <td>$336.22</td>
+                                <td class="stop">$318.41</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/NVDA"
+                                        target="_blank"
+                                        >NVDA</a
+                                    >
+                                </td>
+                                <td>NVIDIA Corp.</td>
+                                <td>Alpha Predator</td>
+                                <td>70</td>
+                                <td>$189.46</td>
+                                <td class="stop">$178.66</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/UNH"
+                                        target="_blank"
+                                        >UNH</a
+                                    >
+                                </td>
+                                <td>UnitedHealth</td>
+                                <td>Technical Momentum</td>
+                                <td>70</td>
+                                <td>$284.11</td>
+                                <td class="stop">$262.64</td>
+                                <td>24h</td>
+                                <td>
+                                    <span class="risk-badge-sm high">High</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/INTC"
+                                        target="_blank"
+                                        >INTC</a
+                                    >
+                                </td>
+                                <td>Intel Corp.</td>
+                                <td>Alpha Predator</td>
+                                <td>70</td>
+                                <td>$44.15</td>
+                                <td class="stop">$36.68</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-note">
+                    All entry prices include +0.5% slippage simulation for
+                    realistic expectations.
+                </p>
+            </section>
+
+            <!-- Performance Tracking -->
+            <section class="performance-section">
+                <h2>
+                    Performance Tracking <span class="live-badge">LIVE</span>
+                </h2>
+                <p class="section-desc">
+                    Our "Truth Engine" automatically verifies pick outcomes
+                    after the recommended holding period. This is forward-tested
+                    performance - no look-ahead bias.
+                </p>
+
+                <div class="performance-grid">
+                    <div class="perf-card">
+                        <div class="perf-icon">🎯</div>
+                        <div class="perf-value">30</div>
+                        <div class="perf-label">Total Picks Being Tracked</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-icon">⏳</div>
+                        <div class="perf-value pending">30</div>
+                        <div class="perf-label">Pending Verification</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-icon">✅</div>
+                        <div class="perf-value">0</div>
+                        <div class="perf-label">Verified</div>
+                    </div>
+                    <div class="perf-card">
+                        <div class="perf-icon">📈</div>
+                        <div class="perf-value">--</div>
+                        <div class="perf-label">Win Rate (TBD)</div>
+                    </div>
+                </div>
+
+                <div class="verification-timeline">
+                    <h3>Upcoming Verifications</h3>
+                    <div class="timeline-items">
+                        <div class="timeline-item">
+                            <div class="timeline-date">Jan 29, 2026</div>
+                            <div class="timeline-desc">
+                                24-hour picks mature (UNH)
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">Jan 31, 2026</div>
+                            <div class="timeline-desc">
+                                3-day picks mature (GM, VTRS, PFE, etc.)
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">Feb 4, 2026</div>
+                            <div class="timeline-desc">
+                                7-day picks mature (DUK, F, etc.)
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">Feb 28, 2026</div>
+                            <div class="timeline-desc">
+                                1-month picks mature (SBUX)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algo-performance">
+                    <h3>Algorithm Distribution (Today's Picks)</h3>
+                    <div class="algo-bars">
+                        <div class="algo-bar">
+                            <div class="algo-name">Alpha Predator</div>
+                            <div class="algo-bar-track">
+                                <div
+                                    class="algo-bar-fill"
+                                    style="width: 63%"
+                                ></div>
+                            </div>
+                            <div class="algo-count">19 picks (63%)</div>
+                        </div>
+                        <div class="algo-bar">
+                            <div class="algo-name">Technical Momentum</div>
+                            <div class="algo-bar-track">
+                                <div
+                                    class="algo-bar-fill"
+                                    style="width: 23%"
+                                ></div>
+                            </div>
+                            <div class="algo-count">7 picks (23%)</div>
+                        </div>
+                        <div class="algo-bar">
+                            <div class="algo-name">CAN SLIM</div>
+                            <div class="algo-bar-track">
+                                <div
+                                    class="algo-bar-fill"
+                                    style="width: 10%"
+                                ></div>
+                            </div>
+                            <div class="algo-count">3 picks (10%)</div>
+                        </div>
+                        <div class="algo-bar">
+                            <div class="algo-name">Composite Rating</div>
+                            <div class="algo-bar-track">
+                                <div
+                                    class="algo-bar-fill"
+                                    style="width: 3%"
+                                ></div>
+                            </div>
+                            <div class="algo-count">1 pick (3%)</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Methodology -->
+            <section class="methodology-section">
+                <h2>Our Methodology</h2>
+                <p class="section-desc">
+                    Six algorithms work in parallel, each designed for different
+                    market conditions and investor styles. Every pick is
+                    timestamped and hashed for transparency.
+                </p>
+
+                <div class="method-grid">
+                    <!-- Alpha Predator -->
+                    <div class="method-card">
+                        <div class="method-header">
+                            <h3>Alpha Predator</h3>
+                            <span class="method-badge">Most Active Today</span>
+                        </div>
+                        <p class="method-desc">
+                            Scientific composite combining Trend (ADX), Momentum
+                            (Awesome Oscillator), and Structure (VCP pattern)
+                            for robust signals.
+                        </p>
+                        <div class="method-details">
+                            <div class="detail-row">
+                                <span>Hold Time:</span>
+                                <span>3-7 days</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Best For:</span>
+                                <span
+                                    >Any stock with strong trend alignment</span
+                                >
+                            </div>
+                            <div class="detail-row">
+                                <span>Key Indicators:</span>
+                                <span>ADX, AO, VCP, VWAP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical Momentum -->
+                    <div class="method-card">
+                        <div class="method-header">
+                            <h3>Technical Momentum</h3>
+                            <span class="method-badge secondary"
+                                >Multi-Timeframe</span
+                            >
+                        </div>
+                        <p class="method-desc">
+                            Captures short-term momentum using volume surges,
+                            RSI extremes, breakouts, and Bollinger Band
+                            squeezes.
+                        </p>
+                        <div class="method-details">
+                            <div class="detail-row">
+                                <span>Hold Time:</span>
+                                <span>24h / 3d / 7d</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Best For:</span>
+                                <span>Short-term momentum plays</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Key Indicators:</span>
+                                <span>RSI, Volume Z, Bollinger, ATR</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CAN SLIM -->
+                    <div class="method-card">
+                        <div class="method-header">
+                            <h3>CAN SLIM</h3>
+                            <span class="method-badge tertiary"
+                                >Growth Stocks</span
+                            >
+                        </div>
+                        <p class="method-desc">
+                            Based on William O'Neil's proven methodology.
+                            Focuses on relative strength, Stage-2 uptrends, and
+                            institutional accumulation.
+                        </p>
+                        <div class="method-details">
+                            <div class="detail-row">
+                                <span>Hold Time:</span>
+                                <span>3-12 months</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Best For:</span>
+                                <span>Growth stocks, $10+</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Key Indicators:</span>
+                                <span>RS Rating, Stage-2, VCP</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Composite Rating -->
+                    <div class="method-card">
+                        <div class="method-header">
+                            <h3>Composite Rating</h3>
+                            <span class="method-badge quaternary"
+                                >Balanced</span
+                            >
+                        </div>
+                        <p class="method-desc">
+                            Multi-factor approach combining technical, volume,
+                            and fundamental data with market regime awareness.
+                        </p>
+                        <div class="method-details">
+                            <div class="detail-row">
+                                <span>Hold Time:</span>
+                                <span>1-3 months</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Best For:</span>
+                                <span>General watchlist, any stock</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Key Indicators:</span>
+                                <span>SMA, RSI, Volume, PE, YTD</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Penny Sniper -->
+                    <div class="method-card inactive">
+                        <div class="method-header">
+                            <h3>Penny Sniper</h3>
+                            <span class="method-badge inactive">Dormant</span>
+                        </div>
+                        <p class="method-desc">
+                            High-risk microcap hunter for stocks $0.50-$15.
+                            Requires volume spikes and golden cross patterns.
+                        </p>
+                        <div class="method-details">
+                            <div class="detail-row">
+                                <span>Hold Time:</span>
+                                <span>24 hours</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Status:</span>
+                                <span>Needs more penny stocks in universe</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Value Sleeper -->
+                    <div class="method-card inactive">
+                        <div class="method-header">
+                            <h3>Value Sleeper</h3>
+                            <span class="method-badge inactive">Dormant</span>
+                        </div>
+                        <p class="method-desc">
+                            Mean reversion strategy for undervalued companies
+                            near 52-week lows with solid fundamentals.
+                        </p>
+                        <div class="method-details">
+                            <div class="detail-row">
+                                <span>Hold Time:</span>
+                                <span>3+ months</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Status:</span>
+                                <span>Requires specific market conditions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Validation Process -->
+            <section class="validation-section">
+                <h2>How We Validate Results</h2>
+                <div class="validation-steps">
+                    <div class="val-step">
+                        <div class="val-number">1</div>
+                        <h3>Timestamp & Hash</h3>
+                        <p>
+                            Every pick is timestamped and given a SHA-256 hash
+                            before markets open. This creates an immutable
+                            record that cannot be altered.
+                        </p>
+                    </div>
+                    <div class="val-step">
+                        <div class="val-number">2</div>
+                        <h3>Slippage Simulation</h3>
+                        <p>
+                            We add +0.5% to entry prices to account for
+                            real-world execution costs. This makes our reported
+                            returns more realistic.
+                        </p>
+                    </div>
+                    <div class="val-step">
+                        <div class="val-number">3</div>
+                        <h3>Automated Verification</h3>
+                        <p>
+                            GitHub Actions run every 6 hours to check if any
+                            picks have completed their holding period, then
+                            fetch current prices.
+                        </p>
+                    </div>
+                    <div class="val-step">
+                        <div class="val-number">4</div>
+                        <h3>Transparent Results</h3>
+                        <p>
+                            All results are published to our GitHub repo and
+                            this page. Wins and losses are both displayed
+                            honestly.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Budget Guide -->
+            <section class="budget-section">
+                <h2>Which Picks Are Right for You?</h2>
+                <div class="budget-grid">
+                    <div class="budget-card">
+                        <h3>Small Budget ($500-$5,000)</h3>
+                        <ul>
+                            <li>Focus on STRONG BUY, Medium Risk picks</li>
+                            <li>Hold 3-5 positions maximum</li>
+                            <li>Stick to 1-month timeframes</li>
+                            <li>Avoid penny stocks</li>
+                            <li>Keep 20% in cash</li>
+                        </ul>
+                        <div class="recommended-today">
+                            <strong>Today's Best Fit:</strong> SBUX, PFE
+                        </div>
+                    </div>
+                    <div class="budget-card">
+                        <h3>Medium Budget ($5,000-$50,000)</h3>
+                        <ul>
+                            <li>Diversify across 6-10 positions</li>
+                            <li>Mix of timeframes OK</li>
+                            <li>Can include some swing trades</li>
+                            <li>Limit any single position to 15%</li>
+                            <li>Keep 15% in cash</li>
+                        </ul>
+                        <div class="recommended-today">
+                            <strong>Today's Best Fit:</strong> GM, VTRS, WMT,
+                            CAT
+                        </div>
+                    </div>
+                    <div class="budget-card">
+                        <h3>Large Budget ($50,000+)</h3>
+                        <ul>
+                            <li>Hold 12-20 positions</li>
+                            <li>Sector diversification required</li>
+                            <li>Can allocate small % to high-risk</li>
+                            <li>Position sizes 5-7% max</li>
+                            <li>Keep 10% in cash</li>
+                        </ul>
+                        <div class="recommended-today">
+                            <strong>Today's Best Fit:</strong> Full portfolio
+                            from today's picks
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Resources -->
+            <section class="resources-section">
+                <h2>Resources</h2>
+                <div class="resource-links">
+                    <a
+                        href="https://github.com/eltonaguiar/STOCKSUNIFY2"
+                        target="_blank"
+                        class="resource-link"
+                    >
+                        <span class="resource-icon">📦</span>
+                        <span>GitHub Repository</span>
+                    </a>
+                    <a
+                        href="https://github.com/eltonaguiar/STOCKSUNIFY2/blob/main/data/daily-stocks.json"
+                        target="_blank"
+                        class="resource-link"
+                    >
+                        <span class="resource-icon">📊</span>
+                        <span>Raw JSON Data</span>
+                    </a>
+                    <a
+                        href="https://github.com/eltonaguiar/STOCKSUNIFY2/blob/main/README.md"
+                        target="_blank"
+                        class="resource-link"
+                    >
+                        <span class="resource-icon">📖</span>
+                        <span>Full Documentation</span>
+                    </a>
+                </div>
+            </section>
         </div>
+
         <footer>
-            <p>
-                STOCKSUNIFY2 2026. This page is for informational purposes only
-                and does not constitute financial advice.
-            </p>
+            <div class="footer-content">
+                <p>
+                    <strong>STOCKSUNIFY</strong> - Algorithmic Stock Selection
+                    Engine
+                </p>
+                <p class="disclaimer">
+                    This page is for
+                    <strong>informational purposes only</strong> and does not
+                    constitute financial advice. All stock investments carry
+                    risk. Past performance does not guarantee future results.
+                    Always conduct your own research and consult a licensed
+                    financial advisor before making investment decisions. Never
+                    invest more than you can afford to lose.
+                </p>
+                <p class="footer-meta">
+                    Last Updated: January 28, 2026 12:24 UTC | Data Source:
+                    Yahoo Finance
+                </p>
+            </div>
         </footer>
     </body>
 </html>
