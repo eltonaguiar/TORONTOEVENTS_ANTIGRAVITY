@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   scrape-and-update:
+    if: false  # Disabled: redundant with Scrape Events (scrape-events.yml)
     runs-on: ubuntu-latest
 
     steps:
