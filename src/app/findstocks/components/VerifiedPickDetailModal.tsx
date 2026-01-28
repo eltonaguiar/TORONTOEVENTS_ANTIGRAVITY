@@ -3,7 +3,7 @@
 // This component will display the detailed breakdown of a single verified stock pick.
 
 import { useEffect } from "react";
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 export interface VerifiedPick {
   id: string; // Hash
@@ -45,14 +45,14 @@ interface Props {
 export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
-    window.addEventListener('keydown', handleEsc);
+    window.addEventListener("keydown", handleEsc);
 
     return () => {
-      window.removeEventListener('keydown', handleEsc);
+      window.removeEventListener("keydown", handleEsc);
     };
   }, [onClose]);
 
@@ -60,8 +60,38 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
 
   const daysHeld = Math.round(
     (new Date(pick.verifiedAt).getTime() - new Date(pick.date).getTime()) /
-    (1000 * 3600 * 24)
+    (1000 * 3600 * 24),
   );
+
+  const rawEarningsDays = pick.metrics?.daysToEarnings;
+  const hasUpcomingEarnings =
+    typeof rawEarningsDays === "number" &&
+    !Number.isNaN(rawEarningsDays) &&
+    rawEarningsDays >= 0;
+  const earningsDaysValue = hasUpcomingEarnings
+    ? Math.max(0, Math.round(rawEarningsDays))
+    : null;
+  const earningsDateLabel =
+    typeof pick.metrics?.earningsDate === "string"
+      ? pick.metrics.earningsDate
+      : undefined;
+  const isHighRiskEarnings =
+    earningsDaysValue !== null && earningsDaysValue < 7;
+  const countdownLabel = (() => {
+    if (earningsDaysValue === null) return "";
+    if (earningsDaysValue === 0) return "Earnings: Today";
+    if (earningsDaysValue === 1) return "Earnings: Tomorrow";
+    return `Earnings: ${earningsDaysValue} days`;
+  })();
+  const countdownDisplay =
+    countdownLabel &&
+    (isHighRiskEarnings ? `${countdownLabel} ⚠️` : countdownLabel);
+  const countdownPanelClass = isHighRiskEarnings
+    ? "border-red-500/20 bg-red-500/10"
+    : "border-indigo-500/20 bg-indigo-500/5";
+  const countdownBadgeClass = isHighRiskEarnings
+    ? "text-red-300"
+    : "text-emerald-300";
 
   return (
     <div
@@ -108,16 +138,47 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
                 {pick.name}
               </p>
             </div>
-            <div className={`px-4 py-2 rounded-xl border ${pick.outcome === "WIN"
+            <div
+              className={`px-4 py-2 rounded-xl border ${pick.outcome === "WIN"
                 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                 : pick.outcome === "LOSS"
                   ? "bg-red-500/10 border-red-500/20 text-red-400"
                   : "bg-amber-500/10 border-amber-500/20 text-amber-400"
-              }`}>
-              <div className="text-xs font-bold uppercase tracking-widest text-center">Outcome</div>
-              <div className="text-xl font-black text-center">{pick.outcome}</div>
+                }`}
+            >
+              <div className="text-xs font-bold uppercase tracking-widest text-center">
+                Outcome
+              </div>
+              <div className="text-xl font-black text-center">
+                {pick.outcome}
+              </div>
             </div>
           </div>
+          {earningsDaysValue !== null && countdownDisplay && (
+            <div
+              className={`rounded-2xl border px-4 py-3 text-sm ${countdownPanelClass}`}
+            >
+              <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-neutral-400">
+                <span>Earnings Event</span>
+                <span className={`font-bold ${countdownBadgeClass}`}>
+                  {isHighRiskEarnings ? "High Risk" : "On Schedule"}
+                </span>
+              </div>
+              <div className="mt-2 text-lg font-bold text-white">
+                {countdownDisplay}
+              </div>
+              {earningsDateLabel && (
+                <div className="text-[11px] text-neutral-500">
+                  Date: {earningsDateLabel}
+                </div>
+              )}
+              <p className="mt-4 text-[11px] text-neutral-500 leading-relaxed border-t border-white/5 pt-3">
+                {isHighRiskEarnings
+                  ? "⚠️ Strategy Halt: Algorithms apply a -100 point safety penalty when earnings are within 5 days to prevent binary event gambling."
+                  : "✅ Strategy Go: Earnings are outside the volatility window, allowing technical indicators to drive the valuation."}
+              </p>
+            </div>
+          )}
 
           <div className="border-b border-white/10" />
 
@@ -130,27 +191,41 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Why We Picked It</div>
+                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">
+                  Why We Picked It
+                </div>
                 <p className="text-neutral-300 text-sm leading-relaxed">
                   {pick.simpleReason}
                 </p>
               </div>
               <div>
-                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Best For</div>
+                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">
+                  Best For
+                </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold">
                   {pick.investorType}
                 </div>
                 <div className="mt-4 flex gap-4">
                   <div>
-                    <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Hold Time</div>
+                    <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">
+                      Hold Time
+                    </div>
                     <div className="text-white font-bold">{pick.timeframe}</div>
                   </div>
                   <div>
-                    <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Risk Level</div>
-                    <div className={`font-bold ${pick.risk === "High" ? "text-red-400"
-                        : pick.risk === "Medium" ? "text-amber-400"
+                    <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">
+                      Risk Level
+                    </div>
+                    <div
+                      className={`font-bold ${pick.risk === "High"
+                        ? "text-red-400"
+                        : pick.risk === "Medium"
+                          ? "text-amber-400"
                           : "text-emerald-400"
-                      }`}>{pick.risk}</div>
+                        }`}
+                    >
+                      {pick.risk}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -264,7 +339,7 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
                       className="flex justify-between items-center border-b border-white/5 pb-1 last:border-0"
                     >
                       <span className="text-neutral-500 capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}:
+                        {key.replace(/([A-Z])/g, " $1").trim()}:
                       </span>
                       <span className="font-bold text-white text-right">
                         {typeof value === "number"

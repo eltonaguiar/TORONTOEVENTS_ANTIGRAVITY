@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import PerformanceDashboard from "./components/PerformanceDashboard";
 import SectorRotationWidget from "./components/SectorRotationWidget";
+import EfficiencyFrontierChart from "./components/EfficiencyFrontierChart";
+import StressAuditGrid from "./components/StressAuditGrid";
 
 interface V2Pick {
   symbol: string;
@@ -33,6 +35,29 @@ export default function FindStocksV2Client() {
   const [audit, setAudit] = useState<AuditData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [backtestData, setBacktestData] = useState<any[]>([]);
+  const [engineConfig, setEngineConfig] = useState<any>(null);
+  const [stressData, setStressData] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Fetch Backtest Data for Tuning Lab
+    fetch("/data/scientific-tuning.json")
+      .then(res => res.json())
+      .then(data => setBacktestData(data.results || []))
+      .catch(() => { });
+
+    // Fetch Engine Config
+    fetch("/data/engine-config.json")
+      .then(res => res.json())
+      .then(data => setEngineConfig(data))
+      .catch(() => { });
+
+    // Fetch Stress Data
+    fetch("/data/adversarial-audit.json")
+      .then(res => res.json())
+      .then(data => setStressData(data.results || []))
+      .catch(() => { });
+  }, []);
 
   useEffect(() => {
     const fetchLatestAudit = async () => {
@@ -303,6 +328,70 @@ export default function FindStocksV2Client() {
               <SectorRotationWidget />
             </section>
 
+            {/* Scientific Tuning Lab (New) */}
+            <section>
+              <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-6">
+                <h3 className="text-xs font-mono uppercase tracking-[0.4em] text-neutral-500">
+                  Scientific Tuning Lab
+                </h3>
+                <div className="text-[10px] font-mono text-neutral-600 uppercase">
+                  Threshold Evolution & Efficiency Frontier
+                </div>
+              </div>
+              <div className="grid lg:grid-cols-3 gap-12">
+                <div className="lg:col-span-2">
+                  <EfficiencyFrontierChart data={backtestData} />
+                </div>
+                <div className="space-y-6">
+                  <div className="p-6 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+                    <h4 className="text-sm font-bold text-white mb-2">The Efficiency Frontier</h4>
+                    <p className="text-xs text-neutral-400 leading-relaxed">
+                      Visualization of the trade-off between <strong>Quality (Win Rate)</strong> and <strong>Quantity (Trade Frequency)</strong>.
+                      Optimal thresholds are selected where the curve begins to "plateau" or drop off sharply.
+                    </p>
+                  </div>
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                    <h4 className="text-sm font-bold text-white mb-2">Walk-Forward Guard</h4>
+                    <p className="text-xs text-neutral-400 leading-relaxed">
+                      If an algorithm falls below its historical frontier, the Walk-Forward Engine automatically tightens thresholds to preserve capital.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Adversarial Stress Audit (New) */}
+            <section>
+              <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-6">
+                <h3 className="text-xs font-mono uppercase tracking-[0.4em] text-neutral-500">
+                  Adversarial Stress Audit
+                </h3>
+                <div className="text-[10px] font-mono text-neutral-600 uppercase">
+                  Black Swan Resilience
+                </div>
+              </div>
+              <div className="grid lg:grid-cols-3 gap-12">
+                <div className="space-y-6">
+                  <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/10">
+                    <h4 className="text-sm font-bold text-white mb-2">The "Falling Knife" Test</h4>
+                    <p className="text-xs text-neutral-400 leading-relaxed">
+                      We force algorithms to trade during historic market flushes (&gt; 3% drop in 5 days).
+                      This measures how many "False Positives" occur during extreme panic.
+                    </p>
+                  </div>
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
+                    <h1 className="text-2xl font-black text-white mb-1">{stressData.length}</h1>
+                    <p className="text-[10px] text-neutral-500 uppercase font-mono tracking-widest">
+                      Stress Events Captured
+                    </p>
+                  </div>
+                </div>
+                <div className="lg:col-span-2">
+                  <StressAuditGrid data={stressData} />
+                </div>
+              </div>
+            </section>
+
             {/* V2 Scientific Strategies Section */}
             <section>
               <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-6">
@@ -389,11 +478,16 @@ export default function FindStocksV2Client() {
                       {strategy.metrics.map((m, j) => (
                         <span
                           key={j}
-                          className="text-[9px] font-mono text-neutral-500 bg-white/5 px-2 py-1 rounded"
+                          className="text-[9px] font-mono text-neutral-400 bg-white/5 px-2 py-1 rounded"
                         >
                           {m}
                         </span>
                       ))}
+                      {engineConfig?.thresholds?.[strategy.name] && (
+                        <span className="text-[9px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded font-bold border border-indigo-500/20">
+                          Min Score: {engineConfig.thresholds[strategy.name]}
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}

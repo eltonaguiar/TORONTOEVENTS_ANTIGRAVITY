@@ -37,6 +37,9 @@ export interface StockData {
   high52Week?: number;
   low52Week?: number;
   history?: StockHistory[];
+  earningsTimestamp?: number;
+  daysToEarnings?: number;
+  earningsDate?: string;
 }
 
 /**
@@ -44,8 +47,9 @@ export interface StockData {
  */
 async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
   try {
-    const quoteUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1y`;
-    const infoUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=summaryProfile,financialData,defaultKeyStatistics`;
+    const quoteUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5y`;
+    // Added calendarEvents
+    const infoUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=summaryProfile,financialData,defaultKeyStatistics,calendarEvents`;
 
     const [quoteResponse, infoResponse] = await Promise.all([
       fetch(quoteUrl),
@@ -91,7 +95,15 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
       }))
       .filter((h: any) => h.close > 0);
 
-    let marketCap, pe, roe, debtToEquity, sharesOutstanding, high52Week, low52Week;
+    let marketCap,
+      pe,
+      roe,
+      debtToEquity,
+      sharesOutstanding,
+      high52Week,
+      low52Week;
+    let earningsTimestamp, earningsDate, daysToEarnings;
+
     if (infoResponse?.ok) {
       try {
         const infoData = await infoResponse.json();
@@ -106,7 +118,24 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
           // New Fundamental Fields
           roe = summary.financialData?.returnOnEquity?.raw;
           debtToEquity = summary.financialData?.debtToEquity?.raw;
-          sharesOutstanding = summary.defaultKeyStatistics?.sharesOutstanding?.raw;
+          sharesOutstanding =
+            summary.defaultKeyStatistics?.sharesOutstanding?.raw;
+
+          // Earnings Event
+          const earningsEvent =
+            summary.calendarEvents?.earnings?.earningsDate?.[0];
+          if (earningsEvent?.raw) {
+            earningsTimestamp = earningsEvent.raw;
+            earningsDate = earningsEvent.fmt;
+            const nowMs = Date.now();
+            const earningsMs = earningsTimestamp * 1000;
+            const diffDays = Math.ceil(
+              (earningsMs - nowMs) / (1000 * 3600 * 24),
+            );
+            if (Number.isFinite(diffDays)) {
+              daysToEarnings = diffDays;
+            }
+          }
         }
       } catch (e) {
         // Ignore
@@ -129,6 +158,9 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
       high52Week,
       low52Week,
       history,
+      earningsTimestamp,
+      earningsDate,
+      daysToEarnings,
     };
   } catch (error) {
     return null;

@@ -9,7 +9,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
-import { fetchMultipleStocks, fetchStockData } from "./lib/stock-data-fetcher-enhanced";
+import { fetchMultipleStocks, fetchStockData, StockData } from "./lib/stock-data-fetcher-enhanced";
 import {
   scoreCANSLIM,
   scoreTechnicalMomentum,
@@ -119,7 +119,30 @@ function parseTimeframePriority(tf: string): number {
  * Bull: Price > 200 SMA
  * Bear: Price < 200 SMA
  */
-async function determineMarketRegime(): Promise<"bull" | "bear" | "neutral"> {
+function resolveDaysToEarnings(data: StockData): number | undefined {
+  if (data.daysToEarnings !== undefined) return data.daysToEarnings;
+  if (data.earningsTimestamp) {
+    const nowMs = Date.now();
+    const diffDays = Math.ceil(
+      (data.earningsTimestamp * 1000 - nowMs) / (1000 * 3600 * 24),
+    );
+    if (Number.isFinite(diffDays)) return diffDays;
+  }
+  return undefined;
+}
+
+function assessEarningsRiskForDiagnostics(days?: number): {
+  status: "ok" | "penalized" | "disqualified";
+  reason?: string;
+} {
+  if (days === undefined) return { status: "ok" };
+  if (days < 0) return { status: "ok" };
+  if (days <= 2) return { status: "disqualified", reason: "<3 days" };
+  if (days <= 6) return { status: "penalized", reason: "<7 days" };
+  return { status: "ok" };
+}
+
+async function determineMarketRegime(): Promise<"bull" | "bear" | "neutral" | "stress"> {
   const spyData = await fetchStockData("SPY");
 
   if (!spyData || !spyData.price || !spyData.history || spyData.history.length < 200) {
@@ -130,6 +153,15 @@ async function determineMarketRegime(): Promise<"bull" | "bear" | "neutral"> {
   // Calculate 200 SMA manually if not pre-calculated
   const closes = spyData.history.map(h => h.close);
   const sma200 = closes.slice(-200).reduce((a, b) => a + b, 0) / 200;
+
+  // Stress Detection: > 3% crash in last 5 days
+  const fiveDaysAgo = closes[closes.length - 6];
+  const fiveDayDrop = ((spyData.price - fiveDaysAgo) / fiveDaysAgo) * 100;
+
+  if (fiveDayDrop < -3) {
+    console.log(`⚠️ STRESS REGIME DETECTED: SPY dropped ${fiveDayDrop.toFixed(2)}% in 5 days.`);
+    return "stress";
+  }
 
   const regime = spyData.price > sma200 ? "bull" : "bear";
   console.log(`🌍 Market Regime Detected (SPY vs 200 SMA): ${regime.toUpperCase()} (SPY: ${spyData.price}, SMA200: ${sma200.toFixed(2)})`);
@@ -167,7 +199,7 @@ async function generateStockPicks(): Promise<StockPick[]> {
     // 2. Technical Momentum (all timeframes)
     // Momentum strategies are less regime-dependent but higher risk
     for (const timeframe of momentumTimeframes) {
-      const momentumScore = scoreTechnicalMomentum(data, timeframe);
+      const momentumScore = scoreTechnicalMomentum(data, regime, timeframe);
       if (
         momentumScore &&
         momentumScore.score >= ALGORITHM_THRESHOLDS["Technical Momentum"]
@@ -186,13 +218,13 @@ async function generateStockPicks(): Promise<StockPick[]> {
     }
 
     // 4. Penny Sniper
-    const pennyScore = scorePennySniper(data);
+    const pennyScore = scorePennySniper(data, regime);
     if (pennyScore && pennyScore.score >= ALGORITHM_THRESHOLDS["Penny Sniper"]) {
       allFoundPicks.push(pennyScore);
     }
 
     // 5. Value Sleeper
-    const valueScore = scoreValueSleeper(data);
+    const valueScore = scoreValueSleeper(data, regime);
     if (valueScore && valueScore.score >= ALGORITHM_THRESHOLDS["Value Sleeper"]) {
       allFoundPicks.push(valueScore);
     }
@@ -312,6 +344,13 @@ async function main() {
     const publicOutputPath = path.join(publicDataDir, "daily-stocks.json");
     fs.writeFileSync(publicOutputPath, JSON.stringify(output, null, 2));
     console.log(`📁 Also saved to: ${publicOutputPath}`);
+
+    // Expose engine config for UI Transparency
+    const publicConfigPath = path.join(publicDataDir, "engine-config.json");
+    if (fs.existsSync(CONFIG_PATH)) {
+      fs.copyFileSync(CONFIG_PATH, publicConfigPath);
+      console.log(`⚙️ Exposed engine config to: ${publicConfigPath}`);
+    }
 
     logSummary(stampedPicks);
   } catch (error) {
