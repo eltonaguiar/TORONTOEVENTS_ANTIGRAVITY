@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>STOCKSUNIFY2 // Scientific Audit</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div class="container">
+            <h1>STOCKSUNIFY2 // Scientific Audit</h1>
+            <p>
+                This page provides a static, daily snapshot of the output from
+                the STOCKSUNIFY V2 engine. It is designed for transparency and
+                to showcase the results of the scientific, multi-strategy
+                approach to stock selection. The methodologies and picks are
+                updated daily.
+            </p>
+
+            <h2>Latest Audit Summary</h2>
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Audit Date</th>
+                        <th>Market Regime</th>
+                        <th>Total Picks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2026-01-28</td>
+                        <td class="regime-bullish">BULLISH</td>
+                        <td>20</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Picks of the Day</h2>
+            <p>The top 10 scoring picks from the latest V2 engine run.</p>
+            <table class="picks-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Name</th>
+                        <th>Algorithm</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>LRCX</td>
+                        <td>Lam Research Corporation</td>
+                        <td>Volatility-Adjusted Momentum (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>JNJ</td>
+                        <td>Johnson & Johnson</td>
+                        <td>Volatility-Adjusted Momentum (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>XOM</td>
+                        <td>Exxon Mobil Corporation</td>
+                        <td>Volatility-Adjusted Momentum (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>MRK</td>
+                        <td>Merck & Co., Inc.</td>
+                        <td>Volatility-Adjusted Momentum (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>SLB</td>
+                        <td>SLB N.V.</td>
+                        <td>Volatility-Adjusted Momentum (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>FCX</td>
+                        <td>Freeport-McMoRan Inc.</td>
+                        <td>Volatility-Adjusted Momentum (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>RIVN</td>
+                        <td>Rivian Automotive, Inc.</td>
+                        <td>Regime-Aware Reversion (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>GM</td>
+                        <td>General Motors Company</td>
+                        <td>Volatility-Adjusted Momentum (V2)</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td>JPM</td>
+                        <td>JPMorgan Chase & Co.</td>
+                        <td>Regime-Aware Reversion (V2)</td>
+                        <td>98</td>
+                    </tr>
+                    <tr>
+                        <td>BAC</td>
+                        <td>Bank of America Corporation</td>
+                        <td>Regime-Aware Reversion (V2)</td>
+                        <td>98</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>Strategy Deep Dive</h2>
+            <p>
+                This table outlines the methodology, pros, cons, and current
+                status of each primary algorithm in the V1 and V2 engines.
+            </p>
+            <div class="table-wrapper">
+                <table class="deep-dive-table">
+                    <thead>
+                        <tr>
+                            <th>Strategy</th>
+                            <th>Pros</th>
+                            <th>Cons</th>
+                            <th>Current State</th>
+                            <th>Ideal Stock Type</th>
+                            <th>Holding Period</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong
+                                    >V2: Regime-Aware Reversion (RAR)</strong
+                                >
+                            </td>
+                            <td>
+                                Market-aware (shuts down in bear markets).
+                                Simple, robust logic (RSI mean-reversion).
+                            </td>
+                            <td>
+                                Only works for stocks already in a long-term
+                                uptrend.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No (Forward-tested via Truth Engine)
+                            </td>
+                            <td>
+                                Quality, large-cap stocks in a confirmed uptrend
+                                experiencing a short-term pullback.
+                            </td>
+                            <td>7 Days</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong
+                                    >V2: Volatility-Adjusted Momentum
+                                    (VAM)</strong
+                                >
+                            </td>
+                            <td>
+                                Prioritizes smooth, low-volatility gains (high
+                                Martin Ratio). Excellent for risk-adjusted
+                                returns.
+                            </td>
+                            <td>
+                                May underperform in speculative "junk-on"
+                                rallies.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No (Forward-tested via Truth Engine)
+                            </td>
+                            <td>
+                                Any stock with consistent, non-erratic price
+                                appreciation.
+                            </td>
+                            <td>1 Month</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong
+                                    >V2: Liquidity-Shielded Penny (LSP)</strong
+                                >
+                            </td>
+                            <td>
+                                Specifically designed for high-risk stocks.
+                                "Slippage Torture Test" validates liquidity.
+                            </td>
+                            <td>
+                                Inherently very high risk. Model is sensitive to
+                                execution costs.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No (Forward-tested via Truth Engine)
+                            </td>
+                            <td>
+                                Penny stocks (sub-$5) with high volume and
+                                catalysts.
+                            </td>
+                            <td>24 Hours</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>V2: Scientific CAN SLIM (SCS)</strong>
+                            </td>
+                            <td>
+                                Improves on V1 CAN SLIM with a market regime
+                                filter.
+                            </td>
+                            <td>
+                                Still lacks fundamental data (earnings, etc.)
+                                that the full CAN SLIM model requires.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No (Forward-tested via Truth Engine)
+                            </td>
+                            <td>Mid to large-cap growth stocks.</td>
+                            <td>1 Year</td>
+                        </tr>
+                        <tr>
+                            <td><strong>V2: Adversarial Trend (AT)</strong></td>
+                            <td>
+                                Volatility-normalized, making it more stable
+                                than pure price momentum.
+                            </td>
+                            <td>
+                                Can be slower to react than simpler momentum
+                                strategies.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No (Forward-tested via Truth Engine)
+                            </td>
+                            <td>
+                                Stocks with strong, established trends in any
+                                sector.
+                            </td>
+                            <td>1 Month</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong
+                                    >V2: Institutional Footprint (IF)</strong
+                                >
+                            </td>
+                            <td>
+                                Uses Volume Z-Score to detect statistically
+                                significant institutional activity.
+                            </td>
+                            <td>
+                                Volume spikes can sometimes be misleading (e.g.,
+                                ETF rebalancing).
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No (Forward-tested via Truth Engine)
+                            </td>
+                            <td>
+                                Mid to large-cap stocks showing signs of
+                                accumulation.
+                            </td>
+                            <td>7 Days</td>
+                        </tr>
+                        <tr>
+                            <td><strong>V1: CAN SLIM (Classic)</strong></td>
+                            <td>Based on a historically proven methodology.</td>
+                            <td>
+                                Technical-only implementation. Is not
+                                market-regime aware.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No
+                            </td>
+                            <td>Growth stocks, typically $10+.</td>
+                            <td>3-12 Months</td>
+                        </tr>
+                        <tr>
+                            <td><strong>V1: Technical Momentum</strong></td>
+                            <td>
+                                Multi-timeframe (24h, 3d, 7d) provides
+                                flexibility.
+                            </td>
+                            <td>
+                                Can be noisy and produce false breakouts without
+                                a volatility filter.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No
+                            </td>
+                            <td>
+                                Any stock with short-term catalysts. High risk
+                                for penny stocks.
+                            </td>
+                            <td>24h to 7d</td>
+                        </tr>
+                        <tr>
+                            <td><strong>V1: Composite Rating</strong></td>
+                            <td>
+                                Multi-factor approach provides a balanced
+                                "general quality" score.
+                            </td>
+                            <td>
+                                Uses fixed, heuristic weights for its factors.
+                                Simple regime detection.
+                            </td>
+                            <td>
+                                <strong>Implemented</strong>: Yes<br /><strong
+                                    >Job Setup</strong
+                                >: Yes (Daily)<br /><strong>Backtested</strong>:
+                                No
+                            </td>
+                            <td>
+                                Any stock, good for general watchlist ranking.
+                            </td>
+                            <td>1-3 Months</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Validation Methodology</h2>
+            <p>
+                This section outlines the standardized, multi-phase process for
+                developing, testing, and validating any stock selection
+                algorithm within the STOCKSUNIFY ecosystem.
+            </p>
+            <div class="card-container">
+                <div class="card">
+                    <h3>Phase 1: In-Sample Optimization</h3>
+                    <p>
+                        The algorithm's parameters are tuned on a historical
+                        dataset (e.g., 2020-2023) to find the optimal settings
+                        that maximize a target metric like Sharpe Ratio. This
+                        phase is for discovery and fitting.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>Phase 2: Out-of-Sample Validation</h3>
+                    <p>
+                        The optimized algorithm is run once on unseen data
+                        (e.g., 2024-Present). If its performance degrades
+                        significantly (e.g., >30%) from the in-sample results,
+                        it is considered overfit and rejected.
+                    </p>
+                </div>
+                <div class="card">
+                    <h3>Phase 3: Live Forward-Testing</h3>
+                    <p>
+                        The "Truth Engine" tracks the real-world performance of
+                        deployed algorithms by checking their results after the
+                        recommended holding period. This provides the ultimate,
+                        unbiased measure of success.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p>
+                STOCKSUNIFY2 2026. This page is for informational purposes only
+                and does not constitute financial advice.
+            </p>
+        </footer>
+    </body>
+</html>

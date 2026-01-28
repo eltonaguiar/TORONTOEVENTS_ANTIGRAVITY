@@ -1,266 +1,120 @@
 #!/usr/bin/env tsx
 /**
- * Sync FindStocks data to STOCKSUNIFY GitHub repository
- * 
- * This script syncs daily stock picks and analysis documents to:
- * https://github.com/eltonaguiar/STOCKSUNIFY
- * 
- * Note: STOCKSUNIFY GitHub Pages is configured to serve from main branch / root
+ * Sync FindStocks data to STOCKSUNIFY GitHub repository (V1)
+ * This script now uses the generic sync-helper.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { execSync } from 'child_process';
+import * as fs from "fs";
+import * as path from "path";
+import { syncToRepo, SyncConfig } from "./lib/sync-helper";
 
-// STOCKSUNIFY clone path: default sibling of project root; override with env STOCKSUNIFY_DIR
-const STOCKSUNIFY_DIR = process.env.STOCKSUNIFY_DIR || path.join(process.cwd(), '..', 'STOCKSUNIFY');
-const STOCKSUNIFY_REPO = 'https://github.com/eltonaguiar/STOCKSUNIFY.git';
+const TARGET_DIR =
+  process.env.STOCKSUNIFY_DIR || path.join(process.cwd(), "..", "STOCKSUNIFY");
 
-interface SyncConfig {
-  files: string[];
-  directories: string[];
-}
+// --- V1 Sync Configuration ---
 
-const SYNC_CONFIG: SyncConfig = {
-  files: [
-    'data/daily-stocks.json',
-    'STOCK_REPOSITORY_ANALYSIS.md',
-    'STOCK_ALGORITHM_SUMMARY.md',
-    'STOCK_GOOGLEGEMINI_ANALYSIS.md',
-    'STOCK_COMETBROWSERAI_ANALYSIS.md',
-    'STOCK_CHATGPT_ANALYSIS.md',
-    'STOCK_ALGORITHM_DECISION_MATRIX.md'
+const V1_SYNC_CONFIG: SyncConfig = {
+  repoName: "STOCKSUNIFY (V1)",
+  repoUrl: "https://github.com/eltonaguiar/STOCKSUNIFY.git",
+  targetDir: TARGET_DIR,
+  filesToCopy: [
+    // Data
+    { source: "data/daily-stocks.json", dest: "data/daily-stocks.json" },
+    // Root analysis documents
+    {
+      source: "STOCK_REPOSITORY_ANALYSIS.md",
+      dest: "STOCK_REPOSITORY_ANALYSIS.md",
+    },
+    {
+      source: "STOCK_ALGORITHM_SUMMARY.md",
+      dest: "STOCK_ALGORITHM_SUMMARY.md",
+    },
+    {
+      source: "STOCK_GOOGLEGEMINI_ANALYSIS.md",
+      dest: "STOCK_GOOGLEGEMINI_ANALYSIS.md",
+    },
+    {
+      source: "STOCK_COMETBROWSERAI_ANALYSIS.md",
+      dest: "STOCK_COMETBROWSERAI_ANALYSIS.md",
+    },
+    { source: "STOCK_CHATGPT_ANALYSIS.md", dest: "STOCK_CHATGPT_ANALYSIS.md" },
+    {
+      source: "STOCK_ALGORITHM_DECISION_MATRIX.md",
+      dest: "STOCK_ALGORITHM_DECISION_MATRIX.md",
+    },
+    // Scripts
+    {
+      source: "scripts/generate-daily-stocks.ts",
+      dest: "scripts/generate-daily-stocks.ts",
+    },
+    // Generated README
+    { source: "temp_readme_v1.md", dest: "README.md" },
   ],
-  directories: [
-    'scripts/generate-daily-stocks.ts'
-  ]
+  commitMessage: `Auto-sync: Update V1 daily stock picks and analysis docs - ${new Date().toISOString().split("T")[0]}`,
 };
 
-function ensureStocksunifyRepo() {
-  const originalCwd = process.cwd();
+/**
+ * Generates the README for the V1 repo, including a summary of the latest picks.
+ */
+function generateV1Readme(): string {
+  let stats = "No data available.";
   try {
-    if (!fs.existsSync(STOCKSUNIFY_DIR)) {
-      console.log('📦 Cloning STOCKSUNIFY repository...');
-      execSync(`git clone ${STOCKSUNIFY_REPO} "${STOCKSUNIFY_DIR}"`, { stdio: 'inherit' });
-    } else {
-      console.log('🔄 Updating STOCKSUNIFY repository...');
-      process.chdir(STOCKSUNIFY_DIR);
-      try {
-        execSync('git pull origin main', { stdio: 'inherit' });
-      } catch (error) {
-        console.warn('⚠️  Could not pull latest changes (repo might be empty or new)');
-      }
-    }
-  } finally {
-    process.chdir(originalCwd);
-  }
-}
-
-function syncFiles() {
-  console.log('📋 Syncing files to STOCKSUNIFY (root directory for GitHub Pages)...');
-
-  // Create necessary directories in STOCKSUNIFY root
-  const targetDirs = ['data', 'scripts'];
-  targetDirs.forEach(dir => {
-    const targetPath = path.join(STOCKSUNIFY_DIR, dir);
-    if (!fs.existsSync(targetPath)) {
-      fs.mkdirSync(targetPath, { recursive: true });
-    }
-  });
-
-  // Copy daily stocks data to root/data/ (accessible via /data/daily-stocks.json)
-  const dailyStocksSource = path.join(process.cwd(), 'data', 'daily-stocks.json');
-  const dailyStocksTarget = path.join(STOCKSUNIFY_DIR, 'data', 'daily-stocks.json');
-  if (fs.existsSync(dailyStocksSource)) {
-    fs.copyFileSync(dailyStocksSource, dailyStocksTarget);
-    console.log('✅ Synced daily-stocks.json to data/');
+    const dailyStocksPath = path.join(
+      process.cwd(),
+      "data",
+      "daily-stocks.json",
+    );
+    const dailyStocks = JSON.parse(fs.readFileSync(dailyStocksPath, "utf8"));
+    const strongBuys = dailyStocks.stocks.filter(
+      (s: any) => s.rating === "STRONG BUY",
+    ).length;
+    const buys = dailyStocks.stocks.filter(
+      (s: any) => s.rating === "BUY",
+    ).length;
+    const topPick = dailyStocks.stocks[0];
+    stats = `
+- **Total Picks**: ${dailyStocks.stocks.length}
+- **Strong Buys**: ${strongBuys}
+- **Buys**: ${buys}
+- **Top Pick**: ${topPick.symbol} (${topPick.score}/100)
+- **Last Updated**: ${dailyStocks.lastUpdated}
+        `;
+  } catch (e) {
+    console.warn("⚠️ Could not generate dynamic stats for V1 README.");
   }
 
-  // Copy analysis documents to root (accessible directly)
-  SYNC_CONFIG.files.forEach(file => {
-    if (file.endsWith('.md')) {
-      const source = path.join(process.cwd(), file);
-      const target = path.join(STOCKSUNIFY_DIR, path.basename(file));
-      if (fs.existsSync(source)) {
-        fs.copyFileSync(source, target);
-        console.log(`✅ Synced ${path.basename(file)} to root`);
-      }
-    }
-  });
+  return `# STOCKSUNIFY (V1 - Classic) 📈
+This repository consolidates stock analysis data, algorithms, and daily picks from the V1 "Classic" engine.
 
-  // Copy scripts to scripts/ folder
-  const scriptSource = path.join(process.cwd(), 'scripts', 'generate-daily-stocks.ts');
-  const scriptTarget = path.join(STOCKSUNIFY_DIR, 'scripts', 'generate-daily-stocks.ts');
-  if (fs.existsSync(scriptSource)) {
-    fs.copyFileSync(scriptSource, scriptTarget);
-    console.log('✅ Synced generate-daily-stocks.ts to scripts/');
-  }
+## 📊 Latest Daily Picks
+${stats}
 
-  // Create/update README.md for STOCKSUNIFY (serves as GitHub Pages landing page)
-  // Use the enhanced README generator (load from project scripts/ so it works from any cwd)
-  try {
-    const generatorPath = path.join(process.cwd(), 'scripts', 'generate-stocksunify-readme');
-    const { generateReadme } = require(generatorPath);
-    const readmeContent = generateReadme();
-    const readmeTarget = path.join(STOCKSUNIFY_DIR, 'README.md');
-    fs.writeFileSync(readmeTarget, readmeContent);
-    console.log('✅ Created/updated README.md with daily picks (GitHub Pages landing page)');
-  } catch (error) {
-    // Fallback to basic README if enhanced generator fails
-    console.warn('⚠️  Enhanced README generator failed, using basic version');
-    const readmeContent = generateStocksunifyReadme();
-    const readmeTarget = path.join(STOCKSUNIFY_DIR, 'README.md');
-    fs.writeFileSync(readmeTarget, readmeContent);
-    console.log('✅ Created/updated README.md (basic version)');
-  }
-}
-
-function generateStocksunifyReadme(): string {
-  return `# STOCKSUNIFY 📈
-
-**Unified Stock Analysis & Daily Picks**
-
-This repository consolidates stock analysis data, algorithms, and daily picks from multiple AI-validated sources.
-
-## 🌐 Live Site
-
-**GitHub Pages:** [View Live Site](https://eltonaguiar.github.io/STOCKSUNIFY/)
-
-## 📊 Daily Stock Picks
-
-**Latest Data:** [data/daily-stocks.json](./data/daily-stocks.json)
-
-Daily stock picks are generated using multiple algorithms:
-- **CAN SLIM Growth Screener** (Long-term, 3-12 months)
-- **Technical Momentum** (Short-term, 24h-1 week)
-- **ML Ensemble** (Portfolio Management)
+[View the full JSON data here](./data/daily-stocks.json)
 
 ## 📚 Analysis Documents
-
-All links point to this repo ([STOCKSUNIFY](https://github.com/eltonaguiar/STOCKSUNIFY)):
-
-### Comprehensive Analysis
-- [Stock Repository Analysis](https://github.com/eltonaguiar/STOCKSUNIFY/blob/main/STOCK_REPOSITORY_ANALYSIS.md) - Analysis of 11 stock repositories
-- [Algorithm Summary](https://github.com/eltonaguiar/STOCKSUNIFY/blob/main/STOCK_ALGORITHM_SUMMARY.md) - Quick reference guide
-- [Decision Matrix](https://github.com/eltonaguiar/STOCKSUNIFY/blob/main/STOCK_ALGORITHM_DECISION_MATRIX.md) - Visual algorithm selector
-
-### AI Assessments
-- [Google Gemini Analysis](https://github.com/eltonaguiar/STOCKSUNIFY/blob/main/STOCK_GOOGLEGEMINI_ANALYSIS.md) - Gemini's assessment
-- [Comet Browser AI Analysis](https://github.com/eltonaguiar/STOCKSUNIFY/blob/main/STOCK_COMETBROWSERAI_ANALYSIS.md) - Comet Browser AI breakdown
-- [ChatGPT Analysis](https://github.com/eltonaguiar/STOCKSUNIFY/blob/main/STOCK_CHATGPT_ANALYSIS.md) - ChatGPT code inspection
-
-## 🔧 Scripts
-
-- [generate-daily-stocks.ts](./scripts/generate-daily-stocks.ts) - Daily stock picks generator
-
-## 🚀 Usage
-
-### Generate Daily Stock Picks
-
-\`\`\`bash
-npm install
-npx tsx scripts/generate-daily-stocks.ts
-\`\`\`
-
-### View Data
-
-The daily stock picks are available as JSON:
-- **Local:** \`data/daily-stocks.json\`
-- **Web:** \`https://eltonaguiar.github.io/STOCKSUNIFY/data/daily-stocks.json\`
-
-## 📈 Algorithms Integrated
-
-### 1. Long-Term Growth (3-12 months)
-**CAN SLIM Growth Screener** - 60-70% accuracy
-- RS Rating ≥ 90
-- Stage-2 Uptrend
-- Revenue Growth ≥ 25% (SEC EDGAR data)
-- Institutional Accumulation
-
-### 2. Short-Term Momentum (24h - 1 week)
-**Technical + Volume Analysis**
-- Volume Surge Detection
-- RSI Extremes
-- Breakout Patterns
-- Bollinger Band Squeeze
-- ⚠️ High Risk - Penny Stocks
-
-### 3. ML Portfolio Management
-**ML Ensemble + Risk Management**
-- XGBoost/Gradient Boosting
-- Sentiment Analysis (NLP)
-- Portfolio Optimization
-- VaR, Sharpe Ratio metrics
-
-## 🔗 Source Repositories
-
-This data is synced from:
-- [TORONTOEVENTS_ANTIGRAVITY](https://github.com/eltonaguiar/TORONTOEVENTS_ANTIGRAVITY) - Main repository
-- [mikestocks](https://github.com/eltonaguiar/mikestocks) - CAN SLIM Growth Screener
-- [Stock Spike Replicator](https://github.com/eltonaguiar/eltonsstocks-apr24_2025) - ML + Risk Management
-- [Penny Stock Screener](https://github.com/eltonaguiar/SCREENER_PENNYSTOCK_SKYROCKET_24HOURS_CURSOR) - Technical Momentum
-
-## ⚠️ Disclaimer
-
-Stock predictions are for informational purposes only and do not constitute financial advice. Always conduct your own research and consult with a licensed financial advisor before making investment decisions.
-
-## 📅 Last Updated
-
-This repository is automatically synced daily. Check the \`lastUpdated\` field in \`data/daily-stocks.json\` for the latest update timestamp.
-
----
-
-*Powered by 11+ AI-validated stock analysis algorithms*
+- [Stock Repository Analysis](./STOCK_REPOSITORY_ANALYSIS.md)
+- [Algorithm Summary](./STOCK_ALGORITHM_SUMMARY.md)
+- [Decision Matrix](./STOCK_ALGORITHM_DECISION_MATRIX.md)
 `;
 }
 
-function commitAndPush() {
-  console.log('💾 Committing changes to STOCKSUNIFY...');
-  process.chdir(STOCKSUNIFY_DIR);
+function main() {
+  console.log("🚀 Starting STOCKSUNIFY (V1) sync...\n");
 
-  try {
-    // Check if there are any changes
-    const status = execSync('git status --porcelain', { encoding: 'utf-8' });
-    if (!status.trim()) {
-      console.log('ℹ️  No changes to commit');
-      return;
-    }
+  // 1. Generate the specific README for the V1 repo
+  const readmeContent = generateV1Readme();
+  const tempReadmePath = path.join(process.cwd(), "temp_readme_v1.md");
+  fs.writeFileSync(tempReadmePath, readmeContent);
+  console.log("✅ Generated custom README for V1 repo.");
 
-    execSync('git add -A', { stdio: 'inherit' });
-    const commitMessage = `Auto-sync: Update daily stock picks and analysis docs - ${new Date().toISOString().split('T')[0]}`;
-    execSync(`git commit -m "${commitMessage}"`, { stdio: 'inherit' });
-    execSync('git push origin main', { stdio: 'inherit' });
-    console.log('✅ Pushed to STOCKSUNIFY repository');
-  } catch (error: any) {
-    console.warn('⚠️  Could not commit/push:', error.message);
-    console.log('💡 You may need to manually commit and push to STOCKSUNIFY');
-    console.log('💡 Or check if the repository is properly initialized');
-  }
+  // 2. Run the generic sync process
+  syncToRepo(V1_SYNC_CONFIG);
 
-  process.chdir(process.cwd());
-}
-
-async function main() {
-  console.log('🚀 Starting STOCKSUNIFY sync...\n');
-  console.log('📌 Note: STOCKSUNIFY GitHub Pages serves from main branch / root\n');
-
-  try {
-    ensureStocksunifyRepo();
-    syncFiles();
-    commitAndPush();
-
-    console.log('\n✅ Sync complete!');
-    console.log(`📁 STOCKSUNIFY directory: ${STOCKSUNIFY_DIR}`);
-    console.log(`🌐 Repository: ${STOCKSUNIFY_REPO}`);
-    console.log(`🌐 GitHub Pages: https://eltonaguiar.github.io/STOCKSUNIFY/`);
-  } catch (error) {
-    console.error('❌ Error during sync:', error);
-    process.exit(1);
-  }
+  // 3. Clean up temporary file
+  fs.unlinkSync(tempReadmePath);
+  console.log("✅ Cleaned up temporary files.");
 }
 
 if (require.main === module) {
   main();
 }
-
-export { syncFiles, ensureStocksunifyRepo };
