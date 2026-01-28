@@ -31,23 +31,57 @@ const ALGORITHM_THRESHOLDS = {
 };
 
 /**
- * Takes a raw array of picks, de-duplicates, sorts, and returns the top 30.
+ * Takes a raw array of picks, de-duplicates by symbol, merges algo tags, and returns top 30.
  */
 function processAndRankPicks(picks: StockPick[]): StockPick[] {
-  // Remove duplicates (same symbol + algorithm + timeframe) - keep highest score
   const uniquePicks = new Map<string, StockPick>();
+
+  // Track all algos triggering for this symbol
+  const algoMap = new Map<string, Set<string>>();
+
   for (const pick of picks) {
-    const key = `${pick.symbol}-${pick.algorithm}-${pick.timeframe}`;
+    // Dedup primarily by symbol
+    const key = pick.symbol;
+
+    // Track algo tags
+    if (!algoMap.has(key)) algoMap.set(key, new Set());
+    algoMap.get(key)!.add(pick.algorithm);
+
     const existing = uniquePicks.get(key);
+
+    // Logic: Keep the highest scoring instance as the "base" pick
+    // But we will merge the algo tags into it later
     if (!existing || pick.score > existing.score) {
       uniquePicks.set(key, pick);
     }
+    // If tie, prefer longer timeframe
+    else if (pick.score === existing.score) {
+      if (parseTimeframePriority(pick.timeframe) > parseTimeframePriority(existing.timeframe)) {
+        uniquePicks.set(key, pick);
+      }
+    }
   }
 
-  const finalPicks = Array.from(uniquePicks.values());
+  // Merge algo names back into the chosen picks
+  const mergedPicks = Array.from(uniquePicks.values()).map(pick => {
+    const algos = Array.from(algoMap.get(pick.symbol) || []);
+    // If multiple algos, join them. If "Alpha Predator" is in there, prioritize showing it?
+    // For now, simple join, but maybe limit length in UI
+    const primaryAlgo = pick.algorithm; // Keep the one that scored highest
+    const otherAlgos = algos.filter(a => a !== primaryAlgo);
+
+    return {
+      ...pick,
+      // We keep the primary algorithm as the main label for now to keep UI clean,
+      // but we could add a new field `contributingAlgorithms`
+      algorithm: otherAlgos.length > 0 ? `${primaryAlgo} + ${otherAlgos.length}` : primaryAlgo,
+      // Store full list for curious users
+      allAlgorithms: algos
+    };
+  });
 
   // Sort by rating priority (STRONG BUY > BUY > HOLD) then by score
-  finalPicks.sort((a, b) => {
+  mergedPicks.sort((a, b) => {
     const ratingOrder = { "STRONG BUY": 3, BUY: 2, HOLD: 1, SELL: 0 };
     const ratingDiff =
       (ratingOrder[b.rating] || 0) - (ratingOrder[a.rating] || 0);
@@ -55,7 +89,14 @@ function processAndRankPicks(picks: StockPick[]): StockPick[] {
     return b.score - a.score;
   });
 
-  return finalPicks.slice(0, 30);
+  return mergedPicks.slice(0, 30);
+}
+
+// Helper for timeframe priority
+function parseTimeframePriority(tf: string): number {
+  if (tf === "1m" || tf === "3m") return 3;
+  if (tf === "3d" || tf === "7d") return 2;
+  return 1; // 24h
 }
 
 
@@ -155,15 +196,21 @@ async function generateStockPicks(): Promise<StockPick[]> {
 
   const rankedPicks = processAndRankPicks(allFoundPicks);
 
-  // Scientific Validation Step 2: Slippage Torture
-  // Simulate buying at worst-case prices (e.g., +0.5% slippage on entry)
-  // For generation purposes, we just log this as metadata, but we could filter out marginally profitable ones.
-  // Here we just attach the metadata.
-  const torturedPicks = rankedPicks.map(p => ({
-    ...p,
-    slippageSimulated: true,
-    simulatedEntryPrice: p.price * 1.005 // +0.5% slippage
-  }));
+  // Scientific Validation Step 2: Slippage Torture & Data Integrity
+  const torturedPicks = rankedPicks.map(p => {
+    // Dynamic slippage logic inline to avoid double import or circular dep
+    let slippage = 0.005;
+    if (p.price < 5) slippage = 0.03;
+    else if (p.price < 10) slippage = 0.01;
+
+    return {
+      ...p,
+      slippageSimulated: true,
+      // CRITICAL FIX: Explicitly record entryPrice for verifier
+      entryPrice: p.price,
+      simulatedEntryPrice: p.price * (1 + slippage)
+    };
+  });
 
   return torturedPicks;
 }

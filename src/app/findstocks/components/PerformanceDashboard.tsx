@@ -96,7 +96,7 @@ export default function PerformanceDashboard() {
       case "CAN SLIM":
       case "Scientific CAN SLIM":
       case "SCS":
-        simpleReason = "Follows a famous strategy that looks for high-growth companies. Great for holding a bit longer to capture big moves.";
+        simpleReason = "Follows a 'Growth Trend' strategy (inspired by CAN SLIM) that targets companies with strong upward movement and market leadership.";
         break;
       case "Liquidity-Shielded Penny":
       case "LSP":
@@ -286,42 +286,47 @@ export default function PerformanceDashboard() {
             Algorithm Performance
           </h3>
           <div className="space-y-4">
-            {Object.entries(data.byAlgorithm).map(([algoName, stats]) => (
-              <div
-                key={algoName}
-                className="flex items-center gap-4 p-4 rounded-xl bg-black/20 border border-white/5"
-              >
-                <div className="flex-1">
-                  <div className="text-sm font-bold text-white">{algoName}</div>
-                  <div className="text-xs text-neutral-500">
-                    {stats.picks} picks ({stats.verified} verified)
+            {Object.entries(data.byAlgorithm).map(([algoName, stats]) => {
+              // Helper to display honest naming
+              const displayName = algoName === "CAN SLIM" ? "Growth Trend (Scientific)" : algoName;
+
+              return (
+                <div
+                  key={algoName}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-black/20 border border-white/5"
+                >
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-white">{displayName}</div>
+                    <div className="text-xs text-neutral-500">
+                      {stats.picks} picks ({stats.verified} verified)
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div
+                      className={`text-lg font-bold ${stats.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"
+                        }`}
+                    >
+                      {stats.avgReturn >= 0 ? "+" : ""}
+                      {stats.avgReturn.toFixed(2)}%
+                    </div>
+                    <div className="text-xs text-neutral-500">
+                      {stats.winRate.toFixed(0)}% win rate
+                    </div>
+                  </div>
+                  <div className="w-24 h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${stats.winRate >= 60
+                        ? "bg-emerald-500"
+                        : stats.winRate >= 40
+                          ? "bg-amber-500"
+                          : "bg-red-500"
+                        }`}
+                      style={{ width: `${Math.min(100, stats.winRate)}%` }}
+                    />
                   </div>
                 </div>
-                <div className="text-right">
-                  <div
-                    className={`text-lg font-bold ${stats.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"
-                      }`}
-                  >
-                    {stats.avgReturn >= 0 ? "+" : ""}
-                    {stats.avgReturn.toFixed(2)}%
-                  </div>
-                  <div className="text-xs text-neutral-500">
-                    {stats.winRate.toFixed(0)}% win rate
-                  </div>
-                </div>
-                <div className="w-24 h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${stats.winRate >= 60
-                      ? "bg-emerald-500"
-                      : stats.winRate >= 40
-                        ? "bg-amber-500"
-                        : "bg-red-500"
-                      }`}
-                    style={{ width: `${Math.min(100, stats.winRate)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

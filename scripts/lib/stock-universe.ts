@@ -12,97 +12,58 @@ export const LARGE_CAP_GROWTH = [
 
 // Large Cap Value & Financials (for Value Sleeper, Composite)
 export const LARGE_CAP_VALUE = [
-    "JPM", "BAC", "GS", "MS",  // Financials
+    "JPM", "BAC", "GS", "MS", "WFC", "C", "AXP", // Financials
     "V", "MA",                  // Payments
-    "JNJ", "PFE", "UNH", "ABBV", // Healthcare
-    "XOM", "CVX", "SLB",        // Energy
-    "WMT", "TGT", "HD",         // Retail
-    "NKE", "SBUX",              // Consumer
-    "CAT", "MMM", "GE",         // Industrials
-    "T", "VZ",                  // Telecom
-    "DUK", "SO", "NEE",         // Utilities (dividend value)
-    "PG", "KO", "PEP",          // Consumer Staples
+    "JNJ", "PFE", "UNH", "ABBV", "MRK", "BMY", "LLY", // Healthcare
+    "XOM", "CVX", "SLB", "COP", "EOG",        // Energy
+    "WMT", "TGT", "HD", "COST", "LOW", "DG", // Retail
+    "NKE", "SBUX", "MCD", "YUM",              // Consumer
+    "CAT", "MMM", "GE", "DE", "HON", "RTX", "LMT", // Industrials/Defense
+    "T", "VZ", "TMUS",                  // Telecom
+    "DUK", "SO", "NEE", "AEP", "D",         // Utilities (dividend value)
+    "PG", "KO", "PEP", "PM", "MO", "CL", "KMB", // Consumer Staples
 ];
 
 // Mid Cap Value (for Value Sleeper - near 52w lows, good fundamentals)
 export const MID_CAP_VALUE = [
-    "ALLY",  // Ally Financial (Auto lending, low PE)
-    "KEY",   // KeyCorp (Regional bank)
-    "CF",    // CF Industries (Fertilizer)
-    "MOS",   // Mosaic (Agriculture)
-    "AA",    // Alcoa (Aluminum - cyclical value)
-    "CLF",   // Cleveland-Cliffs (Steel)
-    "X",     // US Steel
-    "APA",   // APA Corp (Oil & Gas)
-    "DVN",   // Devon Energy
-    "MRO",   // Marathon Oil
-    "HAL",   // Halliburton
-    "BAX",   // Baxter (Medical devices)
-    "VTRS",  // Viatris (Generic pharma)
-    "F",     // Ford (Auto, dividend)
-    "GM",    // General Motors
+    "ALLY", "KEY", "CF", "MOS", "AA", "CLF", "X", "APA", "DVN", "MRO", "HAL",
+    "BAX", "VTRS", "F", "GM", "KHC", "K", "CAG", "GIS", "CPB", // Food
+    "HPE", "HPQ", "STX", "WDC", // Legacy Tech
+    "LUV", "UAL", "DAL", "AAL", // Airlines
+    "CCL", "RCL", "NCLH", // Cruise Lines
+    "MGM", "LVS", "WYNN", // Casinos
+];
+
+// Sector ETFs (New for V2.1 - Capture Sector Rotation)
+export const SECTOR_ETFS = [
+    "XLE", "XLF", "XLK", "XLV", "XLY", "XLP", "XLI", "XLU", "XLB", "XLRE", "XLC", // SPDR Sectors
+    "SMH", "XBI", "KRE", "XOP", "GDX", "JETS", "TAN", "URA", // Industry specific
+    "TQQQ", "SQQQ", "SOXL", "LABU", // Leveraged (High volatility)
 ];
 
 // Small Cap/Microcap with Liquidity (for Penny Sniper)
 // Criteria: $0.50-$15 price, >500k avg volume
 export const PENNY_STOCKS_LIQUID = [
     // $3-$15 range (lower risk microcaps)
-    "BBBY",  // Bed Bath & Beyond (if still trading)
-    "SUNW",  // Sunworks (Solar)
-    "PLUG",  // Plug Power (Hydrogen - if drops to range)
-    "CLSK",  // CleanSpark (Bitcoin mining)
-    "RIOT",  // Riot Platforms (Bitcoin)
-    "MARA",  // Marathon Digital (Bitcoin)
-    "SOS",   // SOS Limited (Crypto/commodity)
-    "EBON",  // Ebang International (Crypto)
-    "GNUS",  // Genius Brands
-    "NNDM",  // Nano Dimension (3D printing)
-    "IDEX",  // Ideanomics
-    "WKHS",  // Workhorse (EV)
-    "RIDE",  // Lordstown Motors (EV)
-    "XPEV",  // XPeng (Chinese EV - if drops)
-    "NIO",   // NIO (Chinese EV - if drops)
+    "BBBY", "SUNW", "PLUG", "CLSK", "RIOT", "MARA", "SOS", "EBON",
+    "GNUS", "NNDM", "IDEX", "WKHS", "RIDE", "XPEV", "NIO", "LCID", "SOFI", "OPEN", "DKNG", "HOOD",
 
     // $1-$5 range (higher risk)
-    "SNDL",  // Sundial Growers (Cannabis)
-    "TLRY",  // Tilray (Cannabis)
-    "CGC",   // Canopy Growth (Cannabis)
-    "ACB",   // Aurora Cannabis
-    "CRON",  // Cronos Group (Cannabis)
-    "OCGN", // Ocugen (Biotech)
-    "BNGO", // Bionano Genomics
-    "ZOM",  // Zomedica (Animal health)
-    "SENS", // Senseonics (Medical devices)
-    "GEVO", // Gevo (Renewable fuels)
-    "FCEL", // FuelCell Energy
-    "NCTY", // The9 Limited
+    "SNDL", "TLRY", "CGC", "ACB", "CRON", "OCGN", "BNGO", "ZOM", "SENS",
+    "GEVO", "FCEL", "NCTY", "MULN", "CEI", "BBIG",
 
     // Meme stock universe (high volume)
-    "AMC",  // AMC Entertainment
-    "GME",  // GameStop (if drops to range)
-    "BB",   // BlackBerry
-    "NAKD", // Naked Brand Group
-    "KOSS", // Koss Corporation
+    "AMC", "GME", "BB", "NAKD", "KOSS",
 ];
 
 // Crypto-exposed stocks (volatile, good for momentum)
 export const CRYPTO_EXPOSED = [
-    "COIN", // Coinbase
-    "MSTR", // MicroStrategy (Bitcoin treasury)
-    "MARA", // Marathon Digital
-    "RIOT", // Riot Platforms
-    "CLSK", // CleanSpark
-    "HUT",  // Hut 8 Mining
+    "COIN", "MSTR", "MARA", "RIOT", "CLSK", "HUT", "BITF", "HIVE",
 ];
 
 // REITs (for Value Sleeper - dividend yield, near lows)
 export const REITS = [
-    "O",    // Realty Income
-    "VNQ",  // Vanguard Real Estate ETF
-    "SPG",  // Simon Property Group
-    "PLD",  // Prologis
-    "AMT",  // American Tower
-    "CCI",  // Crown Castle
+    "O", "VNQ", "SPG", "PLD", "AMT", "CCI", "VICI", "EQIX", "PSA", "DLR",
 ];
 
 // Combine into master universe
@@ -110,6 +71,7 @@ export const STOCK_UNIVERSE_FULL = [
     ...LARGE_CAP_GROWTH,
     ...LARGE_CAP_VALUE,
     ...MID_CAP_VALUE,
+    ...SECTOR_ETFS,
     ...PENNY_STOCKS_LIQUID,
     ...CRYPTO_EXPOSED,
     ...REITS,
@@ -121,23 +83,25 @@ export const STOCK_UNIVERSE = Array.from(new Set(STOCK_UNIVERSE_FULL));
 // Export categorized lists for targeted screening
 export const UNIVERSE_BY_STRATEGY = {
     "CAN SLIM": [...LARGE_CAP_GROWTH, ...MID_CAP_VALUE],
-    "Technical Momentum": STOCK_UNIVERSE, // All stocks
-    "Composite Rating": [...LARGE_CAP_GROWTH, ...LARGE_CAP_VALUE, ...MID_CAP_VALUE],
+    "Technical Momentum": STOCK_UNIVERSE, // All stocks + ETFs
+    "Composite Rating": [...LARGE_CAP_GROWTH, ...LARGE_CAP_VALUE, ...MID_CAP_VALUE, ...SECTOR_ETFS],
     "Penny Sniper": PENNY_STOCKS_LIQUID,
     "Value Sleeper": [...LARGE_CAP_VALUE, ...MID_CAP_VALUE, ...REITS],
-    "Alpha Predator": [...LARGE_CAP_GROWTH, ...LARGE_CAP_VALUE, ...MID_CAP_VALUE],
+    "Alpha Predator": [...LARGE_CAP_GROWTH, ...LARGE_CAP_VALUE, ...MID_CAP_VALUE, ...SECTOR_ETFS],
 };
 
 /**
  * Universe Statistics:
- * - Large Cap Growth: 16 stocks
- * - Large Cap Value: 27 stocks
- * - Mid Cap Value: 15 stocks
- * - Penny Stocks: 33 stocks
- * - Crypto-Exposed: 6 stocks
- * - REITs: 6 stocks
+ * - Large Cap Growth: ~16 stocks
+ * - Large Cap Value: ~40 stocks
+ * - Mid Cap Value: ~30 stocks
+ * - Sector ETFs: ~18 ETFs
+ * - Penny Stocks: ~40 stocks
+ * - Crypto-Exposed: ~8 stocks
+ * - REITs: ~10 stocks
  * 
- * Total Unique: ~100 stocks (after deduplication)
+ * Total Unique: ~160 stocks (after deduplication)
+
  * 
  * Expected Pick Distribution:
  * - Technical Momentum: 15-20 (from full universe)

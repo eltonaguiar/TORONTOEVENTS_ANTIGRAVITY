@@ -1,27 +1,38 @@
-# Antigravity Stock Critique Response Plan
+# Antigravity Stock Critique Response Plan - Phase 2 (ChatGPT Feedback)
 **Date:** 2026-01-28
-**Time:** 08:35 EST
+**Time:** 08:38 EST
 **Branch:** ANTIGRAVITY_STOCK_CRITIQUE_2026-01-28
 
-## 🧐 Analysis of Critiques
-We have received detailed feedback from "Peer Reviews" (Gemini/Grok). We will implement immediate improvements to address the valid points raised.
+## 🧐 Analysis of ChatGPT Critiques
+This feedback is extremely technical and actionable. It points out structural flaws (normalization, de-duping, data integrity) rather than just philosophical ones.
 
-### 1. Slippage Modeling for Penny Stocks
-**Critique:** A flat 0.5% slippage is unrealistic for micro-caps/penny stocks which have wide spreads.
-**Action:** Implement **Dynamic Slippage** in `verify-picks.ts`.
-- **Large Cap (>$10):** Keep at 0.5%
-- **Mid Cap ($5-$10):** Increase to 1.0%
-- **Penny (<$5):** Increase to 2.0% - 3.0%
+### 1. Duplicate Handling & Score Normalization
+**Critique:** Picks are pushed per-algorithm, leading to duplicates (e.g., GM in both "Technical Momentum" and "Alpha Predator"). Scores are not comparable.
+**Action:**
+- In `generate-daily-stocks.ts` (or `stocks-scorers.ts`):
+    - Implement a de-duping step. If a symbol appears multiple times, KEEP the highest score.
+    - Concatenate algorithm names (e.g., "Alpha Predator + Technical Momentum").
+    - Normalize scores? (Might be too complex for now, but de-duping is critical).
 
-### 2. Market Regime Lag
-**Critique:** 200 SMA on SPY is a lagging indicator.
-**Action:** Add a "Fast Regime" check (50 SMA) or simply acknowledge this limitation in documentation for now. We will stick to documentation first to avoid over-complicating the algorithm without testing.
+### 2. Explicit Entry Price Recording (Critical Bug)
+**Critique:** `verify-picks.ts` relies on `pick.metrics.price` which might not exist for all strategies.
+**Action:**
+- Ensure `generate-daily-stocks.ts` (or the scorer) explicitly adds an `entryPrice` field to the root of the pick object at generation time.
+- Update `verify-picks.ts` to use this explicit `entryPrice` as the source of truth BEFORE simulate slippage.
 
-### 3. Documentation & Transparency
-**Critique:** Lack of backtesting proof and universe bias.
-**Action:** Add a **"Limitations & Methodology Review"** section to the README. Honesty is part of our "Scientific" brand.
+### 3. Universe Expansion
+**Critique:** 101 tickers is a "Watchlist Scorer", not a "Stock Picker".
+**Action:**
+- We cannot easily fetch the whole Russell 3000 API-free, but we CAN expand the `stock-universe.ts` significantly.
+- **Task:** Add ~50-100 more diverse tickers (ETFs? different sectors?) to `stock-universe.ts` to show we are listening.
 
-## 📋 Task List
-- [ ] **Code:** Update `verify-picks.ts` with `calculateDynamicSlippage(price)` function.
-- [ ] **Docs:** Update `README.md` (both repos) with "Critique & Limitations" section.
-- [ ] **Docs:** Update `stock-universe.ts` comments to acknowledge selection bias.
+### 4. "Scientific CAN SLIM" Misnomer
+**Critique:** It's missing quarterly earning growth, etc.
+**Action:** Rename algorithm? Or just add disclaimer.
+- **Decision:** Rename "CAN SLIM" to **"Growth Trend (Simplified CAN SLIM)"** in UI to be honest. Update `PerformanceDashboard.tsx` label map.
+
+## 📋 Task List (Immediate Fixes)
+- [ ] **Data Integrity:** Update `generate-daily-stocks.ts` to dedupe picks and merge algorithm tags.
+- [ ] **Data Integrity:** Ensure `entryPrice` is hard-coded in the JSON output.
+- [ ] **UI:** Rename "CAN SLIM" to "Growth Trend" in `PerformanceDashboard.tsx`.
+- [ ] **Docs:** Update Critique section in README with these new points.

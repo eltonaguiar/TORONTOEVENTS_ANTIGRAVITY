@@ -155,11 +155,24 @@ async function verifyPick(pick: ArchvedPick): Promise<VerifiedPick> {
         }
 
         // Calculate Returns with Dynamic Slippage
-        // We simulate buying at the WORST possible price in the spread range to be safe
-        const slippageRate = calculateDynamicSlippage(pick.price);
-        const simulatedEntry = pick.price * (1 + slippageRate);
+        // CRITICAL BUG FIX Response: Check for explicit entry prices to ensure data integrity
+        let simulatedEntry;
 
-        const entryPrice = simulatedEntry; // Use the dynamically calculated simulated entry price
+        if (pick.simulatedEntryPrice) {
+            // Best case: We already calculated the tortured price at generation time
+            simulatedEntry = pick.simulatedEntryPrice;
+        } else if ((pick as any).entryPrice) {
+            // Second best: We have the raw entry price, apply slippage now
+            const basePrice = (pick as any).entryPrice;
+            const slippageRate = calculateDynamicSlippage(basePrice);
+            simulatedEntry = basePrice * (1 + slippageRate);
+        } else {
+            // Fallback (Legacy): Use the quoted price with dynamic slippage
+            const slippageRate = calculateDynamicSlippage(pick.price);
+            simulatedEntry = pick.price * (1 + slippageRate);
+        }
+
+        const entryPrice = simulatedEntry;
         const exitPrice = stockData.price;
         const returnPercent = ((exitPrice - entryPrice) / entryPrice) * 100;
 
