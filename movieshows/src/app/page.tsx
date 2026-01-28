@@ -21,6 +21,7 @@ const QUEUE_STORAGE_KEY = "movieshows-playing-queue";
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -139,11 +140,16 @@ export default function Home() {
 
   const scrollToItem = (id: string) => {
     const index = filteredMovies.findIndex(m => m.id === id);
-    if (index !== -1 && containerRef.current) {
-      containerRef.current.scrollTo({
-        top: index * window.innerHeight,
-        behavior: 'smooth'
-      });
+    if (index !== -1) {
+      const el = cardRefs.current[index];
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (containerRef.current) {
+        containerRef.current.scrollTo({
+          top: index * window.innerHeight,
+          behavior: 'smooth'
+        });
+      }
       setIsSearching(false);
       setIsBrowsingQueue(false);
     }
@@ -192,27 +198,56 @@ export default function Home() {
     return (catMovies && isMovie) || (catTv && isTv) || (catNowPlaying && isNowPlaying);
   });
 
-  // Handle Scroll to update active index
+  // Keep activeIndex in sync with the most visible card (prevents title/video mismatch)
   useEffect(() => {
-    const handleScroll = () => {
-      if (containerRef.current) {
-        const index = Math.round(containerRef.current.scrollTop / window.innerHeight);
-        setActiveIndex(index);
-      }
-    };
+    const root = containerRef.current;
+    if (!root) return;
 
-    const containerRefCurrent = containerRef.current;
-    containerRefCurrent?.addEventListener("scroll", handleScroll);
-    return () => containerRefCurrent?.removeEventListener("scroll", handleScroll);
-  }, []);
+    const ratios = new Map<number, number>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const index = Number((entry.target as HTMLElement).dataset.index);
+          if (Number.isNaN(index)) continue;
+          if (entry.isIntersecting) {
+            ratios.set(index, entry.intersectionRatio);
+          } else {
+            ratios.delete(index);
+          }
+        }
+
+        let bestIndex = activeIndex;
+        let bestRatio = 0;
+        ratios.forEach((ratio, index) => {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestIndex = index;
+          }
+        });
+        if (bestRatio > 0 && bestIndex !== activeIndex) {
+          setActiveIndex(bestIndex);
+        }
+      },
+      { root, threshold: [0.35, 0.5, 0.65, 0.8] }
+    );
+
+    cardRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [filteredMovies, activeIndex]);
+
+  // When filters change, reset to the top to avoid stale indexes
+  useEffect(() => {
+    setActiveIndex(0);
+    containerRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+  }, [filteredMovies.length]);
 
   const toggleMute = () => setIsMuted(!isMuted);
 
   return (
     <main className="relative w-full h-full bg-black">
 
-      {/* Top Controls Container */}
-      <div className="fixed top-4 left-0 right-0 z-50 flex items-center px-4 pointer-events-none">
+      {/* Top Controls Container (pl-16 leaves room for Quick Nav hamburger) */}
+      <div className="fixed top-4 left-0 right-0 z-50 flex items-center pl-16 pr-4 pointer-events-none">
         {/* Browsing Controls */}
         <div className="flex gap-2 pointer-events-auto">
           <button
@@ -309,7 +344,12 @@ export default function Home() {
       >
         {filteredMovies.length > 0 ? (
           filteredMovies.map((movie, index) => (
-            <div key={movie.id} className="h-full w-full snap-center">
+            <div
+              key={movie.id}
+              className="h-full w-full snap-center"
+              ref={(el) => { cardRefs.current[index] = el; }}
+              data-index={index}
+            >
               <VideoCard
                 movie={movie}
                 isActive={index === activeIndex}

@@ -5,6 +5,7 @@ import EventFeed from '../components/EventFeed';
 import ChatAssistant from '../components/ChatAssistant';
 import AdUnit from '../components/AdUnit';
 import WindowsFixerPromo from '../components/WindowsFixerPromo';
+import MoviesShowsPromo from '../components/MoviesShowsPromo';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { EventFeedSkeleton } from '../components/LoadingSkeleton';
 
@@ -56,6 +57,11 @@ export default function Home() {
       {/* Windows Fixer Promotional Section */}
       <div className="max-w-7xl mx-auto px-4">
         <WindowsFixerPromo />
+      </div>
+
+      {/* Find Movies / TV Shows Section */}
+      <div className="max-w-7xl mx-auto px-4">
+        <MoviesShowsPromo />
       </div>
 
       {/* Top Banner Ad */}
