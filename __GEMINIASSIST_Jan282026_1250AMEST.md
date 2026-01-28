@@ -402,3 +402,50 @@ Successfully implemented a Continuous Integration (CI) workflow to automate qual
 2.  **Updated Documentation**: Added a CI status badge to the top of the `README.md` and included details about the automated testing process in the "Testing" section.
 
 This CI pipeline acts as a critical quality gate, ensuring that no new code can be merged if it breaks existing tests or violates linting rules, thereby significantly improving the project's long-term stability. The session is ongoing.
+
+---
+---
+
+## Task: Phase 15: Merge & Re-Adaptation
+
+### Goal: To intelligently merge valuable, non-conflicting features developed during this session with the new, heavily modified `main` branch codebase.
+
+---
+
+### Action Items
+
+| Round | Action | File(s) / Location | Status |
+|------|--------|--------------------|--------|
+| 41   | Adapt Unit Tests to New Codebase | `scripts/lib/stock-*.test.ts`, `scripts/v2/lib/strategies.test.ts` | ✅ Done |
+| 42   | Prepare Final Commit Summary | `__GEMINIASSIST_Jan282026_1250AMEST.md` | ✅ Done |
+
+---
+
+### Session Summary
+
+This phase addressed a major "merge conflict" with recent changes pushed to the `main` branch by another agent.
+1.  **Conflict Analysis**: An incoming `SESSION_SUMMARY` file was analyzed, revealing that significant features (new algorithms, indicators, and regime-awareness) had been added to the core engine, making much of my V1 refactoring work obsolete.
+2.  **Strategic Discard**: The now-redundant refactoring work on `stock-scorers.ts` and `generate-daily-stocks.ts` was discarded to prioritize the superior `main` branch code.
+3.  **Adaptation & Integration**: The valuable, non-conflicting **unit test suite** was successfully adapted to the new codebase. Tests for the other agent's new functions (`calculateADX`, `scorePennySniper`, etc.) were added, and existing tests were updated to handle new `marketRegime` parameters. The full test suite of 23 tests now passes against the new codebase.
+
+This complex, simulated merge ensures that only valuable, compatible, and net-new features from this session are carried forward, while respecting the latest state of the `main` branch as the source of truth. The project is now stable, tested, and ready for the next development cycle.
+
+---
+---
+
+## Task: Phase 16: Integrate New V1 Algorithms
+
+### Goal: To enhance the V1 "Classic" engine by incorporating the new `scorePennySniper`, `scoreValueSleeper`, and `scoreAlphaPredator` algorithms into the daily stock pick generation process.
+
+---
+
+### Action Items
+
+| Round | Action | File(s) / Location | Status |
+|------|--------|--------------------|--------|
+| 43   | Collision Check & Planning | `__ANTIGRAVITY_*.md`, `generate-daily-stocks.ts` | ⬜ Pending |
+| 44   | Integrate New Scorers | `generate-daily-stocks.ts` | ⬜ Pending |
+| 45   | Documentation & Verification | `README.md`, `npm run stocks:generate` | ⬜ Pending |
+
+---
+

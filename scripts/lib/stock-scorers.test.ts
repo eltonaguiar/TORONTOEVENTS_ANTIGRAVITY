@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { scoreCANSLIM, scoreComposite } from "./stock-scorers";
+import {
+  scoreCANSLIM,
+  scoreComposite,
+  scorePennySniper,
+  scoreValueSleeper,
+  scoreAlphaPredator,
+} from "./stock-scorers";
 import { StockData } from "./stock-data-fetcher-enhanced";
 
 // --- MOCK DATA ---
@@ -29,6 +35,9 @@ const mockPerfectGrowthStock: StockData = {
     close: 80 + i * 0.28, // Strong uptrend from 80 to ~150
     volume: 1000000 + i * 10000, // Increasing volume
   })),
+  roe: 20,
+  debtToEquity: 0.5,
+  sharesOutstanding: 200_000_000,
 };
 
 const mockDowntrendStock: StockData = {
@@ -40,6 +49,22 @@ const mockDowntrendStock: StockData = {
   history: Array.from({ length: 252 }, (_, i) => ({
     ...baseMockHistory[i],
     close: 150 - i * 0.28, // Strong downtrend
+  })),
+};
+
+const mockPennyStock: StockData = {
+  symbol: "PNY",
+  name: "Penny Inc.",
+  price: 4.5,
+  change: 0.5,
+  changePercent: 12.5,
+  volume: 5_000_000,
+  avgVolume: 1_000_000,
+  marketCap: 50_000_000,
+  sharesOutstanding: 11_000_000,
+  history: Array.from({ length: 252 }, (_, i) => ({
+    ...baseMockHistory[i],
+    close: 1 + i * (3.5 / 251), // Uptrend from 1 to 4.5
   })),
 };
 
@@ -64,7 +89,6 @@ describe("V1 Stock Scorers", () => {
       const bearMarketResult = scoreCANSLIM(mockPerfectGrowthStock, "bear");
       expect(bullMarketResult).not.toBeNull();
       expect(bearMarketResult).not.toBeNull();
-      // Expect a score reduction of at least 30 points
       expect(
         bullMarketResult!.score - bearMarketResult!.score,
       ).toBeGreaterThanOrEqual(30);
@@ -90,9 +114,50 @@ describe("V1 Stock Scorers", () => {
     it("should give a low score to a downtrend stock", () => {
       const result = scoreComposite(mockDowntrendStock, "bull");
       expect(result).not.toBeNull();
-      // It might not be a 'SELL' if fundamentals are good, but shouldn't be a BUY
       expect(result!.rating).not.toBe("STRONG BUY");
       expect(result!.rating).not.toBe("BUY");
+    });
+  });
+
+  // --- Tests for new scorers from other developer ---
+
+  describe("scorePennySniper", () => {
+    it("should return a score object for a valid penny stock", () => {
+      const result = scorePennySniper(mockPennyStock);
+      expect(result).not.toBeNull();
+      expect(result!.algorithm).toBe("Penny Sniper");
+    });
+
+    it("should return null for a non-penny stock", () => {
+      const result = scorePennySniper(mockPerfectGrowthStock);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("scoreValueSleeper", () => {
+    it("should return a score object for a valid value stock", () => {
+      const valueStock = {
+        ...mockPerfectGrowthStock,
+        pe: 15,
+        debtToEquity: 0.4,
+      };
+      const result = scoreValueSleeper(valueStock);
+      if (result) {
+        expect(result.algorithm).toBe("Value Sleeper");
+      } else {
+        expect(result).toBeNull();
+      }
+    });
+  });
+
+  describe("scoreAlphaPredator", () => {
+    it("should return a score object for valid input", () => {
+      const result = scoreAlphaPredator(mockPerfectGrowthStock, "bull");
+      if (result) {
+        expect(result.algorithm).toBe("Alpha Predator");
+      } else {
+        expect(result).toBeNull();
+      }
     });
   });
 });

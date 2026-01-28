@@ -30,6 +30,7 @@
     "stocks:v2:sync": "tsx scripts/sync-to-stocksunify2.ts",
     "stocks:v2:full": "npm run stocks:v2:generate && npm run stocks:v2:sync",
     "stocks:all": "npm run stocks:full && npm run stocks:v2:full",
+    "stocks:verify": "tsx scripts/verify-picks.ts",
     "findstocks:verify": "tsx scripts/verify-findstocks.ts",
     "test": "vitest"
   },

@@ -28,12 +28,20 @@ This repository contains the full source code and data for the STOCKSUNIFY V1 an
 ### 3. The Truth Engine (Performance Verification)
 - **Purpose**: Automatically verifies the performance of V2 picks after their recommended holding period has passed.
 - **Process**:
-    1. A GitHub Action runs weekly (`.github/workflows/stocks-v2-ledger.yml`).
-    2. The `verify-performance.ts` script checks for matured picks based on their unique `timeframe`.
-    3. Individual audit reports are saved to `data/v2/performance/`.
-    4. The `aggregate-performance.ts` script consolidates these audits into a single `performance-report.json`.
-- **Frontend**: The results are displayed dynamically on the [FindStocksV2](https://findtorontoevents.ca/findstocks2) page via the `PerformanceDashboard.tsx` component.
-- **Interactive Details**: The dashboard lists all verified picks. Clicking a pick opens a detailed modal showing the complete selection rationale and performance data for that specific pick.
+    1. A GitHub Action runs every 6 hours (`.github/workflows/verify-picks.yml`).
+    2. The verification engine (`verify-picks.ts`) checks for matured picks based on their unique `timeframe` (e.g., 24h, 3d, 7d).
+    3. Matured picks are validated against real-market data from Yahoo Finance.
+    4. **Slippage Simulation**: Entry prices include a simulated slippage penalty (high/low/close avg) to ensure realistic returns.
+    5. The results are strictly recorded as **WIN** (Positive Return) or **LOSS** (Negative Return or Stop Loss Hit).
+    6. All data is committed to the **Immutable Ledger**: [`data/pick-performance.json`](data/pick-performance.json).
+
+#### 🛡️ Immutable Audit Trail
+To ensure 100% intellectual honesty, every stock pick generated is:
+- **Timestamped**: `pickedAt` ensures no retroactive editing.
+- **Hashed**: A SHA-256 hash (`pickHash`) seals the symbol, price, and timestamp.
+- **Archived**: Original raw picks are stored in `data/picks-archive/` before any price movement occurs.
+
+**[View Live Performance Data (JSON)](data/pick-performance.json)**
 
 ---
 
@@ -52,6 +60,9 @@ This table outlines the methodology, pros, cons, and current status of each prim
 | **V1: CAN SLIM (Classic)** | Based on a historically proven methodology. | Technical-only implementation. Is not market-regime aware. | **Implemented**: Yes<br>**Job Setup**: Yes (Daily)<br>**Backtested**: No | Growth stocks, typically $10+. | 3-12 Months |
 | **V1: Technical Momentum** | Multi-timeframe (24h, 3d, 7d) provides flexibility. | Can be noisy and produce false breakouts without a volatility filter. | **Implemented**: Yes<br>**Job Setup**: Yes (Daily)<br>**Backtested**: No | Any stock with short-term catalysts. High risk for penny stocks. | 24h to 7d |
 | **V1: Composite Rating** | Multi-factor approach. Uses YTD performance as a long-term momentum factor. | Uses fixed, heuristic weights for its factors. Simple regime detection. | **Implemented**: Yes<br>**Job Setup**: Yes (Daily)<br>**Backtested**: No | Any stock, good for general watchlist ranking. | 1-3 Months |
+| **V1: Penny Sniper** | Specifically designed for high-risk penny stocks with volume and momentum triggers. | Inherently very high risk; can produce many false signals. | **Implemented**: Yes<br>**Job Setup**: Yes (Daily)<br>**Backtested**: No | Penny stocks (<$15) with high volume and catalysts. | 24 Hours |
+| **V1: Value Sleeper** | Seeks undervalued mid/large-cap companies near their 52-week lows but still in a long-term uptrend. | Requires fundamental data (PE, ROE, Debt) which can be sparse or inaccurate. | **Implemented**: Yes<br>**Job Setup**: Yes (Daily)<br>**Backtested**: No | Mid to large-cap stocks with solid fundamentals that are currently out of favor. | 3+ Months |
+| **V1: Alpha Predator** | A scientific composite that combines Trend (ADX), Momentum (AO), and Structure (VCP) for a robust signal. | More complex and can be slower to react than pure momentum strategies. | **Implemented**: Yes<br>**Job Setup**: Yes (Daily)<br>**Backtested**: No | Any stock exhibiting a combination of strong trend, momentum, and price structure. | 3-7 Days |
 
 ---
 
