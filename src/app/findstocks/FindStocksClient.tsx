@@ -723,17 +723,45 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
         <p className="text-sm text-[var(--text-3)] mt-2">
           Updated daily • Powered by 11+ stock analysis repositories
         </p>
-        <p className="text-sm mt-3">
-          <a href="https://github.com/eltonaguiar/stocksunify" target="_blank" rel="noopener noreferrer" className="text-[var(--pk-400)] hover:text-[var(--pk-300)] hover:underline font-semibold">
-            📦 Main GitHub repo for stocks → github.com/eltonaguiar/stocksunify
+
+        {/* V2 Scientific Upgrade Banner */}
+        <div className="mt-8 max-w-4xl mx-auto">
+          <Link href="/findstocks2" className="block group">
+            <div className="glass-panel p-6 rounded-[2rem] border-2 border-indigo-500/50 bg-gradient-to-r from-indigo-500/10 via-transparent to-purple-500/10 hover:border-indigo-400 transition-all">
+              <div className="flex flex-wrap items-center justify-between gap-6 px-4">
+                <div className="text-left">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="px-2 py-0.5 rounded bg-indigo-500 text-[10px] font-black tracking-tighter uppercase">Scientific Upgrade Deployed</span>
+                    <h2 className="text-xl font-bold text-white">STOCKSUNIFY2 Architecture</h2>
+                  </div>
+                  <p className="text-sm text-neutral-400 max-w-xl">
+                    Our new V2 engine integrates <strong>Regime-Awareness</strong>, <strong>Slippage Torture Tests</strong>, and an <strong>Immutable Audit Trail</strong> to prevent hindsight bias.
+                  </p>
+                </div>
+                <div className="px-8 py-3 bg-white text-black text-sm font-black rounded-full group-hover:scale-105 transition-transform">
+                  Explore Research V2 →
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="flex flex-wrap justify-center gap-6 mt-6">
+          <a href="https://github.com/eltonaguiar/STOCKSUNIFY2" target="_blank" rel="noopener noreferrer" className="text-[var(--pk-400)] hover:text-indigo-300 text-xs font-mono uppercase tracking-widest">
+            📦 Scientific Repo (V2) →
           </a>
-        </p>
+          <a href="https://github.com/eltonaguiar/stocksunify" target="_blank" rel="noopener noreferrer" className="text-neutral-500 hover:text-neutral-300 text-xs font-mono uppercase tracking-widest">
+            📦 Classic Repo (V1) →
+          </a>
+        </div>
+
         {dataAsOf && (
-          <p className="text-xs text-[var(--text-3)] mt-2" aria-live="polite">
+          <p className="text-xs text-[var(--text-3)] mt-4" aria-live="polite">
             Data last updated: <time dateTime={dataAsOf}>{new Date(dataAsOf).toLocaleString()}</time>
           </p>
         )}
       </header>
+
 
       {/* Risk & liability disclaimer — prominent, dismissible */}
       {!riskBannerDismissed && (
@@ -1107,6 +1135,42 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
                 </div>
               </>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* Research Synthesis Highlights */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="grid md:grid-cols-2 gap-8 items-stretch">
+          <div className="glass-panel p-8 rounded-3xl border border-indigo-500/20 bg-indigo-500/5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z" /></svg>
+            </div>
+            <h3 className="text-xs font-mono uppercase tracking-[0.3em] text-indigo-400 mb-6">Scientific Methodology</h3>
+            <h4 className="text-2xl font-black mb-4 tracking-tighter text-white">The "Bet-Your-Life" Protocol</h4>
+            <p className="text-sm text-neutral-400 leading-relaxed mb-6 font-serif italic">
+              "We have eliminated hindsight bias by establishing an append-only JSON ledger system in STOCKSUNIFY2. Every pick is recorded with a permanent hash, making results falsifiable and verifiable by anyone."
+            </p>
+            <Link href="/findstocks/research" className="text-xs font-bold text-white underline underline-offset-4 hover:text-indigo-300">Read Verification Manifesto →</Link>
+          </div>
+
+          <div className="glass-panel p-8 rounded-3xl border border-white/10 bg-white/5">
+            <h3 className="text-xs font-mono uppercase tracking-[0.3em] text-neutral-500 mb-6">Core V2 Advancements</h3>
+            <div className="space-y-4">
+              {[
+                { t: "Regime Protection", d: "System shuts down in bearish markets (SPY < 200 SMA)." },
+                { t: "Slippage Torture", d: "Returns must survive 3-5x the standard liquidity spread." },
+                { t: "Audit Trail", d: "Daily pick ledgers are immutable and stored in GitHub history." }
+              ].map((adv, i) => (
+                <div key={i} className="flex gap-4 items-start">
+                  <div className="w-5 h-5 rounded bg-indigo-500/20 flex items-center justify-center text-[10px] font-bold text-indigo-400">{i + 1}</div>
+                  <div>
+                    <div className="text-sm font-bold text-white uppercase tracking-wider">{adv.t}</div>
+                    <div className="text-xs text-neutral-500">{adv.d}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
