@@ -7,31 +7,54 @@ import VerifiedPickDetailModal, {
 } from "./VerifiedPickDetailModal";
 import VerifiedPickList from "./VerifiedPickList";
 
-interface PerformanceAudit {
-  date: string;
+// Interface matching data/pick-performance.json
+interface PerformanceData {
+  lastVerified: string;
   totalPicks: number;
+  verified: number;
+  pending: number;
+  wins: number;
+  losses: number;
+  winRate: number;
   avgReturn: number;
-  picks: VerifiedPick[];
+  byAlgorithm: Record<
+    string,
+    {
+      picks: number;
+      verified: number;
+      wins: number;
+      losses: number;
+      winRate: number;
+      avgReturn: number;
+    }
+  >;
+  allPicks: PickData[];
 }
 
-interface PerformanceSummary {
-  totalAudits: number;
-  totalPicks: number;
-  overallAvgReturn: number;
-  winRate: number;
-  bestPick: VerifiedPick | null;
-  worstPick: VerifiedPick | null;
-  byAlgorithm: {
-    algorithm: string;
-    count: number;
-    avgReturn: number;
-    winRate: number;
-  }[];
-  allPicks: VerifiedPick[]; // Add this
+interface PickData {
+  symbol: string;
+  name: string;
+  price: number;
+  rating: string;
+  timeframe: string;
+  algorithm: string;
+  score: number;
+  risk: string;
+  stopLoss: number;
+  indicators: any;
+  slippageSimulated: boolean;
+  simulatedEntryPrice: number;
+  pickedAt: string;
+  pickHash: string;
+  verifiedAt?: string;
+  currentPrice?: number;
+  returnPercent?: number;
+  status: "WIN" | "LOSS" | "PENDING";
+  daysHeld?: number;
 }
 
 export default function PerformanceDashboard() {
-  const [audits, setAudits] = useState<PerformanceAudit[]>([]);
+  const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPick, setSelectedPick] = useState<VerifiedPick | null>(null);
@@ -39,44 +62,12 @@ export default function PerformanceDashboard() {
   useEffect(() => {
     const fetchPerformanceData = async () => {
       try {
-        // Try multiple sources
-        const sources = [
-          "/data/v2/performance-report.json",
-          "https://raw.githubusercontent.com/eltonaguiar/STOCKSUNIFY2/main/data/v2/performance-report.json",
-        ];
-
-        for (const url of sources) {
-          try {
-            const res = await fetch(url);
-            if (res.ok) {
-              const data = await res.json();
-              if (data.audits && Array.isArray(data.audits)) {
-                setAudits(data.audits);
-                setLoading(false);
-                return;
-              }
-            }
-          } catch {
-            continue;
-          }
-        }
-
-        // Try to load test data if no real data found
-        const testRes = await fetch(
-          "/data/v2/performance/2026-01-21-audit.json",
-        );
-        if (testRes.ok) {
-          const testAudit = await testRes.json();
-          setAudits([testAudit]);
-          setLoading(false);
-          return;
-        }
-
-        // No data found yet
-        setError(
-          "Performance data not yet available. Verification runs weekly on picks older than 7 days.",
-        );
+        const res = await fetch("/data/pick-performance.json");
+        if (!res.ok) throw new Error("Failed to load performance data");
+        const json: PerformanceData = await res.json();
+        setData(json);
       } catch (err) {
+        console.error(err);
         setError("Failed to load performance data");
       } finally {
         setLoading(false);
@@ -86,50 +77,109 @@ export default function PerformanceDashboard() {
     fetchPerformanceData();
   }, []);
 
-  const summary = useMemo((): PerformanceSummary | null => {
-    if (audits.length === 0) return null;
+  // Helper to generate "Simple Terms" context
+  const getPlainEnglishContext = (p: PickData) => {
+    let simpleReason = "Selected based on technical strength.";
+    let investorType = "General";
 
-    const allPicks = audits.flatMap((a) =>
-      a.picks.map((p) => ({ ...p, auditDate: a.date })),
-    );
-    const winners = allPicks.filter((p) => p.realizedReturn > 0);
-
-    // Group by algorithm
-    const byAlgo = new Map<string, VerifiedPick[]>();
-    for (const pick of allPicks) {
-      const algo = pick.algorithm || "Unknown";
-      if (!byAlgo.has(algo)) byAlgo.set(algo, []);
-      byAlgo.get(algo)!.push(pick);
+    // 1. Simplify Algorithm Reason
+    switch (p.algorithm) {
+      case "Alpha Predator":
+        simpleReason = "This stock showed a rare combination of strong trend and momentum. It's moving fast, and we want to catch the wave early.";
+        break;
+      case "Technical Momentum":
+        simpleReason = "This stock is 'breaking out', meaning it's pushing past a previous limit with high trading volume. Traders often buy here expecting a quick jump.";
+        break;
+      case "Value Sleeper":
+        simpleReason = "A solid company that has been beaten down but is showing signs of waking up. A safer bet for those who like buying low.";
+        break;
+      case "CAN SLIM":
+      case "Scientific CAN SLIM":
+      case "SCS":
+        simpleReason = "Follows a famous strategy that looks for high-growth companies. Great for holding a bit longer to capture big moves.";
+        break;
+      case "Liquidity-Shielded Penny":
+      case "LSP":
+      case "Penny Sniper":
+        simpleReason = "A high-risk, high-reward penny stock that is seeing a sudden spike in interest. Only for those willing to lose the whole bet.";
+        break;
+      case "Regime-Aware Reversion":
+      case "RAR":
+        simpleReason = "This stock dropped too fast, too quickly. We are betting it will 'snap back' to its normal price soon.";
+        break;
+      case "Volatility-Adjusted Momentum":
+      case "VAM":
+        simpleReason = "A smooth, steady climber. It doesn't move fast, but it moves consistently up. Good for less stress.";
+        break;
     }
 
-    const algoStats = Array.from(byAlgo.entries())
-      .map(([algorithm, picks]) => ({
-        algorithm,
-        count: picks.length,
-        avgReturn:
-          picks.reduce((a, p) => a + p.realizedReturn, 0) / picks.length,
-        winRate:
-          (picks.filter((p) => p.realizedReturn > 0).length / picks.length) *
-          100,
-      }))
-      .sort((a, b) => b.avgReturn - a.avgReturn);
+    // 2. Determine Investor Type based on Timeframe & Algo
+    if (p.timeframe === "24h") {
+      investorType = "Day Trader (Very Active)";
+    } else if (p.timeframe === "3d" || p.timeframe === "7d") {
+      investorType = "Swing Trader (Check once a day)";
+    } else if (p.timeframe === "1m" || p.timeframe === "3m") {
+      investorType = "Position Trader (Check weekly)";
+    } else {
+      investorType = "Long Term Investor";
+    }
 
-    const sortedByReturn = [...allPicks].sort(
-      (a, b) => b.realizedReturn - a.realizedReturn,
-    );
+    // Override for Penny
+    if (p.risk === "Extreme" || p.algorithm.includes("Penny")) {
+      investorType = "Speculator / Gambler";
+    }
 
-    return {
-      totalAudits: audits.length,
-      totalPicks: allPicks.length,
-      overallAvgReturn:
-        allPicks.reduce((a, p) => a + p.realizedReturn, 0) / allPicks.length,
-      winRate: (winners.length / allPicks.length) * 100,
-      bestPick: sortedByReturn[0] || null,
-      worstPick: sortedByReturn[sortedByReturn.length - 1] || null,
-      byAlgorithm: algoStats,
-      allPicks: sortedByReturn, // Add all picks to summary
-    };
-  }, [audits]);
+    return { simpleReason, investorType };
+  };
+
+  // Map raw data to VerifiedPick interface expected by children
+  const picksFormatted: VerifiedPick[] = useMemo(() => {
+    if (!data) return [];
+    return data.allPicks.map((p) => {
+      const { simpleReason, investorType } = getPlainEnglishContext(p);
+
+      return {
+        id: p.pickHash,
+        symbol: p.symbol,
+        name: p.name,
+        algorithm: p.algorithm,
+        score: p.score,
+        rating: p.rating,
+
+        // Price & Performance
+        entryPrice: p.simulatedEntryPrice,
+        exitPrice: p.currentPrice || p.simulatedEntryPrice,
+        stopLoss: p.stopLoss,
+        realizedReturn: p.returnPercent || 0,
+
+        // Timing
+        date: p.pickedAt,
+        verifiedAt: p.verifiedAt || new Date().toISOString(), // Fallback if pending
+        timeframe: p.timeframe,
+
+        // Metadata
+        outcome: p.status === "PENDING" ? "PENDING" : p.status as "WIN" | "LOSS",
+        risk: p.risk,
+
+        // Explanations
+        rationale: `Algorithm: ${p.algorithm} | Score: ${p.score}/100`,
+        simpleReason,
+        investorType,
+
+        metrics: p.indicators
+      };
+    });
+  }, [data]);
+
+  const verifiedPicks = useMemo(
+    () => picksFormatted.filter((p) => p.outcome !== "PENDING"),
+    [picksFormatted]
+  );
+
+  const pendingPicks = useMemo(
+    () => picksFormatted.filter((p) => p.outcome === "PENDING"),
+    [picksFormatted]
+  );
 
   if (loading) {
     return (
@@ -140,42 +190,20 @@ export default function PerformanceDashboard() {
     );
   }
 
-  if (error || !summary) {
+  if (error || !data) {
     return (
-      <div className="glass-panel p-8 rounded-[2rem] border border-white/5 bg-gradient-to-br from-amber-500/5 to-transparent">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-            <span className="text-amber-400 text-lg">⏳</span>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-white">
-              Performance Verification Pending
-            </h3>
-            <p className="text-xs text-neutral-500">
-              Truth Engine activates after 7-day hold period
-            </p>
-          </div>
-        </div>
+      <div className="glass-panel p-8 rounded-[2rem] border border-white/5 bg-red-500/10">
+        <h3 className="text-red-400 font-bold">System Offline</h3>
         <p className="text-sm text-neutral-400">
-          {error ||
-            "The V2 Scientific Engine verifies picks after their recommended holding period. Check back after the first batch of picks mature."}
+          Performance data is currently unavailable.
         </p>
-        <div className="mt-6 p-4 rounded-xl bg-black/20 border border-white/5">
-          <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest mb-2">
-            Verification Schedule
-          </div>
-          <ul className="text-xs text-neutral-400 space-y-1">
-            <li>7-day picks: Verified after 1 week</li>
-            <li>1-month picks: Verified after 30 days</li>
-            <li>1-year picks: Quarterly progress checks</li>
-          </ul>
-        </div>
       </div>
     );
   }
 
   return (
-    <AnimatePresence>
+    <>
+      <AnimatePresence>
         {selectedPick && (
           <VerifiedPickDetailModal
             pick={selectedPick}
@@ -185,28 +213,55 @@ export default function PerformanceDashboard() {
       </AnimatePresence>
 
       <div className="space-y-8">
-        {/* Summary Stats */}
+        {/* Status Banner */}
+        <div className="glass-panel p-6 rounded-2xl border border-white/5 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-xl">
+              🤖
+            </div>
+            <div>
+              <h3 className="font-bold text-white">Truth Engine Active</h3>
+              <div className="text-xs text-neutral-400">
+                Last Verified: {new Date(data.lastVerified).toLocaleString()}
+              </div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-black text-white">{data.allPicks.length}</div>
+            <div className="text-xs text-neutral-500 uppercase tracking-widest">Total Monitored</div>
+          </div>
+        </div>
+
+        {/* Global Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass-panel p-6 rounded-2xl border border-white/5">
             <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest mb-1">
-              Total Verified
+              Pending
+            </div>
+            <div className="text-3xl font-black text-amber-400">
+              {data.pending}
+            </div>
+            <div className="text-xs text-neutral-500">Awaiting maturity</div>
+          </div>
+          <div className="glass-panel p-6 rounded-2xl border border-white/5">
+            <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest mb-1">
+              Verified
             </div>
             <div className="text-3xl font-black text-white">
-              {summary.totalPicks}
+              {data.verified}
             </div>
-            <div className="text-xs text-neutral-500">
-              {summary.totalAudits} audits
-            </div>
+            <div className="text-xs text-neutral-500">Completed audits</div>
           </div>
           <div className="glass-panel p-6 rounded-2xl border border-white/5">
             <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest mb-1">
               Avg Return
             </div>
             <div
-              className={`text-3xl font-black ${summary.overallAvgReturn >= 0 ? "text-emerald-400" : "text-red-400"}`}
+              className={`text-3xl font-black ${data.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"
+                }`}
             >
-              {summary.overallAvgReturn >= 0 ? "+" : ""}
-              {summary.overallAvgReturn.toFixed(2)}%
+              {data.avgReturn >= 0 ? "+" : ""}
+              {data.avgReturn.toFixed(2)}%
             </div>
           </div>
           <div className="glass-panel p-6 rounded-2xl border border-white/5">
@@ -214,25 +269,11 @@ export default function PerformanceDashboard() {
               Win Rate
             </div>
             <div
-              className={`text-3xl font-black ${summary.winRate >= 50 ? "text-emerald-400" : "text-amber-400"}`}
+              className={`text-3xl font-black ${data.winRate >= 50 ? "text-emerald-400" : "text-amber-400"
+                }`}
             >
-              {summary.winRate.toFixed(1)}%
+              {data.winRate.toFixed(1)}%
             </div>
-          </div>
-          <div className="glass-panel p-6 rounded-2xl border border-white/5">
-            <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest mb-1">
-              Best Pick
-            </div>
-            {summary.bestPick && (
-              <>
-                <div className="text-xl font-black text-emerald-400">
-                  {summary.bestPick.symbol}
-                </div>
-                <div className="text-xs text-emerald-400/70">
-                  +{summary.bestPick.realizedReturn.toFixed(2)}%
-                </div>
-              </>
-            )}
           </div>
         </div>
 
@@ -242,38 +283,41 @@ export default function PerformanceDashboard() {
             <span className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-sm">
               V2
             </span>
-            Algorithm Performance Breakdown
+            Algorithm Performance
           </h3>
           <div className="space-y-4">
-            {summary.byAlgorithm.map((algo, i) => (
+            {Object.entries(data.byAlgorithm).map(([algoName, stats]) => (
               <div
-                key={i}
+                key={algoName}
                 className="flex items-center gap-4 p-4 rounded-xl bg-black/20 border border-white/5"
               >
                 <div className="flex-1">
-                  <div className="text-sm font-bold text-white">
-                    {algo.algorithm}
-                  </div>
+                  <div className="text-sm font-bold text-white">{algoName}</div>
                   <div className="text-xs text-neutral-500">
-                    {algo.count} picks verified
+                    {stats.picks} picks ({stats.verified} verified)
                   </div>
                 </div>
                 <div className="text-right">
                   <div
-                    className={`text-lg font-bold ${algo.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                    className={`text-lg font-bold ${stats.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"
+                      }`}
                   >
-                    {algo.avgReturn >= 0 ? "+" : ""}
-                    {algo.avgReturn.toFixed(2)}%
+                    {stats.avgReturn >= 0 ? "+" : ""}
+                    {stats.avgReturn.toFixed(2)}%
                   </div>
                   <div className="text-xs text-neutral-500">
-                    {algo.winRate.toFixed(0)}% win rate
+                    {stats.winRate.toFixed(0)}% win rate
                   </div>
                 </div>
-                {/* Progress bar */}
                 <div className="w-24 h-2 bg-white/5 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${algo.winRate >= 60 ? "bg-emerald-500" : algo.winRate >= 40 ? "bg-amber-500" : "bg-red-500"}`}
-                    style={{ width: `${Math.min(100, algo.winRate)}%` }}
+                    className={`h-full rounded-full ${stats.winRate >= 60
+                      ? "bg-emerald-500"
+                      : stats.winRate >= 40
+                        ? "bg-amber-500"
+                        : "bg-red-500"
+                      }`}
+                    style={{ width: `${Math.min(100, stats.winRate)}%` }}
                   />
                 </div>
               </div>
@@ -281,41 +325,18 @@ export default function PerformanceDashboard() {
           </div>
         </div>
 
-        {/* Recent Audits */}
-        <div className="glass-panel p-8 rounded-[2rem] border border-white/5">
-          <h3 className="text-lg font-bold text-white mb-6">
-            Recent Verification Audits
-          </h3>
-          <div className="space-y-3">
-            {audits.slice(0, 5).map((audit, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between p-4 rounded-xl bg-black/20 border border-white/5"
-              >
-                <div>
-                  <div className="text-sm font-bold text-white">
-                    {audit.date}
-                  </div>
-                  <div className="text-xs text-neutral-500">
-                    {audit.totalPicks} picks verified
-                  </div>
-                </div>
-                <div
-                  className={`text-lg font-bold ${audit.avgReturn >= 0 ? "text-emerald-400" : "text-red-400"}`}
-                >
-                  {audit.avgReturn >= 0 ? "+" : ""}
-                  {audit.avgReturn.toFixed(2)}%
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Lists */}
+        <div>
+          <h3 className="text-lg font-bold text-white mb-4">Pending (Live)</h3>
+          <VerifiedPickList paged={true} picks={pendingPicks} onPickClick={setSelectedPick} />
         </div>
 
-        {/* All Picks List */}
-        <VerifiedPickList
-          picks={summary.allPicks}
-          onPickClick={setSelectedPick}
-        />
+        {verifiedPicks.length > 0 && (
+          <div>
+            <h3 className="text-lg font-bold text-white mb-4">Verified History</h3>
+            <VerifiedPickList picks={verifiedPicks} onPickClick={setSelectedPick} />
+          </div>
+        )}
       </div>
     </>
   );

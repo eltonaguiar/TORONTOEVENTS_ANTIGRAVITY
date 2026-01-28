@@ -2,22 +2,39 @@
 
 // This component will display the detailed breakdown of a single verified stock pick.
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { motion } from 'framer-motion';
 
-// Copied from PerformanceDashboard.tsx for now
 export interface VerifiedPick {
+  id: string; // Hash
   symbol: string;
   name: string;
   algorithm: string;
   score: number;
   rating: string;
+
+  // Price Data
+  entryPrice: number;
   exitPrice: number;
+  stopLoss: number;
   realizedReturn: number;
+
+  // Timing
+  date: string; // Picked At
   verifiedAt: string;
+  timeframe: string; // e.g. "3d"
+
+  // Metadata
+  outcome: "WIN" | "LOSS" | "PENDING";
+  risk: string; // High, Medium, Low
+
+  // Explanations
+  rationale: string; // Tech explanation
+  simpleReason: string; // Plain English
+  investorType: string; // e.g. "Day Trader"
+
+  // Raw Data
   metrics: Record<string, any>;
-  // The audit this pick belongs to
-  auditDate?: string;
 }
 
 interface Props {
@@ -41,10 +58,15 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
 
   if (!pick) return null;
 
+  const daysHeld = Math.round(
+    (new Date(pick.verifiedAt).getTime() - new Date(pick.date).getTime()) /
+    (1000 * 3600 * 24)
+  );
+
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -52,11 +74,11 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ ease: "easeInOut", duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl p-8 md:p-12 rounded-[2rem] border border-white/10 bg-[#0d0d10] shadow-2xl"
+        className="relative w-full max-w-3xl p-6 md:p-8 rounded-[2rem] border border-white/10 bg-[#0d0d10] shadow-2xl my-8"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+          className="absolute top-4 right-4 z-10 w-9 h-9 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -74,129 +96,182 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
             />
           </svg>
         </button>
-        <div className="space-y-4">
-          <div className="text-center">
-            <h2 className="text-5xl font-black tracking-tighter text-white">
-              {pick.symbol}
-            </h2>
-            <p className="text-sm text-neutral-500 font-mono tracking-widest uppercase">
-              {pick.name}
-            </p>
+
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-white">
+                {pick.symbol}
+              </h2>
+              <p className="text-sm text-neutral-500 font-mono tracking-widest uppercase mt-1">
+                {pick.name}
+              </p>
+            </div>
+            <div className={`px-4 py-2 rounded-xl border ${pick.outcome === "WIN"
+                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                : pick.outcome === "LOSS"
+                  ? "bg-red-500/10 border-red-500/20 text-red-400"
+                  : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+              }`}>
+              <div className="text-xs font-bold uppercase tracking-widest text-center">Outcome</div>
+              <div className="text-xl font-black text-center">{pick.outcome}</div>
+            </div>
           </div>
+
           <div className="border-b border-white/10" />
 
-          <div className="space-y-8 pt-6">
-            {/* Core Performance */}
-            <div className="grid grid-cols-3 gap-4 text-center">
+          {/* New: "Simple Terms" Guide */}
+          <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-indigo-400">💡</span>
+              Plain English Explanation
+            </h3>
+
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest">
-                  Return
+                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Why We Picked It</div>
+                <p className="text-neutral-300 text-sm leading-relaxed">
+                  {pick.simpleReason}
+                </p>
+              </div>
+              <div>
+                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Best For</div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold">
+                  {pick.investorType}
+                </div>
+                <div className="mt-4 flex gap-4">
+                  <div>
+                    <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Hold Time</div>
+                    <div className="text-white font-bold">{pick.timeframe}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest mb-1">Risk Level</div>
+                    <div className={`font-bold ${pick.risk === "High" ? "text-red-400"
+                        : pick.risk === "Medium" ? "text-amber-400"
+                          : "text-emerald-400"
+                      }`}>{pick.risk}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Performance */}
+          <div className="space-y-8 pt-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+                  Result
                 </div>
                 <div
-                  className={`text-3xl font-black ${pick.realizedReturn >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                  className={`text-2xl font-black ${pick.realizedReturn >= 0 ? "text-emerald-400" : "text-red-400"}`}
                 >
                   {pick.realizedReturn >= 0 ? "+" : ""}
                   {pick.realizedReturn.toFixed(2)}%
                 </div>
               </div>
-              <div>
-                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest">
-                  Entry Price
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+                  Buy Price
                 </div>
-                <div className="text-xl font-mono font-bold text-white">
-                  ${(pick.metrics.price || 0).toFixed(2)}
+                <div className="text-lg font-mono font-bold text-white">
+                  ${(pick.entryPrice || 0).toFixed(2)}
                 </div>
               </div>
-              <div>
-                <div className="text-xs font-mono text-neutral-500 uppercase tracking-widest">
-                  Exit Price
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+                  Sell Price
                 </div>
-                <div className="text-xl font-mono font-bold text-white">
+                <div className="text-lg font-mono font-bold text-white">
                   ${(pick.exitPrice || 0).toFixed(2)}
+                </div>
+              </div>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                <div className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+                  Stop Loss
+                </div>
+                <div className="text-lg font-mono font-bold text-red-400">
+                  ${(pick.stopLoss || 0).toFixed(2)}
                 </div>
               </div>
             </div>
 
-            {/* Dates & Algo */}
+            {/* Timestamps */}
             <div className="grid grid-cols-3 gap-4 text-center border-y border-white/5 py-4">
               <div>
                 <div className="text-xs font-mono text-neutral-500 uppercase">
-                  Date Picked
+                  Identified
                 </div>
                 <div className="text-sm font-bold text-white">
-                  {pick.auditDate || "N/A"}
+                  {new Date(pick.date).toLocaleDateString()}
+                </div>
+                <div className="text-[10px] text-neutral-600">
+                  {new Date(pick.date).toLocaleTimeString()}
                 </div>
               </div>
               <div>
                 <div className="text-xs font-mono text-neutral-500 uppercase">
-                  Date Verified
+                  Verified
                 </div>
                 <div className="text-sm font-bold text-white">
                   {new Date(pick.verifiedAt).toLocaleDateString()}
                 </div>
+                <div className="text-[10px] text-neutral-600">
+                  {new Date(pick.verifiedAt).toLocaleTimeString()}
+                </div>
               </div>
               <div>
                 <div className="text-xs font-mono text-neutral-500 uppercase">
-                  Time Held
+                  Held For
                 </div>
                 <div className="text-sm font-bold text-white">
-                  {Math.round(
-                    (new Date(pick.verifiedAt).getTime() -
-                      new Date(pick.auditDate || 0).getTime()) /
-                      (1000 * 3600 * 24),
-                  )}{" "}
-                  days
+                  {Math.max(0, daysHeld)} days
                 </div>
               </div>
             </div>
 
-            {/* Rationale */}
+            {/* Technical Detail */}
             <div>
               <h4 className="text-xs font-mono text-neutral-500 uppercase tracking-widest text-center mb-4">
-                Selection Rationale
+                Algorithm Stats
               </h4>
-              <div className="p-4 rounded-xl bg-black/20 border border-white/5">
-                <div className="flex justify-between items-center text-center mb-4">
-                  <div className="flex-1">
-                    <div className="text-[10px] font-mono text-neutral-500 uppercase">
-                      Algorithm
-                    </div>
-                    <div className="text-sm font-bold text-indigo-400">
-                      {pick.algorithm}
-                    </div>
+
+              <div className="flex justify-between items-center text-center mb-4 px-8">
+                <div className="flex-1">
+                  <div className="text-[10px] font-mono text-neutral-500 uppercase">
+                    Algorithm
                   </div>
-                  <div className="flex-1">
-                    <div className="text-[10px] font-mono text-neutral-500 uppercase">
-                      Rating
-                    </div>
-                    <div
-                      className={`text-sm font-bold ${pick.rating === "STRONG BUY" ? "text-emerald-400" : "text-blue-400"}`}
-                    >
-                      {pick.rating}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-[10px] font-mono text-neutral-500 uppercase">
-                      Score
-                    </div>
-                    <div className="text-sm font-bold text-white">
-                      {pick.score}/100
-                    </div>
+                  <div className="text-sm font-bold text-indigo-400">
+                    {pick.algorithm}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-4 border-t border-white/5 font-mono text-xs">
+                <div className="flex-1">
+                  <div className="text-[10px] font-mono text-neutral-500 uppercase">
+                    Score
+                  </div>
+                  <div className="text-sm font-bold text-white">
+                    {pick.score}/100
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/20 border border-white/5 overflow-hidden">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 font-mono text-xs">
                   {Object.entries(pick.metrics).map(([key, value]) => (
                     <div
                       key={key}
-                      className="flex justify-between items-center"
+                      className="flex justify-between items-center border-b border-white/5 pb-1 last:border-0"
                     >
                       <span className="text-neutral-500 capitalize">
-                        {key.replace(/_/g, " ")}:
+                        {key.replace(/([A-Z])/g, ' $1').trim()}:
                       </span>
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-white text-right">
                         {typeof value === "number"
                           ? value.toFixed(2)
-                          : String(value)}
+                          : typeof value === "object"
+                            ? JSON.stringify(value).slice(0, 20) + "..."
+                            : String(value)}
                       </span>
                     </div>
                   ))}
@@ -204,8 +279,8 @@ export default function VerifiedPickDetailModal({ pick, onClose }: Props) {
               </div>
             </div>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
