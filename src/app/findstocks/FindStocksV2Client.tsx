@@ -17,7 +17,20 @@ interface V2Pick {
   risk: string;
   metrics: Record<string, any>;
   v2_hash: string;
+  pickedAt?: string;
 }
+
+const algorithmDisplayName = (raw: string) => {
+  const map: Record<string, string> = {
+    "CAN SLIM": "CAN SLIM Growth",
+    "Technical Momentum": "Technical Momentum",
+    "Composite Rating": "Composite Rating",
+    "Alpha Predator": "Alpha Predator",
+    "Penny Sniper": "Penny Sniper",
+    "Value Sleeper": "Value Sleeper"
+  };
+  return map[raw] || raw;
+};
 
 interface AuditData {
   timestamp: string;
@@ -27,6 +40,11 @@ interface AuditData {
     price: number;
     sma200: number;
     status: string;
+  };
+  metadata?: {
+    runSource?: string;
+    durationMs?: number;
+    runStatus?: string;
   };
   picks: V2Pick[];
 }
@@ -165,6 +183,21 @@ export default function FindStocksV2Client() {
                 </div>
                 <div className="text-xs font-bold text-white">{audit.date}</div>
               </div>
+
+              {audit.metadata && (
+                <>
+                  <div className="h-8 w-px bg-white/10" />
+                  <div className="text-right font-mono">
+                    <div className="text-[9px] text-neutral-500 uppercase tracking-widest">
+                      Run Source
+                    </div>
+                    <div className="text-xs font-bold text-indigo-300">
+                      {audit.metadata.runSource || 'Local'}
+                      {audit.metadata.durationMs && ` (${(audit.metadata.durationMs / 1000).toFixed(1)}s)`}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -250,29 +283,47 @@ export default function FindStocksV2Client() {
                             {pick.name}
                           </p>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-black text-white">
+                        <div className="text-right group/score relative">
+                          <div className="text-2xl font-black text-white cursor-help border-b border-dashed border-white/20">
                             {pick.score}
                           </div>
                           <div className="text-[8px] font-mono text-neutral-600 uppercase">
                             Score / 100
                           </div>
+
+                          {/* Score Explanation Tooltip */}
+                          <div className="absolute right-0 top-full mt-2 w-64 p-4 bg-neutral-900 border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover/score:opacity-100 group-hover/score:visible transition-all z-20 text-left">
+                            <h5 className="text-xs font-bold text-white mb-2">Scientific Score Breakdown</h5>
+                            <ul className="text-[10px] text-neutral-400 space-y-1">
+                              <li>• <strong>Trend (40%):</strong> SMA alignment & Stage-2 confirmation.</li>
+                              <li>• <strong>Momentum (30%):</strong> RSI strength & Volume Z-Scores.</li>
+                              <li>• <strong>Fundamentals (20%):</strong> Earnings growth & Institutional flow.</li>
+                              <li>• <strong>Risk (10%):</strong> Volatility (ATR) & Drawdown penalties.</li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
 
                       <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${pick.rating === "STRONG BUY"
-                              ? "bg-emerald-500/10 text-emerald-400"
-                              : "bg-indigo-500/10 text-indigo-400"
-                              }`}
-                          >
-                            {pick.rating}
-                          </span>
-                          <span className="text-[10px] font-mono text-neutral-500 uppercase">
-                            {pick.algorithm}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${pick.rating === "STRONG BUY"
+                                ? "bg-emerald-500/10 text-emerald-400"
+                                : "bg-indigo-500/10 text-indigo-400"
+                                }`}
+                            >
+                              {pick.rating}
+                            </span>
+                            <span className="text-[10px] font-mono text-neutral-500 uppercase">
+                              {algorithmDisplayName(pick.algorithm)}
+                            </span>
+                          </div>
+                          {pick.pickedAt && (
+                            <span className="text-[9px] font-mono text-neutral-600" title="Generation Timestamp">
+                              {new Date(pick.pickedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
                         </div>
 
                         {/* Strategic Metrics (V2 Specific) */}

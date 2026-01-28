@@ -1456,8 +1456,14 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
                       <span className="text-[var(--text-3)]">
                         Timeframe: <strong>{stock.timeframe}</strong>
                       </span>
-                      <span className="text-[var(--text-3)]">
+                      <span className="text-[var(--text-3)] group/score relative cursor-help">
                         Score: <strong>{stock.score}/100</strong>
+                        <div className="absolute left-0 bottom-full mb-2 w-64 p-3 bg-neutral-900 border border-white/10 rounded-xl shadow-xl opacity-0 invisible group-hover/score:opacity-100 group-hover/score:visible transition-all z-20 text-left pointer-events-none">
+                          <h5 className="text-xs font-bold text-white mb-1">Score Breakdown</h5>
+                          <p className="text-[10px] text-neutral-400">
+                            Based on technical indicators (RSI, SMA), volume dynamics, and fundamental data. V2 Engine applies stricter penalties for risk.
+                          </p>
+                        </div>
                       </span>
                     </div>
                   </div>

@@ -22,10 +22,14 @@ jobs:
         run: npm ci
 
       - name: Install Deployment Tools 🛠️
-        run: npm install ssh2-sftp-client dotenv
+        run: npm install dotenv
 
       - name: Build 🏗️
         run: npm run build
+
+      - name: Build MovieShows 🎬
+        run: |
+          cd movieshows && npm ci && npm run build
 
       - name: Deploy to SFTP 🚀
         env:

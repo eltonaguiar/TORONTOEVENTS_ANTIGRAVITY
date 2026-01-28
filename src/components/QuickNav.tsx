@@ -305,6 +305,15 @@ END:VCALENDAR`;
                                 <span className="text-lg">📈</span> Find Stocks
                             </a>
 
+                            <a
+                                href="https://findtorontoevents.ca/MOVIESHOWS/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 hover:bg-amber-500/20 text-amber-200 hover:text-white transition-all border border-transparent hover:border-amber-500/30 overflow-hidden"
+                            >
+                                <span className="text-lg">🎬</span> Movies & TV
+                            </a>
+
                             <button
                                 onClick={() => {
                                     setIsSettingsOpen(true);

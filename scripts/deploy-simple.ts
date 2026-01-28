@@ -248,6 +248,42 @@ async function main() {
             console.log('✅ WINDOWSFIXER page uploaded');
         }
 
+        // Build and upload MovieShows app (Movies / TV / Now Playing Toronto finder)
+        const movieshowsDir = path.join(process.cwd(), 'movieshows');
+        const movieshowsOutDir = path.join(movieshowsDir, 'out');
+        if (fs.existsSync(movieshowsDir)) {
+            try {
+                console.log('📦 Building MovieShows (static export)...');
+                execSync('npm run build', { stdio: 'inherit', cwd: movieshowsDir });
+                if (fs.existsSync(movieshowsOutDir)) {
+                    await client.cd(config.remotePath);
+                    try { await client.removeDir('MOVIESHOWS'); } catch (_) { /* ignore if missing */ }
+                    await client.ensureDir('MOVIESHOWS');
+                    console.log('📦 Uploading MovieShows to /MOVIESHOWS...');
+                    await client.uploadFromDir(movieshowsOutDir, 'MOVIESHOWS');
+                    console.log('✅ MovieShows uploaded to /MOVIESHOWS');
+                } else {
+                    console.log('⚠️  movieshows/out not found after build, skipping MovieShows upload');
+                }
+            } catch (buildErr) {
+                console.warn('⚠️  MovieShows build or upload failed:', buildErr);
+            }
+            // Upload redirect .htaccess so MOVIES, SHOWS, TV, TVFINDER → MOVIESHOWS
+            const redirectsDir = path.join(process.cwd(), 'movieshows-redirects');
+            const redirectFolders = ['MOVIES', 'SHOWS', 'TV', 'TVFINDER'];
+            if (fs.existsSync(redirectsDir)) {
+                await client.cd(config.remotePath);
+                for (const folder of redirectFolders) {
+                    const htaccessPath = path.join(redirectsDir, folder, '.htaccess');
+                    if (fs.existsSync(htaccessPath)) {
+                        await client.ensureDir(folder);
+                        await uploadFile(client, htaccessPath, `${folder}/.htaccess`);
+                        console.log(`✅ Redirect ${folder} → MOVIESHOWS`);
+                    }
+                }
+            }
+        }
+
         // Build a version with basePath for the subdirectory
         console.log('\n📦 Building version with basePath for TORONTOEVENTS_ANTIGRAVITY...');
         try {
@@ -372,6 +408,7 @@ async function main() {
         console.log(`📍 Mental Health Resources: ${config.remotePath}/MENTALHEALTHRESOURCES/index.html`);
         console.log(`📍 Find Stocks: ${config.remotePath}/findstocks/index.html`);
         console.log(`📍 Find Stocks (STOCKS): ${config.remotePath}/STOCKS/index.html`);
+        console.log(`📍 MovieShows (Movies/TV/Now Playing): ${config.remotePath}/MOVIESHOWS/index.html`);
     } catch (err) {
         console.error('❌ Deployment failed:', err);
         process.exit(1);

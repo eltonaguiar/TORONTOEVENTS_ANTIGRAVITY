@@ -256,6 +256,9 @@ async function generateStockPicks(): Promise<StockPick[]> {
     if (p.price < 5) slippage = 0.03;
     else if (p.price < 10) slippage = 0.01;
 
+    const earningsDate = p.indicators?.earningsDate;
+    const daysToEarnings = p.indicators?.daysToEarnings;
+
     return {
       ...p,
       slippageSimulated: true,

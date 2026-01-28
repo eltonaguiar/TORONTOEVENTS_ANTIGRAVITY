@@ -56,63 +56,126 @@ const V2_SYNC_CONFIG: SyncConfig = {
 };
 
 /**
- * Generates the README for the V2 repo, including a summary of the latest picks.
+ * Generates the README for the V2 repo by populating the template with real-time data.
  */
 function generateV2Readme(): string {
-  let pickCount = 0;
-  let lastUpdate = new Date().toISOString();
-  let regimeStatus = "Unknown";
-  let topPicks: any[] = [];
+  const templatePath = path.join(process.cwd(), "scripts", "v2", "README_TEMPLATE.md");
+  let template = "";
 
-  try {
-    const currentPath = path.join(
-      process.cwd(),
-      "public",
-      "data",
-      "v2",
-      "current.json",
-    );
-    if (fs.existsSync(currentPath)) {
-      const data = JSON.parse(fs.readFileSync(currentPath, "utf8"));
-      pickCount = data.picks?.length || 0;
-      lastUpdate = data.timestamp || lastUpdate;
-      regimeStatus = data.regime?.status || "Unknown";
-      topPicks = (data.picks || []).slice(0, 5);
-    }
-  } catch (e) {
-    console.warn("⚠️ Could not generate dynamic stats for V2 README.");
+  if (fs.existsSync(templatePath)) {
+    template = fs.readFileSync(templatePath, "utf8");
+  } else {
+    // Fallback minimal template if heavy template is missing
+    return `# STOCKSUNIFY2 - Scientific Stock Analysis Engine\n\n[Full Documentation Missing] - Sync Error.`;
   }
 
-  const topPicksTable =
-    topPicks.length > 0
-      ? `| Symbol | Score | Algorithm |\n|---|---|---|\n` +
-        topPicks
-          .map((p) => `| ${p.symbol} | ${p.score} | ${p.algorithm} |`)
-          .join("\n")
-      : "No picks available.";
+  let data: any = { picks: [], regime: { status: "Unknown", reason: "N/A" }, runnerUps: {} };
+  let lastUpdate = new Date().toISOString();
 
-  return `# STOCKSUNIFY2 - Scientific Stock Analysis Engine
-[![Daily Audit](https://img.shields.io/badge/Audit-Daily%2021%3A00%20UTC-blue)](https://github.com/eltonaguiar/stocksunify2/actions)
-[![Regime](https://img.shields.io/badge/Market%20Regime-${regimeStatus}-${regimeStatus === "BULLISH" ? "green" : "red"})](./data/v2/current.json)
-[![Picks](https://img.shields.io/badge/Active%20Picks-${pickCount}-purple)](./data/v2/current.json)
+  try {
+    const currentPath = path.join(process.cwd(), "public", "data", "v2", "current.json");
+    if (fs.existsSync(currentPath)) {
+      data = JSON.parse(fs.readFileSync(currentPath, "utf8"));
+      lastUpdate = data.timestamp || lastUpdate;
+    }
+  } catch (e) {
+    console.warn("⚠️ Could not load picks for README population.");
+  }
 
-## Overview
-STOCKSUNIFY2 is the **Scientific Validation Engine** for algorithmic stock analysis, enforcing temporal isolation, regime awareness, and slippage modeling.
+  const picks = data.picks || [];
+  const runnerUps = data.runnerUps || {};
+  const regime = data.regime || { status: "Unknown", reason: "N/A" };
+  const runSource = data.metadata?.runSource || "Local Manual Run";
+  const runStatus = data.metadata?.runStatus || "Success";
+  const durationMs = data.metadata?.durationMs || 0;
+  const durationStr = (durationMs / 1000).toFixed(2) + "s";
+  const dateStr = lastUpdate.split("T")[0];
 
-## Latest Top Picks
-${topPicksTable}
+  // Calculate counts and tops
+  const getAlgoStats = (algoName: string) => {
+    const filtered = picks.filter((p: any) => p.algorithm.includes(algoName));
+    const top = filtered.length > 0 ? filtered.sort((a: any, b: any) => b.score - a.score)[0] : null;
 
-[View All Current Picks](./data/v2/current.json)
+    // Find runner up from the new runnerUps record
+    const runnerUp = runnerUps[algoName] || runnerUps[algoName.replace(" (V2)", "")];
+    const runnerUpStr = runnerUp ? `${runnerUp.symbol} (Score: ${runnerUp.score}) - *Close match, missed strict criteria*` : "None identified in current scan";
 
-## Live Data
-| Resource | Link |
-|---|---|
-| Historical Ledgers | [data/v2/history/](./data/v2/history/) |
-| Research Paper | [STOCK_RESEARCH_ANALYSIS.md](./STOCK_RESEARCH_ANALYSIS.md) |
+    return {
+      count: filtered.length,
+      top: top ? `${top.symbol} ${top.score}/100` : "-",
+      runnerUp: runnerUpStr
+    };
+  };
 
----
-*Last Updated: ${lastUpdate}*
-`;
+  const alphaStats = getAlgoStats("Alpha Predator");
+  const techStats = getAlgoStats("Technical Momentum");
+  const canSlimStats = getAlgoStats("CAN SLIM");
+  const compositeStats = getAlgoStats("Composite Rating");
+  const pennyStats = getAlgoStats("Penny Sniper");
+  const valueStats = getAlgoStats("Value Sleeper");
+
+  // Format Top Picks Table
+  const top5 = picks.slice(0, 5);
+  const topPicksTable = top5.length > 0
+    ? `| Symbol | Score | Algorithm |\n|---|---|---|\n` +
+    top5.map((p: any) => `| ${p.symbol} | ${p.score} | ${p.algorithm} |`).join("\n")
+    : "No picks available.";
+
+  // Format Summary Items
+  const topPicksSummary = top5.map((p: any) => {
+    const indicators = p.indicators || {};
+    let context = "";
+    if (p.algorithm.includes("Technical Momentum")) context = `Breakout + Vol Spike (${indicators.volumeSurge || "N/A"}σ)${indicators.bollingerSqueeze ? " + Squeeze" : ""}.`;
+    else if (p.algorithm.includes("Alpha Predator")) context = `Strong trend (ADX ${indicators.adx || "N/A"})${indicators.vcp ? " + VCP" : ""}.`;
+    else context = `System Score: ${p.score}/100.`;
+
+    return `- **${p.symbol}** (${p.score}/100) - ${p.algorithm} - ${p.rating}\n  - *Context:* ${context}`;
+  }).join("\n");
+
+  // Algorithm Distribution
+  const algoDistribution = Array.from(new Set(picks.map((p: any) => p.algorithm)))
+    .map(name => `- ${name}: ${picks.filter((p: any) => p.algorithm === name).length} picks`)
+    .join("\n");
+
+  // Calculate history path
+  const [year, month, dayRaw] = dateStr.split("-");
+  const day = dayRaw.split("T")[0]; // ensure clean day
+  const historyFile = `./data/v2/history/${year}/${month}/${day}.json`;
+
+  // Fill Template
+  let result = template
+    .replace(/{{REGIME_STATUS}}/g, regime.status)
+    .replace(/{{REGIME_COLOR}}/g, regime.status === "BULLISH" ? "green" : "red")
+    .replace(/{{REGIME_REASON}}/g, regime.reason)
+    .replace(/{{PICK_COUNT}}/g, picks.length.toString())
+    .replace(/{{LAST_UPDATE_DATE}}/g, dateStr)
+    .replace(/{{LAST_UPDATE_TIME}}/g, lastUpdate.split("T")[1].split(".")[0])
+    .replace(/{{RUN_SOURCE}}/g, runSource)
+    .replace(/{{RUN_STATUS}}/g, runStatus)
+    .replace(/{{RUN_DURATION}}/g, durationStr)
+    .replace(/{{HISTORY_FILE}}/g, historyFile)
+    .replace(/{{LAST_UPDATE_FULL}}/g, lastUpdate)
+    .replace(/{{ALPHA_PRED_COUNT}}/g, alphaStats.count.toString())
+    .replace(/{{ALPHA_PRED_TOP}}/g, alphaStats.top)
+    .replace(/{{ALPHA_PRED_RUNNER_UP}}/g, alphaStats.runnerUp)
+    .replace(/{{TECH_MOM_COUNT}}/g, techStats.count.toString())
+    .replace(/{{TECH_MOM_TOP}}/g, techStats.top)
+    .replace(/{{TECH_MOM_RUNNER_UP}}/g, techStats.runnerUp)
+    .replace(/{{CAN_SLIM_COUNT}}/g, canSlimStats.count.toString())
+    .replace(/{{CAN_SLIM_TOP}}/g, canSlimStats.top)
+    .replace(/{{CAN_SLIM_RUNNER_UP}}/g, canSlimStats.runnerUp)
+    .replace(/{{COMPOSITE_COUNT}}/g, compositeStats.count.toString())
+    .replace(/{{COMPOSITE_TOP}}/g, compositeStats.top)
+    .replace(/{{COMPOSITE_RUNNER_UP}}/g, compositeStats.runnerUp)
+    .replace(/{{PENNY_SNIPER_COUNT}}/g, pennyStats.count.toString())
+    .replace(/{{PENNY_SNIPER_RUNNER_UP}}/g, pennyStats.runnerUp)
+    .replace(/{{VALUE_SLEEPER_COUNT}}/g, valueStats.count.toString())
+    .replace(/{{VALUE_SLEEPER_RUNNER_UP}}/g, valueStats.runnerUp)
+    .replace(/{{TOP_PICKS_TABLE}}/g, topPicksTable)
+    .replace(/{{TOP_PICKS_SUMMARY}}/g, topPicksSummary)
+    .replace(/{{ALGO_DISTRIBUTION}}/g, algoDistribution);
+
+  return result;
 }
 
 function main() {

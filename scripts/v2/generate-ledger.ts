@@ -22,9 +22,12 @@ async function main() {
     const [datePortion] = dateStr.split('T'); // YYYY-MM-DD
     const [year, month, day] = datePortion.split('-');
 
+    const startTime = Date.now();
     try {
         // 1. Generate Picks using the V2 Engine
-        const { picks, regime } = await generateScientificPicks();
+        const { picks, regime, runnerUps } = await generateScientificPicks();
+        const endTime = Date.now();
+        const durationMs = endTime - startTime;
 
         const auditObject = {
             version: '2.0.0-alpha',
@@ -34,13 +37,18 @@ async function main() {
             metadata: {
                 engine: 'STOCKSUNIFY2-Scientific',
                 system: process.platform,
-                checksPerformed: ['Purging', 'Slippage-Stress', 'Regime-Detection']
+                checksPerformed: ['Purging', 'Slippage-Stress', 'Regime-Detection', 'Runner-Up-Verification'],
+                runSource: process.env.GITHUB_ACTIONS === 'true' ? 'GitHub Actions' : 'Local Manual Run',
+                runStatus: 'Success',
+                durationMs: durationMs,
+                jobId: process.env.GITHUB_RUN_ID || 'N/A'
             },
             picks: picks.map((p: any) => ({
                 ...p,
+                pickedAt: timestamp.toISOString(), // Absolute timestamp per pick
                 audit_id: `v2-${p.symbol}-${timestamp.getTime()}`
-            }))
-
+            })),
+            runnerUps: runnerUps || {}
         };
 
         // 2. Immutable Archiving

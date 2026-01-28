@@ -129,6 +129,7 @@ const V2_UNIVERSE = [
 export async function generateScientificPicks(): Promise<{
   picks: V2Pick[];
   regime: any;
+  runnerUps?: Record<string, V2Pick>;
 }> {
   console.log("📡 Engine: Fetching Market Regime Baseline (SPY)...");
   const spyData = await fetchStockData("SPY");
@@ -140,11 +141,13 @@ export async function generateScientificPicks(): Promise<{
     spySMA200 = closes.slice(-200).reduce((a, b) => a + b, 0) / 200;
   }
 
+  const isBullish = (spyData?.price || 0) > spySMA200;
   const regime = {
     symbol: "SPY",
     price: spyData?.price || 0,
     sma200: spySMA200,
-    status: (spyData?.price || 0) > spySMA200 ? "BULLISH" : "BEARISH",
+    status: isBullish ? "BULLISH" : "BEARISH",
+    reason: isBullish ? "Price is above long-term 200-day average" : "Price is below long-term 200-day average",
   };
 
   console.log("📡 Engine: Fetching Strategic Universe...");
@@ -157,30 +160,45 @@ export async function generateScientificPicks(): Promise<{
 
   console.log("🔬 Engine: Running Interrogations...");
 
+  const runnerUpsByAlgo: Record<string, V2Pick> = {};
+
+  const trackRunnerUp = (algo: string, result: V2Pick | null) => {
+    if (!result) return;
+    if (!runnerUpsByAlgo[algo] || result.score > runnerUpsByAlgo[algo].score) {
+      runnerUpsByAlgo[algo] = result;
+    }
+  };
+
   for (const data of stockPool) {
     // 1. Run RAR (Regime Aware)
-    const rar = scoreRAR(data, spyData || undefined);
+    const rar = scoreRAR(data, spyData || undefined, true);
     if (rar) v2Picks.push(rar);
+    else trackRunnerUp("Regime-Aware Reversion (V2)", scoreRAR(data, spyData || undefined, false));
 
     // 2. Run VAM (Volatility Adjusted)
-    const vam = scoreVAM(data);
+    const vam = scoreVAM(data, true);
     if (vam) v2Picks.push(vam);
+    else trackRunnerUp("Volatility-Adjusted Momentum (V2)", scoreVAM(data, false));
 
     // 3. Run LSP (Liquidity Shielded)
-    const lsp = scoreLSP(data);
+    const lsp = scoreLSP(data, true);
     if (lsp) v2Picks.push(lsp);
+    else trackRunnerUp("Liquidity-Shielded Penny (V2)", scoreLSP(data, false));
 
     // 4. Run SCS (Scientific CAN SLIM)
-    const scs = scoreScientificCANSLIM(data, spyData || undefined);
+    const scs = scoreScientificCANSLIM(data, spyData || undefined, true);
     if (scs) v2Picks.push(scs);
+    else trackRunnerUp("Scientific CAN SLIM (V2)", scoreScientificCANSLIM(data, spyData || undefined, false));
 
     // 5. Run AT (Adversarial Trend)
-    const at = scoreAdversarialTrend(data);
+    const at = scoreAdversarialTrend(data, true);
     if (at) v2Picks.push(at);
+    else trackRunnerUp("Adversarial Trend (V2)", scoreAdversarialTrend(data, false));
 
-    // 6. Run IF (Institutional Footprint) - New from Research Paper
-    const instFp = scoreInstitutionalFootprint(data);
+    // 6. Run IF (Institutional Footprint)
+    const instFp = scoreInstitutionalFootprint(data, true);
     if (instFp) v2Picks.push(instFp);
+    else trackRunnerUp("Institutional Footprint (V2)", scoreInstitutionalFootprint(data, false));
   }
 
   // Sort by scientific score
@@ -188,9 +206,10 @@ export async function generateScientificPicks(): Promise<{
 
   console.log(`✅ Engine: Generated ${v2Picks.length} Scientific Picks`);
 
-  // Return top 20 verified picks and the regime context
+  // Return top 20 verified picks, the regime context, and QA runner-ups
   return {
     picks: v2Picks.slice(0, 20),
     regime,
+    runnerUps: runnerUpsByAlgo
   };
 }

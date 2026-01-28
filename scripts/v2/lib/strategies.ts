@@ -43,6 +43,7 @@ export interface V2Pick {
 export function scoreRAR(
   data: StockData,
   marketData?: StockData,
+  strict: boolean = true,
 ): V2Pick | null {
   if (!data.history || data.history.length < 200) return null;
 
@@ -58,25 +59,25 @@ export function scoreRAR(
     isBullishRegime = marketData.price > spySMA200;
   }
 
-  if (!isBullishRegime) return null; // Strategy shuts down in Bear/Storm
+  if (strict && !isBullishRegime) return null; // Strategy shuts down in Bear/Storm
 
   // 2. Trend Verification (Is stock currently in long-term uptrend?)
   const sma200 = prices.slice(-200).reduce((a, b) => a + b, 0) / 200;
   const isUptrend = currentPrice > sma200;
-  if (!isUptrend) return null;
+  if (strict && !isUptrend) return null;
 
   // 3. RSI Overbought/Oversold
   const rsi = calculateRSI(prices, 14);
 
   // Strategy: Buy high-quality stocks in an uptrend that have a short-term dip
-  if (rsi < 40) {
+  if (rsi < (strict ? 40 : 55)) {
     const score = Math.min(100, Math.max(0, (40 - rsi) * 2 + 60));
     return {
       symbol: data.symbol,
       name: data.name,
       score: Math.round(score),
       rating: score > 80 ? "STRONG BUY" : "BUY",
-      algorithm: "Regime-Aware Reversion (V2)",
+      algorithm: "Value Sleeper",
       timeframe: "7d",
       risk: "Medium",
       metrics: { rsi, sma200, regime: "Bullish" },
@@ -93,14 +94,14 @@ import { calculateYTDPerformance } from "../../lib/stock-indicators";
  * Strategy B: Volatility-Adjusted Momentum (VAM)
  * Ranks stocks by Return / Ulcer Index
  */
-export function scoreVAM(data: StockData): V2Pick | null {
+export function scoreVAM(data: StockData, strict: boolean = true): V2Pick | null {
   if (!data.history || data.history.length < 50) return null;
 
   const prices = data.history.map((h) => h.close).slice(-60); // Last 60 days
   const totalReturn = ((data.price - prices[0]) / prices[0]) * 100;
 
   // Only care if it's actually going up
-  if (totalReturn < 5) return null;
+  if (strict && totalReturn < 5) return null;
 
   const ulcerIndex = calculateUlcerIndex(prices);
   const ytdReturn = calculateYTDPerformance(data.history, data.price);
@@ -116,7 +117,7 @@ export function scoreVAM(data: StockData): V2Pick | null {
       name: data.name,
       score: Math.round(score),
       rating: score > 85 ? "STRONG BUY" : "BUY",
-      algorithm: "Volatility-Adjusted Momentum (V2)",
+      algorithm: "Alpha Predator",
       timeframe: "1m",
       risk: "Low",
       metrics: {
@@ -262,9 +263,9 @@ function checkBreakout(
  * Strategy C: Liquidity-Shielded Penny (LSP)
  * Implements "Slippage Torture" and "Volume Cap" checks
  */
-export function scoreLSP(data: StockData): V2Pick | null {
+export function scoreLSP(data: StockData, strict: boolean = true): V2Pick | null {
   // 1. Penny Stock Definition: Price < $5
-  if (data.price > 5 || data.price < 0.1) return null;
+  if (strict && (data.price > 5 || data.price < 0.1)) return null;
 
   // 2. Volume Cap Interrogation
   // Never assume we can trade >2% of daily volume
@@ -280,7 +281,7 @@ export function scoreLSP(data: StockData): V2Pick | null {
   if (tortureAdjustedReturn < 1.0) return null; // If it doesn't survive 3% slippage, it's a "Liquidity Mirage"
 
   // 4. Momentum Check
-  if (data.changePercent < 2) return null;
+  if (strict && data.changePercent < 2) return null;
 
   const score = Math.min(100, Math.max(0, tortureAdjustedReturn * 10 + 50));
 
@@ -289,7 +290,7 @@ export function scoreLSP(data: StockData): V2Pick | null {
     name: data.name,
     score: Math.round(score),
     rating: score > 80 ? "STRONG BUY" : "BUY",
-    algorithm: "Liquidity-Shielded Penny (V2)",
+    algorithm: "Penny Sniper",
     timeframe: "24h",
     risk: "Very High",
     metrics: {
@@ -308,6 +309,7 @@ export function scoreLSP(data: StockData): V2Pick | null {
 export function scoreScientificCANSLIM(
   data: StockData,
   marketData?: StockData,
+  strict: boolean = true,
 ): V2Pick | null {
   if (!data.history || data.history.length < 200) return null;
 
@@ -324,7 +326,7 @@ export function scoreScientificCANSLIM(
   const sma200 = prices.slice(-200).reduce((a, b) => a + b, 0) / 200;
 
   // Trend Filter
-  if (data.price < sma200) return null;
+  if (strict && data.price < sma200) return null;
 
   // 2. Yearly Return as RS Proxy
   const yearlyReturn = (data.price - prices[0]) / prices[0];
@@ -344,7 +346,7 @@ export function scoreScientificCANSLIM(
       name: data.name,
       score: Math.round(Math.min(100, score)),
       rating: score > 85 ? "STRONG BUY" : "BUY",
-      algorithm: "Scientific CAN SLIM (V2)",
+      algorithm: "CAN SLIM",
       timeframe: "1y",
       risk: "Medium",
       metrics: { yearlyReturn, pe: data.pe, sma200, adjustedReturn },
@@ -359,7 +361,7 @@ export function scoreScientificCANSLIM(
  * Based on Research Paper: Volume Z-Score > 2.0 indicates significant institutional entry
  * Combined with trend confirmation
  */
-export function scoreInstitutionalFootprint(data: StockData): V2Pick | null {
+export function scoreInstitutionalFootprint(data: StockData, strict: boolean = true): V2Pick | null {
   if (!data.history || data.history.length < 50) return null;
 
   const prices = data.history.map((h) => h.close);
@@ -369,7 +371,7 @@ export function scoreInstitutionalFootprint(data: StockData): V2Pick | null {
   const volumeZScore = calculateVolumeZScore(data.volume, volumes.slice(-20));
 
   // Must have statistically significant volume (> 2.0 sigma)
-  if (volumeZScore < 2.0) return null;
+  if (strict && volumeZScore < 2.0) return null;
 
   // 2. RSI Z-Score - Extreme momentum detection
   const { rsi, zScore: rsiZScore } = calculateRSIZScore(prices);
@@ -408,7 +410,7 @@ export function scoreInstitutionalFootprint(data: StockData): V2Pick | null {
       name: data.name,
       score: Math.round(score),
       rating: score > 85 ? "STRONG BUY" : "BUY",
-      algorithm: "Institutional Footprint (V2)",
+      algorithm: "Composite Rating",
       timeframe: "7d",
       risk:
         data.marketCap && data.marketCap > 10_000_000_000 ? "Low" : "Medium",
@@ -430,7 +432,7 @@ export function scoreInstitutionalFootprint(data: StockData): V2Pick | null {
  * Strategy F: Adversarial Trend (AT)
  * Uses volatility-normalized trend following
  */
-export function scoreAdversarialTrend(data: StockData): V2Pick | null {
+export function scoreAdversarialTrend(data: StockData, strict: boolean = true): V2Pick | null {
   if (!data.history || data.history.length < 50) return null;
 
   const prices = data.history.map((h) => h.close);
@@ -438,7 +440,7 @@ export function scoreAdversarialTrend(data: StockData): V2Pick | null {
   const sma50 = prices.slice(-50).reduce((a, b) => a + b, 0) / 50;
 
   // Golden Cross / Trend Alignment
-  if (sma20 <= sma50 || data.price <= sma20) return null;
+  if (strict && (sma20 <= sma50 || data.price <= sma20)) return null;
 
   // Volatility Normalization
   const returns = [];
@@ -457,7 +459,7 @@ export function scoreAdversarialTrend(data: StockData): V2Pick | null {
       name: data.name,
       score: Math.round(score),
       rating: score > 85 ? "STRONG BUY" : "BUY",
-      algorithm: "Adversarial Trend (V2)",
+      algorithm: "Technical Momentum",
       timeframe: "1m",
       risk: "Medium",
       metrics: { trendStrength, avgVolatilty, signalDensity: scoreVal },

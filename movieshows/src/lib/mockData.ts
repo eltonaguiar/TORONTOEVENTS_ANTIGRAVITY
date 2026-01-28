@@ -1,92 +1,126 @@
+/**
+ * Movie/TV database and types.
+ * Primary data source: data/movies.json (2020 onward, prioritized 2025+).
+ * Now Playing (Toronto): merged from data/nowPlayingToronto.json (Cineplex + Imagine Cinemas).
+ */
+
+export type CategoryFilter = {
+  movies: boolean;
+  tv: boolean;
+  nowPlaying: boolean;
+};
+
+/** Streaming sources available in the app */
+export type StreamingSource =
+  | "Disney+"
+  | "Hulu"
+  | "Paramount Plus"
+  | "Netflix"
+  | "Amazon Prime"
+  | "In Theatres"
+  | "Max"
+  | "Apple TV+";
+
+export type NowPlayingTheatre = "Cineplex" | "Imagine Cinemas";
 
 export interface Movie {
-    id: string;
-    title: string;
-    description: string;
-    videoUrl: string; // YouTube Embed URL or Video ID
-    posterUrl: string;
-    genres: string[];
-    rating: string;
-    year: string;
-    type: 'movie' | 'tv';
+  id: string;
+  title: string;
+  description: string;
+  /** Alternative descriptions from different sources */
+  descriptions?: string[];
+  videoUrl: string; // YouTube video ID (primary trailer)
+  videoUrlFallback?: string; // Fallback trailer if primary fails
+  posterUrl: string;
+  genres: string[];
+  rating: string; // IMDb rating (standard)
+  rottenTomatoesRating?: string;
+  year: string;
+  releaseDate?: string;
+  type: "movie" | "tv";
+  source: StreamingSource;
+  /** Toronto theatres where this is currently playing (from nowPlayingToronto.json or inline) */
+  nowPlayingTheatres?: NowPlayingTheatre[];
 }
 
-export const MOCK_MOVIES: Movie[] = [
-    {
-        id: "1",
-        title: "Dune: Part Two",
-        description: "Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.",
-        videoUrl: "Way9Dexny3w", // YouTube ID
-        posterUrl: "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
-        genres: ["Sci-Fi", "Adventure"],
-        rating: "8.5",
-        year: "2024",
-        type: 'movie'
-    },
-    {
-        id: "2",
-        title: "The Batman",
-        description: "When the Riddler, a sadistic serial killer, begins murdering key political figures in Gotham, Batman is forced to investigate the city's hidden corruption and question his family's involvement.",
-        videoUrl: "mqqft2x_Aa4",
-        posterUrl: "https://image.tmdb.org/t/p/w500/74xTEgt7R36Fpooo50x9TfdLnTp.jpg",
-        genres: ["Action", "Crime", "Drama"],
-        rating: "7.8",
-        year: "2022",
-        type: 'movie'
-    },
-    {
-        id: "3",
-        title: "Spider-Man: Across the Spider-Verse",
-        description: "Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence.",
-        videoUrl: "cqGjhVJWtEg",
-        posterUrl: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg",
-        genres: ["Animation", "Action", "Adventure"],
-        rating: "8.8",
-        year: "2023",
-        type: 'movie'
-    },
-    {
-        id: "4",
-        title: "Oppenheimer",
-        description: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.",
-        videoUrl: "uYPbbksJxIg",
-        posterUrl: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
-        genres: ["Biography", "Drama", "History"],
-        rating: "8.6",
-        year: "2023",
-        type: 'movie'
-    },
-    {
-        id: "5",
-        title: "The Last of Us",
-        description: "After a global pandemic destroys civilization, a hardened survivor takes charge of a 14-year-old girl who may be humanity's last hope.",
-        videoUrl: "uLtkt8BonwM",
-        posterUrl: "https://image.tmdb.org/t/p/w500/uKVV4D2nF5CCgNMwnxMXAht1yJ.jpg",
-        genres: ["Drama", "Sci-Fi", "Horror"],
-        rating: "8.8",
-        year: "2023",
-        type: 'tv'
-    },
-    {
-        id: "6",
-        title: "Succession",
-        description: "The Roy family is known for controlling the biggest media and entertainment company in the world. However, their world changes when their father steps down from the company.",
-        videoUrl: "KLAkxSjs8ZY",
-        posterUrl: "https://image.tmdb.org/t/p/w500/7th9d94n310yHfcb8pW8R3522Wq.jpg",
-        genres: ["Drama", "Comedy"],
-        rating: "8.8",
-        year: "2018",
-        type: 'tv'
-    },
-    {
-        id: "7",
-        title: "Stranger Things",
-        description: "When a young boy vanishes, a small town uncovers a mystery involving secret experiments, terrifying supernatural forces, and one strange little girl.",
-        videoUrl: "b9EkMc79ZSU",
-        posterUrl: "https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg",
-        genres: ["Sci-Fi", "Horror", "Drama"],
-        rating: "8.7",
-        year: "2016",
-        type: 'tv'
-    }
-];
+interface MoviesDatabase {
+  version: string;
+  updated: string;
+  movies: Movie[];
+}
+
+interface NowPlayingToronto {
+  updated: string;
+  /** Movie titles or IDs currently at Cineplex Toronto locations */
+  cineplex: string[];
+  /** Movie titles or IDs currently at Imagine Cinemas Toronto (Carlton, Market Square) */
+  imagineCinemas: string[];
+}
+
+// Load from JSON database (2020 onward, 2025+ prioritized)
+import moviesDb from "../data/movies.json";
+import nowPlayingDb from "../data/nowPlayingToronto.json";
+
+const raw = moviesDb as MoviesDatabase;
+const nowPlaying = nowPlayingDb as NowPlayingToronto;
+
+/** Normalize title for matching (lowercase, trim) */
+function norm(s: string): string {
+  return s.toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+/** Apply now-playing data: if a movie title or id is in cineplex/imagineCinemas lists, set nowPlayingTheatres */
+function mergeNowPlaying(movies: Movie[]): Movie[] {
+  const cineplexSet = new Set(nowPlaying.cineplex.map(norm));
+  const imagineSet = new Set(nowPlaying.imagineCinemas.map(norm));
+  return movies.map((m) => {
+    const theatres: NowPlayingTheatre[] = [];
+    const nTitle = norm(m.title);
+    const nId = norm(m.id);
+    if (cineplexSet.has(nTitle) || cineplexSet.has(nId)) theatres.push("Cineplex");
+    if (imagineSet.has(nTitle) || imagineSet.has(nId)) theatres.push("Imagine Cinemas");
+    return { ...m, nowPlayingTheatres: theatres.length ? theatres : m.nowPlayingTheatres };
+  });
+}
+
+/** All movies/TV from the database, sorted: 2025+ first; now-playing data merged from Toronto theatres */
+export const MOCK_MOVIES: Movie[] = mergeNowPlaying([...raw.movies]).sort((a, b) => {
+  const yearA = parseInt(a.year, 10);
+  const yearB = parseInt(b.year, 10);
+  if (yearA !== yearB) return yearB - yearA; // newer first
+  const dateA = a.releaseDate || "";
+  const dateB = b.releaseDate || "";
+  return dateB.localeCompare(dateA);
+});
+
+/** Movies currently playing in Toronto (Cineplex and/or Imagine Cinemas) */
+export function getNowPlayingMovies(): Movie[] {
+  return MOCK_MOVIES.filter((m) => m.type === "movie" && (m.nowPlayingTheatres?.length ?? 0) > 0);
+}
+
+/** 
+ * Find similar movies based on:
+ * 1. Primary: Overlapping genres (at least 1)
+ * 2. Secondary: Same media type (movie/tv)
+ * 3. Priority: Newer releases
+ */
+export function getSimilarMovies(movie: Movie, limit: number = 5): Movie[] {
+  return MOCK_MOVIES
+    .filter(m => m.id !== movie.id) // Exclude current
+    .map(m => {
+      // Calculate similarity score
+      const genreOverlap = m.genres.filter(g => movie.genres.includes(g)).length;
+      const typeMatch = m.type === movie.type ? 1 : 0;
+      const score = (genreOverlap * 2) + typeMatch;
+      return { movie: m, score };
+    })
+    .filter(item => item.score > 1) // Must have at least genre overlap or be same type + something
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      // If score is same, newer year first
+      return parseInt(b.movie.year) - parseInt(a.movie.year);
+    })
+    .slice(0, limit)
+    .map(item => item.movie);
+}
+

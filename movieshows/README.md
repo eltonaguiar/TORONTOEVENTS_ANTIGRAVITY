@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MOVIESHOWS
 
-## Getting Started
+TikTok-style **Movies**, **TV series**, and **Now Playing (Toronto)** trailer discovery app. Browse by category, filter by year/genre/source, build a queue, and search titles.
 
-First, run the development server:
+## Live URLs
+
+| Where | URL |
+|-------|-----|
+| **GitHub Pages** | [eltonaguiar.github.io/MOVIESHOWS](https://eltonaguiar.github.io/MOVIESHOWS/) |
+| **FTP (findtorontoevents.ca)** | [findtorontoevents.ca/MOVIESHOWS](https://findtorontoevents.ca/MOVIESHOWS/) |
+
+### Redirects on findtorontoevents.ca
+
+These paths redirect to the app above:
+
+- [findtorontoevents.ca/MOVIES](https://findtorontoevents.ca/MOVIES) → MOVIESHOWS  
+- [findtorontoevents.ca/SHOWS](https://findtorontoevents.ca/SHOWS) → MOVIESHOWS  
+- [findtorontoevents.ca/TV](https://findtorontoevents.ca/TV) → MOVIESHOWS  
+- [findtorontoevents.ca/TVFINDER](https://findtorontoevents.ca/TVFINDER) → MOVIESHOWS  
+
+## Getting Started (local)
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). For local dev the app runs at root; production builds use basePath `/MOVIESHOWS` for GitHub Pages and FTP.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Publish
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. GitHub (eltonaguiar/MOVIESHOWS) and GitHub Pages
 
-## Learn More
+1. Push this `movieshows` folder to the repo:  
+   [https://github.com/eltonaguiar/MOVIESHOWS](https://github.com/eltonaguiar/MOVIESHOWS)
+2. In the repo: **Settings → Pages** → set **Build and deployment** source to **GitHub Actions**.
+3. On each push to `main`, the workflow `.github/workflows/deploy-pages.yml` builds the static export and deploys to GitHub Pages.  
+   Live site: [https://eltonaguiar.github.io/MOVIESHOWS/](https://eltonaguiar.github.io/MOVIESHOWS/)
 
-To learn more about Next.js, take a look at the following resources:
+### 2. FTP (findtorontoevents.ca/MOVIESHOWS)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+From the **parent** repo (TORONTOEVENTS_ANTIGRAVITY):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Ensure the `movieshows` app and `movieshows-redirects` folder are present.
+2. Run the main deploy (it builds MovieShows and uploads to `/MOVIESHOWS`, plus `.htaccess` redirects for MOVIES, SHOWS, TV, TVFINDER):
 
-## Deploy on Vercel
+   ```bash
+   npm run deploy:sftp
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The deploy script builds MovieShows (`movieshows/out`), uploads it to `findtorontoevents.ca/MOVIESHOWS`, and uploads the redirect `.htaccess` files so MOVIES, SHOWS, TV, and TVFINDER redirect to MOVIESHOWS.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Build (static export)
+
+```bash
+npm run build
+```
+
+Output is in `out/` (basePath `/MOVIESHOWS`). Use this for GitHub Pages or manual FTP upload.
+
+## Tech
+
+- [Next.js](https://nextjs.org) (App Router), static export
+- React 19, Tailwind CSS, Framer Motion, Lucide icons, react-player
