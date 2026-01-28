@@ -12,6 +12,12 @@
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
     --info-color: #3b82f6;
+    --extremely-strong: #10b981;
+    --strong-buy: #22c55e;
+    --buy-color: #3b82f6;
+    --hold-color: #f59e0b;
+    --sell-color: #f97316;
+    --strong-sell: #ef4444;
 }
 
 * {
@@ -81,6 +87,7 @@ body {
     justify-content: center;
     gap: 3rem;
     flex-wrap: wrap;
+    margin-bottom: 2rem;
 }
 
 .stat {
@@ -106,6 +113,30 @@ body {
     letter-spacing: 0.1em;
 }
 
+.hero-nav {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.nav-btn {
+    padding: 0.75rem 1.5rem;
+    background: var(--panel-color);
+    border: 1px solid var(--border-color);
+    border-radius: 2rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.nav-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
 /* Section Styling */
 section {
     margin-bottom: 4rem;
@@ -125,6 +156,15 @@ h3 {
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 1rem;
+}
+
+h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .section-desc {
@@ -212,6 +252,104 @@ h3 {
     color: var(--text-muted);
 }
 
+/* Rating Scale Section */
+.rating-scale-section {
+    background: var(--panel-color);
+    border: 1px solid var(--border-color);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    margin-bottom: 3rem;
+}
+
+.rating-scale-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.rating-box {
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.rating-box.extremely-strong-buy {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.rating-box.strong-buy {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
+}
+
+.rating-box.buy {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.rating-box.hold {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.rating-box.sell {
+    background: rgba(249, 115, 22, 0.1);
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
+.rating-box.strong-sell {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.rating-label {
+    font-size: 0.9rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.rating-box.extremely-strong-buy .rating-label {
+    color: var(--extremely-strong);
+}
+.rating-box.strong-buy .rating-label {
+    color: var(--strong-buy);
+}
+.rating-box.buy .rating-label {
+    color: var(--buy-color);
+}
+.rating-box.hold .rating-label {
+    color: var(--hold-color);
+}
+.rating-box.sell .rating-label {
+    color: var(--sell-color);
+}
+.rating-box.strong-sell .rating-label {
+    color: var(--strong-sell);
+}
+
+.rating-score {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.rating-meaning {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.rating-action {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
 /* Rating Headers */
 .rating-header {
     display: flex;
@@ -224,6 +362,16 @@ h3 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.rating-header.extremely-strong-buy {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--extremely-strong);
+}
+
+.rating-header.extremely-strong-buy::before {
+    content: "★★";
 }
 
 .rating-header.strong-buy {
@@ -268,6 +416,15 @@ h3 {
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
+.pick-card.extremely-strong-buy {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: linear-gradient(
+        180deg,
+        rgba(16, 185, 129, 0.12) 0%,
+        var(--panel-color) 100%
+    );
+}
+
 .pick-card.strong-buy {
     border-color: rgba(34, 197, 94, 0.3);
     background: linear-gradient(
@@ -304,7 +461,6 @@ h3 {
 }
 
 .pick-score {
-    background: linear-gradient(135deg, var(--success-color), #16a34a);
     color: #fff;
     font-size: 1.25rem;
     font-weight: 800;
@@ -312,6 +468,22 @@ h3 {
     border-radius: 0.75rem;
     min-width: 50px;
     text-align: center;
+}
+
+.pick-score.score-100 {
+    background: linear-gradient(135deg, var(--extremely-strong), #059669);
+}
+
+.pick-score.score-90 {
+    background: linear-gradient(135deg, var(--strong-buy), #16a34a);
+}
+
+.pick-score.score-85 {
+    background: linear-gradient(135deg, var(--strong-buy), #16a34a);
+}
+
+.pick-score.score-80 {
+    background: linear-gradient(135deg, var(--strong-buy), #22c55e);
 }
 
 .pick-algo {
@@ -329,11 +501,17 @@ h3 {
     font-size: 0.875rem;
     color: var(--text-muted);
     margin-bottom: 1.25rem;
-    line-height: 1.6;
+    line-height: 1.7;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 0.75rem;
+    border-left: 3px solid var(--primary-color);
 }
 
 .pick-explanation strong {
     color: var(--text-color);
+    display: block;
+    margin-bottom: 0.5rem;
 }
 
 /* Trade Plan */
@@ -345,9 +523,15 @@ h3 {
     margin-bottom: 1rem;
 }
 
+.trade-plan h4 {
+    margin-bottom: 1rem;
+    color: var(--success-color);
+}
+
 .trade-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.5rem;
     align-items: center;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--border-color);
@@ -373,6 +557,38 @@ h3 {
 }
 
 .trade-value.target {
+    color: var(--success-color);
+}
+
+.trade-note {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Key Indicators */
+.key-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.indicator {
+    font-size: 0.7rem;
+    font-family: "JetBrains Mono", monospace;
+    padding: 0.35rem 0.6rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    color: var(--text-muted);
+}
+
+.indicator.bullish {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: rgba(34, 197, 94, 0.3);
     color: var(--success-color);
 }
 
@@ -487,6 +703,130 @@ h3 {
     font-style: italic;
 }
 
+/* Glossary Section */
+.glossary-section {
+    margin-bottom: 4rem;
+}
+
+.glossary-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.glossary-category {
+    background: var(--panel-color);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.glossary-category summary {
+    padding: 1.25rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+    background: var(--bg-secondary);
+    transition: background 0.2s;
+}
+
+.glossary-category summary:hover {
+    background: rgba(139, 92, 246, 0.1);
+}
+
+.glossary-category[open] summary {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cat-icon {
+    font-size: 1.25rem;
+}
+
+.glossary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.glossary-item {
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.glossary-item.important {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.glossary-item .term {
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.glossary-item .definition {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.glossary-item .definition strong {
+    color: var(--text-color);
+}
+
+/* Quick Reference */
+.quick-reference {
+    margin-top: 2rem;
+    background: linear-gradient(
+        135deg,
+        rgba(139, 92, 246, 0.1),
+        rgba(99, 102, 241, 0.05)
+    );
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.quick-reference h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.quick-ref-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.quick-ref-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: var(--panel-color);
+    border-radius: 0.75rem;
+}
+
+.qr-term {
+    font-weight: 700;
+    color: var(--primary-color);
+    min-width: 100px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.85rem;
+}
+
+.qr-why {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 /* Performance Section */
 .performance-grid {
     display: grid;
@@ -563,63 +903,10 @@ h3 {
     color: var(--text-muted);
 }
 
-/* Algorithm Performance */
-.algo-performance {
-    background: var(--panel-color);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    padding: 1.5rem;
-}
-
-.algo-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.algo-bar {
-    display: grid;
-    grid-template-columns: 150px 1fr 100px;
-    gap: 1rem;
-    align-items: center;
-}
-
-@media (max-width: 600px) {
-    .algo-bar {
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-    }
-}
-
-.algo-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.algo-bar-track {
-    height: 8px;
-    background: var(--bg-secondary);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.algo-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), #6366f1);
-    border-radius: 4px;
-    transition: width 0.5s ease;
-}
-
-.algo-count {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-align: right;
-}
-
 /* Methodology Section */
 .method-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
 }
 
@@ -628,10 +915,6 @@ h3 {
     border: 1px solid var(--border-color);
     border-radius: 1.25rem;
     padding: 1.5rem;
-}
-
-.method-card.inactive {
-    opacity: 0.6;
 }
 
 .method-header {
@@ -677,12 +960,6 @@ h3 {
     border-color: rgba(245, 158, 11, 0.3);
 }
 
-.method-badge.inactive {
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-muted);
-    border-color: var(--border-color);
-}
-
 .method-desc {
     font-size: 0.875rem;
     color: var(--text-muted);
@@ -713,47 +990,6 @@ h3 {
 
 .detail-row span:last-child {
     font-weight: 600;
-}
-
-/* Validation Section */
-.validation-steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.5rem;
-}
-
-.val-step {
-    background: var(--panel-color);
-    border: 1px solid var(--border-color);
-    border-radius: 1rem;
-    padding: 1.5rem;
-    position: relative;
-}
-
-.val-number {
-    position: absolute;
-    top: -0.75rem;
-    left: 1.5rem;
-    width: 2rem;
-    height: 2rem;
-    background: linear-gradient(135deg, var(--primary-color), #6366f1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 0.9rem;
-}
-
-.val-step h3 {
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-}
-
-.val-step p {
-    font-size: 0.85rem;
-    color: var(--text-muted);
 }
 
 /* Budget Section */
@@ -890,5 +1126,17 @@ footer {
 
     h2 {
         font-size: 1.4rem;
+    }
+
+    .trade-row {
+        grid-template-columns: 1fr auto;
+    }
+
+    .trade-note {
+        display: none;
+    }
+
+    .glossary-grid {
+        grid-template-columns: 1fr;
     }
 }

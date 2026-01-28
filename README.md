@@ -113,4 +113,195 @@ To run all unit tests, use the following command:
 ```bash
 npm test
 ```
+
+---
+
+## 🎯 Recommendation Rating Scale
+
+Our system uses a clear, easy-to-understand rating scale to communicate the strength of each stock pick:
+
+| Rating | Score Range | Meaning | Recommended Action |
+|--------|-------------|---------|-------------------|
+| **EXTREMELY STRONG BUY** | 95-100 | Exceptional setup with multiple confirming signals. Highest conviction. | Consider larger position (up to 5% of portfolio) |
+| **STRONG BUY** | 80-94 | Very good setup with most indicators aligned. High confidence. | Standard position (3-4% of portfolio) |
+| **BUY** | 65-79 | Good opportunity with solid fundamentals/technicals. | Smaller position (2-3% of portfolio) |
+| **HOLD** | 50-64 | Neutral outlook. Not a new buy, but don't sell if already owned. | No new action |
+| **SELL** | 35-49 | Weakening signals. Consider exiting positions. | Reduce or exit position |
+| **STRONG SELL** | Below 35 | Significant weakness detected. Exit recommended. | Exit position |
+
+### What the Scores Mean
+
+- **Score 100**: Perfect alignment across all indicators - extremely rare
+- **Score 80+**: Strong buy territory - multiple confirmations
+- **Score 65-79**: Good opportunity - solid setup but some caution
+- **Score 50-64**: Hold zone - wait for better entry
+- **Below 50**: Avoid or sell - negative signals outweigh positive
+
+---
+
+## 📚 Beginner-Friendly Glossary
+
+New to stock investing? This glossary explains all the technical terms used in our system in plain English.
+
+### 📈 Core Chart & Trend Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Trend** | The general direction a stock is moving: **Uptrend** = going up, **Downtrend** = going down, **Sideways** = stuck in a range |
+| **Moving Average (SMA)** | The average price over a set number of days. Example: 200 SMA = average price over the last 200 days. Used to judge long-term trend. |
+| **EMA (Exponential Moving Average)** | Like SMA, but gives more weight to recent prices, so it reacts faster to changes. |
+| **50 SMA & 200 SMA** | Very common trend benchmarks. **Price above 200 SMA** = long-term bull trend. **Price below 200 SMA** = long-term weakness. |
+| **Stage-2 Uptrend** | A stock is in the "best growth phase": price rising, above moving averages, institutions buying. Common in breakout stocks. |
+| **Support** | A price level where buyers tend to step in and stop the decline. Think of it as a "floor." |
+| **Resistance** | A price level where sellers tend to appear and stop the rise. Think of it as a "ceiling." |
+| **Breakout** | When a stock breaks above resistance (smashes through the ceiling). Often signals a big move is starting. |
+
+### 🔥 Momentum Indicators
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Momentum** | Speed of price movement. Momentum stocks rise quickly because buyers are aggressive. |
+| **RSI (Relative Strength Index)** | Measures if a stock is overbought or oversold. Scale: 0-100. **RSI < 30** = oversold (maybe cheap), **RSI 50-75** = bullish momentum, **RSI > 80** = overheated (be careful). |
+| **MACD** | Tracks momentum shifts. MACD crossing upward often signals trend turning bullish. |
+| **Awesome Oscillator (AO)** | Momentum shift detector. **AO > 0** = buyers gaining control. **AO < 0** = sellers stronger. |
+
+### 📊 Trend Strength Indicators
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **ADX (Average Directional Index)** | Measures how STRONG a trend is (not direction). Scale: 0-100. **ADX < 20** = weak/no trend, **ADX > 25** = strong trend, **ADX > 40** = extremely powerful trend. |
+| **Volume** | How many shares traded. High volume = strong interest from buyers/sellers. |
+| **Volume Surge / Spike** | Trading activity far above normal. Usually means big buyers entering or news/breakout underway. |
+| **Volume Z-Score** | Measures how extreme volume is statistically. **3.0+** = huge spike (very unusual activity). |
+
+### 📉 Volatility & Pattern Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Volatility** | How much a stock swings up/down. High volatility = risky but fast gains possible. |
+| **Bollinger Bands** | Bands around price showing expected movement range. When price touches upper band, stock may be overextended. |
+| **Bollinger Squeeze** | When bands tighten, meaning volatility is compressed. Like a coiled spring - breakout likely soon! |
+| **VCP (Volatility Contraction Pattern)** | A famous pattern from Mark Minervini. Stock becomes quieter, volatility tightens, then a big move often follows. Seen before explosive breakouts. |
+| **ATR (Average True Range)** | Measures typical daily price movement. Used to set stop-losses. Higher ATR = more volatile stock. |
+| **Golden Cross** | Bullish signal where short-term moving average crosses above long-term MA (e.g., 50 SMA crosses above 200 SMA). Often means trend reversal upward. |
+
+### 💰 Institutional & Smart Money Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Institutional Footprint** | Evidence that hedge funds/banks are buying. They move markets because they buy in size. |
+| **VWAP (Volume Weighted Average Price)** | A price benchmark used by professional traders. **Price > VWAP** = institutions likely accumulating, trend is healthy. |
+| **Accumulation** | When big investors are quietly buying shares over time. Often happens before a stock rises. |
+| **Distribution** | When big investors are quietly selling. Often happens before a stock falls. |
+
+### 📌 Fundamental Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Market Cap** | Total value of a company's shares. **Large Cap** (>$10B) = stable, **Mid Cap** ($2-10B) = growth potential, **Small Cap** (<$2B) = higher risk/reward. |
+| **PE Ratio (Price/Earnings)** | How expensive a stock is relative to profits. **PE 10-20** = cheap/moderate, **PE 40+** = expensive (or high growth expected). |
+| **ROE (Return on Equity)** | How efficiently the company generates profit. **ROE > 15%** = strong business. |
+| **Debt/Equity Ratio** | Measures how much debt a company uses. **Lower = safer**. Less than 0.8 is generally good. |
+| **52-Week High/Low** | Highest and lowest price in the last year. Stocks near 52-week highs often have momentum. |
+| **Float** | Number of shares available to trade publicly. **Low float** stocks can move very quickly (up or down). |
+| **Penny Stock** | Small, low-priced, high-risk stocks. In our system: $0.50-$15 price range. |
+
+### ⚠️ Risk & Trade Management Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Stop Loss** | A pre-set exit point to prevent large losses. Example: Buy at $86, set stop at $82. If it drops to $82 → sell immediately to limit loss. |
+| **Take Profit / Target** | A pre-set price where you sell to lock in gains. Example: Buy at $86, target at $95. If it hits $95 → sell and take your profit. |
+| **Risk/Reward Ratio (R:R)** | Compares potential profit to potential loss. **2:1 R:R** means you could gain $2 for every $1 you risk. Higher is better. |
+| **Slippage** | The real price you get may be worse than expected due to market movement. Our system adds +0.5% to entry prices to simulate this. |
+| **Position Sizing** | How much money to allocate per trade. Rule of thumb: Never risk more than 2-5% of your total portfolio on one trade. |
+| **Drawdown** | How much your investment dropped from its peak before recovering. Max drawdown = worst decline experienced. |
+
+### 🌍 Market Environment Terms
+
+| Term | Simple Explanation |
+|------|-------------------|
+| **Market Regime** | The overall market environment: **Bull Market** = rising prices, optimism. **Bear Market** = falling prices, fear. **Neutral** = sideways, uncertain. |
+| **Bull Market** | When the market is rising. Momentum strategies work best. Most stocks go up. |
+| **Bear Market** | When the market is falling. Defensive/value strategies work best. Cash is often king. |
+| **SPY** | An ETF that tracks the S&P 500 (500 largest US companies). Used as a benchmark for overall market health. |
+
+### 📅 Holding Styles & Timeframes
+
+| Term | Timeframe | Description |
+|------|-----------|-------------|
+| **Day Trade** | < 24 hours | Buy and sell within the same day. High frequency, high stress. |
+| **Swing Trade** | 3-7 days | Capture short-term price swings. Most active trading style. |
+| **Position Trade** | 1-4 weeks | Hold through a specific move or pattern completion. |
+| **Investment** | 1+ months | Buy and hold for longer-term growth. Less monitoring needed. |
+| **Long Position** | Any | You profit when the stock goes UP. (All our picks are LONG positions.) |
+| **Short Position** | Any | You profit when the stock goes DOWN. (Requires margin account, higher risk.) |
+
+### 🧬 Our Algorithm Names Explained
+
+| Algorithm | What It Does | Best For |
+|-----------|--------------|----------|
+| **Alpha Predator** | Combines trend strength (ADX) + momentum (AO) + pattern (VCP) + institutional activity (VWAP) | Stocks with multiple confirming signals |
+| **Technical Momentum** | Finds stocks with volume surges, RSI momentum, and breakout patterns | Short-term momentum plays (24h to 7d) |
+| **CAN SLIM** | Based on William O'Neil's growth investing system | Growth stocks in Stage-2 uptrends |
+| **Composite Rating** | Balanced scoring of technical + fundamental factors | General watchlist building |
+| **Penny Sniper** | Hunts for microcap breakouts with extreme volume | High-risk, high-reward penny stocks |
+| **Value Sleeper** | Finds undervalued stocks near 52-week lows | Patient value investors |
+
+### ✅ Beginner Quick Reference
+
+**If you're new, focus on these terms first:**
+
+| Term | Why It Matters |
+|------|----------------|
+| **RSI** | Tells you if momentum is with you or against you |
+| **SMA 50/200** | Shows the long-term trend direction |
+| **Breakout** | When big moves begin |
+| **Volume Spike** | Confirms real buying interest |
+| **Stop Loss** | Protects you from big losses |
+| **VWAP** | Shows where smart money is positioned |
+| **ADX** | Tells you if the trend is strong or weak |
+| **Risk/Reward** | Helps you take trades where reward exceeds risk |
+
+---
+
+## 🧐 Scientific Limitations & Peer Critique
+*Transparency is the cornerstone of scientific validation. Below are the known limitations of this system and our direct responses to peer critiques (Gemini/Grok).*
+
+### 1. Selection Bias (Small Universe)
+- **Critique:** The engine currently monitors a curated list of ~100 tickers, rather than the entire market (10,000+).
+- **Impact:** This introduces inherent "Quality Bias"—we are only picking from stocks we already know are decent.
+- **Roadmap:** Future versions will integrate a screener to dynamically populate the universe from the entire Russell 3000.
+
+### 2. Slippage in Microcaps
+- **Critique:** A flat 0.5% slippage model is too optimistic for penny stocks (`Penny Sniper` algo) where spreads can be 2-3%.
+- **Response:** As of **Jan 28, 2026**, `verify-picks.ts` implements **Dynamic Slippage**:
+  - `>$10`: 0.5% (Liquid)
+  - `$5 - $10`: 1.0% (Mid variance)
+  - `<$5`: 3.0% (High risk/illiquid)
+
+### 3. Lack of Historical Backtesting
+- **Critique:** The system relies on "Forward Testing" (The Truth Engine) rather than 10-year historical backtests.
+- **Reality:** We acknowledge this. Most retail backtests are curve-fitted lies. We prefer **Forward Testing** on an immutable ledger as it is the only 100% truthful metric. We are building the track record *live*.
+
+### 4. Regime Lag
+- **Critique:** Relying solely on the Daily 200 SMA for market regime can be slow to react to V-shaped recoveries.
+- **Mitigation:** We advise users to watch the **50 SMA** as a leading indicator, though the primary engine remains conservative.
+
+---
+
+## 🔗 Live Resources
+
+- **Live Website**: [findtorontoevents.ca/findstocks](https://findtorontoevents.ca/findstocks/)
+- **V2 Engine Repo**: [github.com/eltonaguiar/STOCKSUNIFY2](https://github.com/eltonaguiar/STOCKSUNIFY2)
+- **V1 Engine Repo**: [github.com/eltonaguiar/stocksunify](https://github.com/eltonaguiar/stocksunify)
+- **Daily Picks JSON**: [data/daily-stocks.json](data/daily-stocks.json)
+- **Performance Data**: [data/pick-performance.json](data/pick-performance.json)
+
+---
+
+## ⚠️ Disclaimer
+
+This project is for **informational and educational purposes only**. It does not constitute financial advice. All stock investments carry risk, including the potential loss of principal. Past performance does not guarantee future results. Always conduct your own research and consult with a licensed financial advisor before making investment decisions. Never invest more than you can afford to lose.
+
 ---

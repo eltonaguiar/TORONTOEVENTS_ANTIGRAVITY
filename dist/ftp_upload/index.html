@@ -40,6 +40,12 @@
                         <span class="stat-label">Market Regime</span>
                     </div>
                 </div>
+                <div class="hero-nav">
+                    <a href="#picks" class="nav-btn">Today's Picks</a>
+                    <a href="#ratings" class="nav-btn">Rating Guide</a>
+                    <a href="#glossary" class="nav-btn">Glossary</a>
+                    <a href="#methodology" class="nav-btn">How It Works</a>
+                </div>
             </header>
 
             <!-- Quick Summary for Beginners -->
@@ -59,7 +65,8 @@
                         <div class="guide-icon">📊</div>
                         <h3>How to Read Picks</h3>
                         <p>
-                            <strong>STRONG BUY</strong> = High confidence.
+                            <strong>EXTREMELY STRONG BUY</strong> = Highest
+                            confidence. <strong>STRONG BUY</strong> = Very good.
                             <strong>BUY</strong> = Good opportunity. Each pick
                             includes entry price, stop-loss, and holding time.
                         </p>
@@ -70,28 +77,107 @@
                         <p>
                             All investments carry risk. Never invest more than
                             you can afford to lose. Our picks are suggestions,
-                            not financial advice.
+                            not financial advice. Always do your own research.
                         </p>
                     </div>
                 </div>
             </section>
 
+            <!-- Rating Scale Explanation -->
+            <section id="ratings" class="rating-scale-section">
+                <h2>Understanding Our Rating Scale</h2>
+                <p class="section-desc">
+                    Our system uses a clear, easy-to-understand scale to
+                    communicate the strength of each stock pick. Higher scores
+                    mean more indicators are aligned in favor of the trade.
+                </p>
+
+                <div class="rating-scale-grid">
+                    <div class="rating-box extremely-strong-buy">
+                        <div class="rating-label">EXTREMELY STRONG BUY</div>
+                        <div class="rating-score">Score: 95-100</div>
+                        <div class="rating-meaning">
+                            Exceptional setup with multiple confirming signals.
+                            Highest conviction pick. Rare occurrence.
+                        </div>
+                        <div class="rating-action">
+                            Consider larger position (up to 5% of portfolio)
+                        </div>
+                    </div>
+                    <div class="rating-box strong-buy">
+                        <div class="rating-label">STRONG BUY</div>
+                        <div class="rating-score">Score: 80-94</div>
+                        <div class="rating-meaning">
+                            Very good setup with most indicators aligned. High
+                            confidence in potential upside.
+                        </div>
+                        <div class="rating-action">
+                            Standard position (3-4% of portfolio)
+                        </div>
+                    </div>
+                    <div class="rating-box buy">
+                        <div class="rating-label">BUY</div>
+                        <div class="rating-score">Score: 65-79</div>
+                        <div class="rating-meaning">
+                            Good opportunity with solid technical or fundamental
+                            signals. Worth considering.
+                        </div>
+                        <div class="rating-action">
+                            Smaller position (2-3% of portfolio)
+                        </div>
+                    </div>
+                    <div class="rating-box hold">
+                        <div class="rating-label">HOLD</div>
+                        <div class="rating-score">Score: 50-64</div>
+                        <div class="rating-meaning">
+                            Neutral outlook. Not a new buy, but don't sell if
+                            you already own it.
+                        </div>
+                        <div class="rating-action">
+                            No new action recommended
+                        </div>
+                    </div>
+                    <div class="rating-box sell">
+                        <div class="rating-label">SELL</div>
+                        <div class="rating-score">Score: 35-49</div>
+                        <div class="rating-meaning">
+                            Weakening signals detected. Consider reducing or
+                            exiting positions.
+                        </div>
+                        <div class="rating-action">Reduce or exit position</div>
+                    </div>
+                    <div class="rating-box strong-sell">
+                        <div class="rating-label">STRONG SELL</div>
+                        <div class="rating-score">Score: Below 35</div>
+                        <div class="rating-meaning">
+                            Significant weakness detected. Multiple negative
+                            signals present.
+                        </div>
+                        <div class="rating-action">
+                            Exit position recommended
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Today's Top Picks -->
-            <section class="picks-section">
+            <section id="picks" class="picks-section">
                 <h2>
                     Today's Top Picks
                     <span class="date-badge">January 28, 2026</span>
                 </h2>
                 <p class="section-desc">
                     Our highest-conviction selections across all algorithms.
-                    Click any stock for details on Yahoo Finance.
+                    Click any stock symbol to view on Yahoo Finance.
                 </p>
 
-                <!-- STRONG BUY Picks -->
-                <h3 class="rating-header strong-buy">STRONG BUY Picks</h3>
+                <!-- EXTREMELY STRONG BUY -->
+                <h3 class="rating-header extremely-strong-buy">
+                    EXTREMELY STRONG BUY (Score 95-100)
+                </h3>
                 <div class="picks-grid">
                     <!-- GM -->
-                    <div class="pick-card strong-buy">
+                    <div class="pick-card extremely-strong-buy">
                         <div class="pick-header">
                             <div class="pick-symbol">
                                 <a
@@ -101,43 +187,99 @@
                                 >
                                 <span class="pick-name">General Motors</span>
                             </div>
-                            <div class="pick-score">100</div>
+                            <div class="pick-score score-100">100</div>
                         </div>
-                        <div class="pick-algo">Technical Momentum (3d)</div>
+                        <div class="pick-algo">
+                            Technical Momentum (3-day hold)
+                        </div>
                         <div class="pick-explanation">
-                            <strong>Why we picked it:</strong> Exceptional
-                            volume surge (3x average) combined with price
-                            breakout and Bollinger squeeze pattern. This setup
-                            often precedes significant moves.
+                            <strong>Why we picked it (Plain English):</strong>
+                            GM is showing exceptional buying activity - trading
+                            volume is 3x higher than normal, which usually means
+                            big investors are buying. The stock just broke
+                            through a price ceiling it couldn't pass before
+                            (breakout), and the price pattern is "coiling"
+                            tightly (Bollinger Squeeze), which often happens
+                            right before a big move up.
                         </div>
                         <div class="trade-plan">
+                            <h4>Your Trade Plan:</h4>
                             <div class="trade-row">
-                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-label">Buy At (Entry)</span>
                                 <span class="trade-value">$86.81</span>
-                            </div>
-                            <div class="trade-row">
-                                <span class="trade-label">Stop Loss</span>
-                                <span class="trade-value stop">$82.42</span>
+                                <span class="trade-note"
+                                    >includes 0.5% slippage buffer</span
+                                >
                             </div>
                             <div class="trade-row">
                                 <span class="trade-label"
-                                    >Target (+2:1 R:R)</span
+                                    >Sell If Wrong (Stop Loss)</span
                                 >
-                                <span class="trade-value target">$95.59</span>
+                                <span class="trade-value stop">$82.42</span>
+                                <span class="trade-note"
+                                    >limits your loss to ~5%</span
+                                >
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-label"
+                                    >Sell If Right (Target)</span
+                                >
+                                <span class="trade-value target">$95.59</span>
+                                <span class="trade-note"
+                                    >potential gain of ~10%</span
+                                >
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label"
+                                    >How Long to Hold</span
+                                >
                                 <span class="trade-value">3 days</span>
+                                <span class="trade-note">swing trade</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label">Risk/Reward</span>
+                                <span class="trade-value">2:1</span>
+                                <span class="trade-note"
+                                    >could gain $2 for every $1 risked</span
+                                >
                             </div>
                         </div>
                         <div class="pick-meta">
                             <span class="risk-badge high">High Risk</span>
                             <span class="investor-type"
-                                >Best for: Swing Traders</span
+                                >Best for: Active Swing Traders</span
+                            >
+                        </div>
+                        <div class="key-indicators">
+                            <span
+                                class="indicator"
+                                title="Relative Strength Index - measures momentum"
+                                >RSI: 58.9</span
+                            >
+                            <span
+                                class="indicator bullish"
+                                title="Volume is 3x higher than average"
+                                >Vol: 3.0x</span
+                            >
+                            <span
+                                class="indicator bullish"
+                                title="Price broke above resistance"
+                                >Breakout</span
+                            >
+                            <span
+                                class="indicator bullish"
+                                title="Volatility is compressed - move coming"
+                                >Squeeze</span
                             >
                         </div>
                     </div>
+                </div>
 
+                <!-- STRONG BUY Picks -->
+                <h3 class="rating-header strong-buy">
+                    STRONG BUY (Score 80-94)
+                </h3>
+                <div class="picks-grid">
                     <!-- VTRS -->
                     <div class="pick-card strong-buy">
                         <div class="pick-header">
@@ -149,32 +291,42 @@
                                 >
                                 <span class="pick-name">Viatris Inc.</span>
                             </div>
-                            <div class="pick-score">90</div>
+                            <div class="pick-score score-90">90</div>
                         </div>
-                        <div class="pick-algo">Alpha Predator (3d)</div>
+                        <div class="pick-algo">
+                            Alpha Predator (3-7 day hold)
+                        </div>
                         <div class="pick-explanation">
-                            <strong>Why we picked it:</strong> Strong ADX trend
-                            strength (44.8), confirmed VCP pattern, and
-                            institutional accumulation detected. Multiple
-                            indicators aligning for potential upside.
+                            <strong>Why we picked it:</strong> This stock shows
+                            a very strong trend (ADX of 44.8 - anything above 40
+                            is powerful). It also has a "VCP pattern" which
+                            means volatility is contracting before a potential
+                            explosive move. Plus, we're seeing signs that big
+                            institutional investors (hedge funds, banks) are
+                            accumulating shares.
                         </div>
                         <div class="trade-plan">
+                            <h4>Your Trade Plan:</h4>
                             <div class="trade-row">
-                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-label">Buy At (Entry)</span>
                                 <span class="trade-value">$13.19</span>
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-label"
+                                    >Sell If Wrong (Stop Loss)</span
+                                >
                                 <span class="trade-value stop">$12.43</span>
                             </div>
                             <div class="trade-row">
                                 <span class="trade-label"
-                                    >Target (+2:1 R:R)</span
+                                    >Sell If Right (Target)</span
                                 >
                                 <span class="trade-value target">$14.71</span>
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-label"
+                                    >How Long to Hold</span
+                                >
                                 <span class="trade-value">3-7 days</span>
                             </div>
                         </div>
@@ -182,6 +334,18 @@
                             <span class="risk-badge medium">Medium Risk</span>
                             <span class="investor-type"
                                 >Best for: Position Traders</span
+                            >
+                        </div>
+                        <div class="key-indicators">
+                            <span class="indicator">RSI: 64.0</span>
+                            <span
+                                class="indicator bullish"
+                                title="Very strong trend strength"
+                                >ADX: 44.8</span
+                            >
+                            <span class="indicator bullish">VCP Pattern</span>
+                            <span class="indicator bullish"
+                                >Institutional Buying</span
                             >
                         </div>
                     </div>
@@ -197,32 +361,41 @@
                                 >
                                 <span class="pick-name">Pfizer Inc.</span>
                             </div>
-                            <div class="pick-score">85</div>
+                            <div class="pick-score score-85">85</div>
                         </div>
-                        <div class="pick-algo">Technical Momentum (3d)</div>
+                        <div class="pick-algo">
+                            Technical Momentum (3-day hold)
+                        </div>
                         <div class="pick-explanation">
-                            <strong>Why we picked it:</strong> Volume spike
-                            (2.5x) with price breakout. Bollinger squeeze
-                            indicates volatility contraction before expansion.
-                            RSI at 64.5 shows momentum without being overbought.
+                            <strong>Why we picked it:</strong> Pfizer is seeing
+                            a volume spike (2.5x normal) along with a price
+                            breakout. The RSI at 64.5 shows good momentum
+                            without being "overbought" (overheated). The
+                            Bollinger Bands are squeezing tight, suggesting a
+                            bigger move is brewing.
                         </div>
                         <div class="trade-plan">
+                            <h4>Your Trade Plan:</h4>
                             <div class="trade-row">
-                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-label">Buy At (Entry)</span>
                                 <span class="trade-value">$26.63</span>
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-label"
+                                    >Sell If Wrong (Stop Loss)</span
+                                >
                                 <span class="trade-value stop">$25.69</span>
                             </div>
                             <div class="trade-row">
                                 <span class="trade-label"
-                                    >Target (+2:1 R:R)</span
+                                    >Sell If Right (Target)</span
                                 >
                                 <span class="trade-value target">$28.51</span>
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-label"
+                                    >How Long to Hold</span
+                                >
                                 <span class="trade-value">3 days</span>
                             </div>
                         </div>
@@ -231,6 +404,12 @@
                             <span class="investor-type"
                                 >Best for: Swing Traders</span
                             >
+                        </div>
+                        <div class="key-indicators">
+                            <span class="indicator">RSI: 64.6</span>
+                            <span class="indicator bullish">Vol: 2.5x</span>
+                            <span class="indicator bullish">Breakout</span>
+                            <span class="indicator bullish">Squeeze</span>
                         </div>
                     </div>
 
@@ -245,32 +424,40 @@
                                 >
                                 <span class="pick-name">Duke Energy</span>
                             </div>
-                            <div class="pick-score">80</div>
+                            <div class="pick-score score-80">80</div>
                         </div>
-                        <div class="pick-algo">Technical Momentum (7d)</div>
+                        <div class="pick-algo">
+                            Technical Momentum (7-day hold)
+                        </div>
                         <div class="pick-explanation">
-                            <strong>Why we picked it:</strong> Utility stock
-                            showing breakout with tight Bollinger squeeze. Low
-                            volatility sector play with defensive
-                            characteristics during market uncertainty.
+                            <strong>Why we picked it:</strong> Duke Energy is a
+                            utility stock (more stable/defensive) showing a
+                            breakout with a tight Bollinger squeeze. Good choice
+                            for investors who want exposure to the market but
+                            with less volatility than tech stocks.
                         </div>
                         <div class="trade-plan">
+                            <h4>Your Trade Plan:</h4>
                             <div class="trade-row">
-                                <span class="trade-label">Entry Price</span>
+                                <span class="trade-label">Buy At (Entry)</span>
                                 <span class="trade-value">$120.89</span>
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Stop Loss</span>
+                                <span class="trade-label"
+                                    >Sell If Wrong (Stop Loss)</span
+                                >
                                 <span class="trade-value stop">$117.57</span>
                             </div>
                             <div class="trade-row">
                                 <span class="trade-label"
-                                    >Target (+2:1 R:R)</span
+                                    >Sell If Right (Target)</span
                                 >
                                 <span class="trade-value target">$127.53</span>
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Hold Time</span>
+                                <span class="trade-label"
+                                    >How Long to Hold</span
+                                >
                                 <span class="trade-value">7 days</span>
                             </div>
                         </div>
@@ -282,57 +469,64 @@
                         </div>
                     </div>
 
-                    <!-- SBUX -->
+                    <!-- F -->
                     <div class="pick-card strong-buy">
                         <div class="pick-header">
                             <div class="pick-symbol">
                                 <a
-                                    href="https://finance.yahoo.com/quote/SBUX"
+                                    href="https://finance.yahoo.com/quote/F"
                                     target="_blank"
-                                    >SBUX</a
+                                    >F</a
                                 >
-                                <span class="pick-name">Starbucks</span>
+                                <span class="pick-name">Ford Motor</span>
                             </div>
-                            <div class="pick-score">70</div>
+                            <div class="pick-score score-80">80</div>
                         </div>
-                        <div class="pick-algo">Composite Rating (1m)</div>
+                        <div class="pick-algo">
+                            Technical Momentum (7-day hold)
+                        </div>
                         <div class="pick-explanation">
-                            <strong>Why we picked it:</strong> Strong YTD
-                            performance (+14%), volume confirmation, and
-                            balanced technical/fundamental profile. Good for
-                            longer-term position building.
+                            <strong>Why we picked it:</strong> Ford is showing
+                            elevated volume with a Bollinger squeeze pattern.
+                            The RSI is neutral (52), meaning it's not overbought
+                            yet and has room to run.
                         </div>
                         <div class="trade-plan">
+                            <h4>Your Trade Plan:</h4>
                             <div class="trade-row">
-                                <span class="trade-label">Entry Price</span>
-                                <span class="trade-value">$96.20</span>
-                            </div>
-                            <div class="trade-row">
-                                <span class="trade-label">Stop Loss</span>
-                                <span class="trade-value stop">$89.80</span>
+                                <span class="trade-label">Buy At (Entry)</span>
+                                <span class="trade-value">$14.00</span>
                             </div>
                             <div class="trade-row">
                                 <span class="trade-label"
-                                    >Target (+2:1 R:R)</span
+                                    >Sell If Wrong (Stop Loss)</span
                                 >
-                                <span class="trade-value target">$109.00</span>
+                                <span class="trade-value stop">$13.44</span>
                             </div>
                             <div class="trade-row">
-                                <span class="trade-label">Hold Time</span>
-                                <span class="trade-value">1 month</span>
+                                <span class="trade-label"
+                                    >Sell If Right (Target)</span
+                                >
+                                <span class="trade-value target">$15.12</span>
+                            </div>
+                            <div class="trade-row">
+                                <span class="trade-label"
+                                    >How Long to Hold</span
+                                >
+                                <span class="trade-value">7 days</span>
                             </div>
                         </div>
                         <div class="pick-meta">
-                            <span class="risk-badge medium">Medium Risk</span>
+                            <span class="risk-badge high">High Risk</span>
                             <span class="investor-type"
-                                >Best for: Investors</span
+                                >Best for: Swing Traders</span
                             >
                         </div>
                     </div>
                 </div>
 
-                <!-- BUY Picks -->
-                <h3 class="rating-header buy">BUY Picks (Top 10)</h3>
+                <!-- BUY Picks Table -->
+                <h3 class="rating-header buy">BUY (Score 65-79)</h3>
                 <div class="picks-table-wrapper">
                     <table class="picks-table">
                         <thead>
@@ -345,6 +539,7 @@
                                 <th>Stop Loss</th>
                                 <th>Hold</th>
                                 <th>Risk</th>
+                                <th>Best For</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -367,6 +562,7 @@
                                         >Med</span
                                     >
                                 </td>
+                                <td>Position Traders</td>
                             </tr>
                             <tr>
                                 <td>
@@ -387,6 +583,7 @@
                                         >Med</span
                                     >
                                 </td>
+                                <td>Position Traders</td>
                             </tr>
                             <tr>
                                 <td>
@@ -407,26 +604,28 @@
                                         >Med</span
                                     >
                                 </td>
+                                <td>Defensive</td>
                             </tr>
                             <tr>
                                 <td>
                                     <a
-                                        href="https://finance.yahoo.com/quote/HUT"
+                                        href="https://finance.yahoo.com/quote/SBUX"
                                         target="_blank"
-                                        >HUT</a
+                                        >SBUX</a
                                     >
                                 </td>
-                                <td>Hut 8 Corp.</td>
-                                <td>Alpha Predator</td>
-                                <td>80</td>
-                                <td>$62.15</td>
-                                <td class="stop">$52.10</td>
-                                <td>3d</td>
+                                <td>Starbucks</td>
+                                <td>Composite Rating</td>
+                                <td>70</td>
+                                <td>$96.20</td>
+                                <td class="stop">$89.80</td>
+                                <td>1 month</td>
                                 <td>
                                     <span class="risk-badge-sm medium"
                                         >Med</span
                                     >
                                 </td>
+                                <td>Long-Term Investors</td>
                             </tr>
                             <tr>
                                 <td>
@@ -447,26 +646,7 @@
                                         >Med</span
                                     >
                                 </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <a
-                                        href="https://finance.yahoo.com/quote/CVX"
-                                        target="_blank"
-                                        >CVX</a
-                                    >
-                                </td>
-                                <td>Chevron Corp.</td>
-                                <td>Alpha Predator</td>
-                                <td>75</td>
-                                <td>$169.90</td>
-                                <td class="stop">$163.11</td>
-                                <td>3d</td>
-                                <td>
-                                    <span class="risk-badge-sm medium"
-                                        >Med</span
-                                    >
-                                </td>
+                                <td>Energy Exposure</td>
                             </tr>
                             <tr>
                                 <td>
@@ -487,6 +667,7 @@
                                         >Med</span
                                     >
                                 </td>
+                                <td>Tech Investors</td>
                             </tr>
                             <tr>
                                 <td>
@@ -507,6 +688,7 @@
                                         >Med</span
                                     >
                                 </td>
+                                <td>AI/Tech Investors</td>
                             </tr>
                             <tr>
                                 <td>
@@ -525,6 +707,7 @@
                                 <td>
                                     <span class="risk-badge-sm high">High</span>
                                 </td>
+                                <td>Day Traders</td>
                             </tr>
                             <tr>
                                 <td>
@@ -545,14 +728,559 @@
                                         >Med</span
                                     >
                                 </td>
+                                <td>Value Tech</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a
+                                        href="https://finance.yahoo.com/quote/PG"
+                                        target="_blank"
+                                        >PG</a
+                                    >
+                                </td>
+                                <td>Procter & Gamble</td>
+                                <td>Alpha Predator</td>
+                                <td>70</td>
+                                <td>$149.08</td>
+                                <td class="stop">$143.62</td>
+                                <td>3d</td>
+                                <td>
+                                    <span class="risk-badge-sm medium"
+                                        >Med</span
+                                    >
+                                </td>
+                                <td>Defensive</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <p class="table-note">
                     All entry prices include +0.5% slippage simulation for
-                    realistic expectations.
+                    realistic expectations. Stop losses are calculated using ATR
+                    (Average True Range) methodology.
                 </p>
+            </section>
+
+            <!-- Glossary Section -->
+            <section id="glossary" class="glossary-section">
+                <h2>Beginner-Friendly Glossary</h2>
+                <p class="section-desc">
+                    New to investing? Here's what all these terms mean in plain
+                    English. Click any category to expand.
+                </p>
+
+                <div class="glossary-categories">
+                    <!-- Trend Terms -->
+                    <details class="glossary-category" open>
+                        <summary>
+                            <span class="cat-icon">📈</span> Chart & Trend Terms
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item">
+                                <div class="term">Trend</div>
+                                <div class="definition">
+                                    The general direction a stock is moving.
+                                    <strong>Uptrend</strong> = going up.
+                                    <strong>Downtrend</strong> = going down.
+                                    <strong>Sideways</strong> = stuck in a
+                                    range.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Moving Average (SMA)</div>
+                                <div class="definition">
+                                    The average price over a set number of days.
+                                    Example: <strong>200 SMA</strong> = average
+                                    price over the last 200 days. Used to judge
+                                    long-term trend direction.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">50 SMA & 200 SMA</div>
+                                <div class="definition">
+                                    Very common trend benchmarks.
+                                    <strong>Price above 200 SMA</strong> =
+                                    long-term bull trend (good).
+                                    <strong>Price below 200 SMA</strong> =
+                                    long-term weakness.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Stage-2 Uptrend</div>
+                                <div class="definition">
+                                    A stock in the "best growth phase": price
+                                    rising, trading above its moving averages,
+                                    and institutions are buying. This is when
+                                    breakout stocks thrive.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Support</div>
+                                <div class="definition">
+                                    A price level where buyers tend to step in
+                                    and stop the decline. Think of it as a
+                                    "floor" under the stock price.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Resistance</div>
+                                <div class="definition">
+                                    A price level where sellers tend to appear
+                                    and stop the rise. Think of it as a
+                                    "ceiling" above the stock price.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Breakout</div>
+                                <div class="definition">
+                                    When a stock breaks above resistance
+                                    (smashes through the ceiling). This often
+                                    signals a big move is starting. We look for
+                                    these!
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Momentum Terms -->
+                    <details class="glossary-category">
+                        <summary>
+                            <span class="cat-icon">🔥</span> Momentum Indicators
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item">
+                                <div class="term">Momentum</div>
+                                <div class="definition">
+                                    Speed of price movement. Momentum stocks
+                                    rise quickly because buyers are aggressive.
+                                    "Riding momentum" means following the
+                                    direction of the crowd.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">
+                                    RSI (Relative Strength Index)
+                                </div>
+                                <div class="definition">
+                                    Measures if a stock is overbought or
+                                    oversold. Scale: 0-100.
+                                    <strong>RSI below 30</strong> = oversold
+                                    (potentially cheap).
+                                    <strong>RSI 50-75</strong> = bullish
+                                    momentum. <strong>RSI above 80</strong> =
+                                    overheated (be careful).
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Awesome Oscillator (AO)</div>
+                                <div class="definition">
+                                    Momentum shift detector.
+                                    <strong>AO above 0</strong> = buyers gaining
+                                    control. <strong>AO below 0</strong> =
+                                    sellers are stronger. We look for AO
+                                    crossing above zero.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">
+                                    ADX (Average Directional Index)
+                                </div>
+                                <div class="definition">
+                                    Measures how STRONG a trend is (not its
+                                    direction). <strong>ADX below 20</strong> =
+                                    weak/no trend.
+                                    <strong>ADX above 25</strong> = strong
+                                    trend. <strong>ADX above 40</strong> =
+                                    extremely powerful trend.
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Volume Terms -->
+                    <details class="glossary-category">
+                        <summary>
+                            <span class="cat-icon">📊</span> Volume &
+                            Institutional Terms
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item">
+                                <div class="term">Volume</div>
+                                <div class="definition">
+                                    How many shares were traded. High volume =
+                                    strong interest from buyers and sellers. Low
+                                    volume = not much activity.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Volume Surge / Spike</div>
+                                <div class="definition">
+                                    Trading activity far above normal (e.g., 2x
+                                    or 3x average). Usually means big buyers are
+                                    entering or there's news/breakout happening.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Volume Z-Score</div>
+                                <div class="definition">
+                                    Measures how statistically unusual volume
+                                    is. <strong>3.0+</strong> = huge spike (very
+                                    unusual activity). We flag these as
+                                    potential opportunities.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Institutional Footprint</div>
+                                <div class="definition">
+                                    Evidence that hedge funds, mutual funds, or
+                                    banks are buying. They move markets because
+                                    they buy in large quantities.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">
+                                    VWAP (Volume Weighted Average Price)
+                                </div>
+                                <div class="definition">
+                                    A benchmark price that professional traders
+                                    use. <strong>Price above VWAP</strong> =
+                                    institutions likely accumulating (good
+                                    sign).
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Pattern Terms -->
+                    <details class="glossary-category">
+                        <summary>
+                            <span class="cat-icon">📉</span> Volatility &
+                            Pattern Terms
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item">
+                                <div class="term">Volatility</div>
+                                <div class="definition">
+                                    How much a stock swings up and down. High
+                                    volatility = risky but potentially faster
+                                    gains. Low volatility = more stable but
+                                    slower moves.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Bollinger Bands</div>
+                                <div class="definition">
+                                    Bands drawn around the price showing the
+                                    expected movement range. When price touches
+                                    the upper band, the stock may be
+                                    overextended.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Bollinger Squeeze</div>
+                                <div class="definition">
+                                    When the bands tighten close together,
+                                    meaning volatility is compressed.
+                                    <strong>Like a coiled spring</strong> - a
+                                    breakout is likely coming soon!
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">
+                                    VCP (Volatility Contraction Pattern)
+                                </div>
+                                <div class="definition">
+                                    A famous pattern from trader Mark Minervini.
+                                    The stock becomes quieter, volatility
+                                    tightens, then a big move often follows.
+                                    Seen before explosive breakouts.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">ATR (Average True Range)</div>
+                                <div class="definition">
+                                    Measures typical daily price movement. We
+                                    use this to set appropriate stop-losses.
+                                    Higher ATR = more volatile stock = wider
+                                    stop needed.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Golden Cross</div>
+                                <div class="definition">
+                                    Bullish signal where the short-term moving
+                                    average crosses above the long-term average
+                                    (e.g., 50 SMA crosses above 200 SMA). Often
+                                    signals a trend reversal upward.
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Risk Terms -->
+                    <details class="glossary-category">
+                        <summary>
+                            <span class="cat-icon">⚠️</span> Risk & Trade
+                            Management
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item important">
+                                <div class="term">Stop Loss</div>
+                                <div class="definition">
+                                    A pre-set exit point to prevent large
+                                    losses. Example: Buy at $86, set stop at
+                                    $82. If it drops to $82, you sell
+                                    immediately to limit your loss.
+                                    <strong>Always use stop losses!</strong>
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Take Profit / Target</div>
+                                <div class="definition">
+                                    A pre-set price where you sell to lock in
+                                    your gains. Example: Buy at $86, target at
+                                    $95. When it hits $95, you sell and take
+                                    your profit.
+                                </div>
+                            </div>
+                            <div class="glossary-item important">
+                                <div class="term">Risk/Reward Ratio (R:R)</div>
+                                <div class="definition">
+                                    Compares potential profit to potential loss.
+                                    <strong>2:1 R:R</strong> means you could
+                                    gain $2 for every $1 you risk. We aim for
+                                    2:1 or better on all picks.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Slippage</div>
+                                <div class="definition">
+                                    The real price you get may be slightly worse
+                                    than expected due to market movement. We add
+                                    +0.5% to entry prices to account for this.
+                                </div>
+                            </div>
+                            <div class="glossary-item important">
+                                <div class="term">Position Sizing</div>
+                                <div class="definition">
+                                    How much money to put in each trade.
+                                    <strong
+                                        >Rule of thumb: Never risk more than
+                                        2-5% of your total portfolio on one
+                                        trade.</strong
+                                    >
+                                    This protects you from catastrophic losses.
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Market Terms -->
+                    <details class="glossary-category">
+                        <summary>
+                            <span class="cat-icon">🌍</span> Market Environment
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item">
+                                <div class="term">Market Regime</div>
+                                <div class="definition">
+                                    The overall market environment.
+                                    <strong>Bull Market</strong> = rising
+                                    prices, optimism.
+                                    <strong>Bear Market</strong> = falling
+                                    prices, fear. <strong>Neutral</strong> =
+                                    sideways, uncertain.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Bull Market</div>
+                                <div class="definition">
+                                    When the overall market is rising. Momentum
+                                    strategies work best. Most stocks go up with
+                                    the tide. "Bulls" profit when prices go up.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Bear Market</div>
+                                <div class="definition">
+                                    When the overall market is falling.
+                                    Defensive and value strategies work best.
+                                    Cash is often king. "Bears" profit when
+                                    prices go down.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">SPY</div>
+                                <div class="definition">
+                                    An ETF that tracks the S&P 500 (500 largest
+                                    US companies). Used as a benchmark for
+                                    overall market health. If SPY is up, the
+                                    market is generally bullish.
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Timeframe Terms -->
+                    <details class="glossary-category">
+                        <summary>
+                            <span class="cat-icon">📅</span> Holding Styles &
+                            Timeframes
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item">
+                                <div class="term">Day Trade</div>
+                                <div class="definition">
+                                    Hold for less than 24 hours. Buy and sell
+                                    within the same day. Requires constant
+                                    monitoring. High frequency, high stress.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Swing Trade</div>
+                                <div class="definition">
+                                    Hold for 3-7 days. Capture short-term price
+                                    swings. Most active trading style. Check
+                                    positions daily but not constantly.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Position Trade</div>
+                                <div class="definition">
+                                    Hold for 1-4 weeks. Hold through a specific
+                                    move or pattern completion. Less monitoring
+                                    needed than swing trading.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Investment</div>
+                                <div class="definition">
+                                    Hold for 1+ months. Buy and hold for
+                                    longer-term growth. Check weekly or monthly.
+                                    Less stressful, requires patience.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Long Position</div>
+                                <div class="definition">
+                                    You profit when the stock goes UP. This is
+                                    the standard way to invest.
+                                    <strong
+                                        >All our picks are LONG
+                                        positions.</strong
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Algorithm Terms -->
+                    <details class="glossary-category">
+                        <summary>
+                            <span class="cat-icon">🧬</span> Our Algorithms
+                            Explained
+                        </summary>
+                        <div class="glossary-grid">
+                            <div class="glossary-item">
+                                <div class="term">Alpha Predator</div>
+                                <div class="definition">
+                                    Our flagship algorithm. Combines trend
+                                    strength (ADX) + momentum (AO) + pattern
+                                    (VCP) + institutional activity (VWAP) to
+                                    find stocks with multiple confirming
+                                    signals.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Technical Momentum</div>
+                                <div class="definition">
+                                    Finds stocks with volume surges, RSI
+                                    momentum, and breakout patterns. Best for
+                                    short-term momentum plays (24 hours to 7
+                                    days).
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">CAN SLIM</div>
+                                <div class="definition">
+                                    Based on William O'Neil's famous growth
+                                    investing system. Focuses on stocks in
+                                    Stage-2 uptrends with strong relative
+                                    strength.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Composite Rating</div>
+                                <div class="definition">
+                                    Balanced scoring of technical + fundamental
+                                    factors. Good for general watchlist
+                                    building. Hold time: 1-3 months.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Penny Sniper</div>
+                                <div class="definition">
+                                    Hunts for microcap breakouts with extreme
+                                    volume in penny stocks ($0.50-$15). Very
+                                    high risk, very high reward potential.
+                                </div>
+                            </div>
+                            <div class="glossary-item">
+                                <div class="term">Value Sleeper</div>
+                                <div class="definition">
+                                    Finds undervalued stocks near 52-week lows
+                                    with solid fundamentals. For patient value
+                                    investors. Hold time: 3+ months.
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Quick Reference -->
+                <div class="quick-reference">
+                    <h3>Beginner Quick Reference - Focus on These First</h3>
+                    <div class="quick-ref-grid">
+                        <div class="quick-ref-item">
+                            <span class="qr-term">RSI</span>
+                            <span class="qr-why"
+                                >Tells you if momentum is with you or against
+                                you</span
+                            >
+                        </div>
+                        <div class="quick-ref-item">
+                            <span class="qr-term">200 SMA</span>
+                            <span class="qr-why"
+                                >Shows the long-term trend direction</span
+                            >
+                        </div>
+                        <div class="quick-ref-item">
+                            <span class="qr-term">Breakout</span>
+                            <span class="qr-why"
+                                >When big moves begin - key entry signal</span
+                            >
+                        </div>
+                        <div class="quick-ref-item">
+                            <span class="qr-term">Volume Spike</span>
+                            <span class="qr-why"
+                                >Confirms real buying interest</span
+                            >
+                        </div>
+                        <div class="quick-ref-item">
+                            <span class="qr-term">Stop Loss</span>
+                            <span class="qr-why"
+                                >Protects you from big losses - ALWAYS USE</span
+                            >
+                        </div>
+                        <div class="quick-ref-item">
+                            <span class="qr-term">Risk/Reward</span>
+                            <span class="qr-why"
+                                >Only take trades where reward exceeds
+                                risk</span
+                            >
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Performance Tracking -->
@@ -562,15 +1290,15 @@
                 </h2>
                 <p class="section-desc">
                     Our "Truth Engine" automatically verifies pick outcomes
-                    after the recommended holding period. This is forward-tested
-                    performance - no look-ahead bias.
+                    after the recommended holding period. This is real
+                    forward-tested performance with no look-ahead bias.
                 </p>
 
                 <div class="performance-grid">
                     <div class="perf-card">
                         <div class="perf-icon">🎯</div>
                         <div class="perf-value">30</div>
-                        <div class="perf-label">Total Picks Being Tracked</div>
+                        <div class="perf-label">Picks Being Tracked</div>
                     </div>
                     <div class="perf-card">
                         <div class="perf-icon">⏳</div>
@@ -590,7 +1318,7 @@
                 </div>
 
                 <div class="verification-timeline">
-                    <h3>Upcoming Verifications</h3>
+                    <h3>When Results Will Be Available</h3>
                     <div class="timeline-items">
                         <div class="timeline-item">
                             <div class="timeline-date">Jan 29, 2026</div>
@@ -601,13 +1329,13 @@
                         <div class="timeline-item">
                             <div class="timeline-date">Jan 31, 2026</div>
                             <div class="timeline-desc">
-                                3-day picks mature (GM, VTRS, PFE, etc.)
+                                3-day picks mature (GM, VTRS, PFE)
                             </div>
                         </div>
                         <div class="timeline-item">
                             <div class="timeline-date">Feb 4, 2026</div>
                             <div class="timeline-desc">
-                                7-day picks mature (DUK, F, etc.)
+                                7-day picks mature (DUK, F)
                             </div>
                         </div>
                         <div class="timeline-item">
@@ -618,74 +1346,27 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="algo-performance">
-                    <h3>Algorithm Distribution (Today's Picks)</h3>
-                    <div class="algo-bars">
-                        <div class="algo-bar">
-                            <div class="algo-name">Alpha Predator</div>
-                            <div class="algo-bar-track">
-                                <div
-                                    class="algo-bar-fill"
-                                    style="width: 63%"
-                                ></div>
-                            </div>
-                            <div class="algo-count">19 picks (63%)</div>
-                        </div>
-                        <div class="algo-bar">
-                            <div class="algo-name">Technical Momentum</div>
-                            <div class="algo-bar-track">
-                                <div
-                                    class="algo-bar-fill"
-                                    style="width: 23%"
-                                ></div>
-                            </div>
-                            <div class="algo-count">7 picks (23%)</div>
-                        </div>
-                        <div class="algo-bar">
-                            <div class="algo-name">CAN SLIM</div>
-                            <div class="algo-bar-track">
-                                <div
-                                    class="algo-bar-fill"
-                                    style="width: 10%"
-                                ></div>
-                            </div>
-                            <div class="algo-count">3 picks (10%)</div>
-                        </div>
-                        <div class="algo-bar">
-                            <div class="algo-name">Composite Rating</div>
-                            <div class="algo-bar-track">
-                                <div
-                                    class="algo-bar-fill"
-                                    style="width: 3%"
-                                ></div>
-                            </div>
-                            <div class="algo-count">1 pick (3%)</div>
-                        </div>
-                    </div>
-                </div>
             </section>
 
             <!-- Methodology -->
-            <section class="methodology-section">
-                <h2>Our Methodology</h2>
+            <section id="methodology" class="methodology-section">
+                <h2>How Our System Works</h2>
                 <p class="section-desc">
-                    Six algorithms work in parallel, each designed for different
-                    market conditions and investor styles. Every pick is
-                    timestamped and hashed for transparency.
+                    Six algorithms analyze 101 stocks daily. Each algorithm is
+                    designed for different market conditions and investor
+                    styles.
                 </p>
 
                 <div class="method-grid">
-                    <!-- Alpha Predator -->
                     <div class="method-card">
                         <div class="method-header">
                             <h3>Alpha Predator</h3>
-                            <span class="method-badge">Most Active Today</span>
+                            <span class="method-badge">Most Active</span>
                         </div>
                         <p class="method-desc">
-                            Scientific composite combining Trend (ADX), Momentum
-                            (Awesome Oscillator), and Structure (VCP pattern)
-                            for robust signals.
+                            Our flagship algorithm combining trend strength,
+                            momentum, and pattern recognition with institutional
+                            activity detection.
                         </p>
                         <div class="method-details">
                             <div class="detail-row">
@@ -695,7 +1376,8 @@
                             <div class="detail-row">
                                 <span>Best For:</span>
                                 <span
-                                    >Any stock with strong trend alignment</span
+                                    >Stocks with multiple confirming
+                                    signals</span
                                 >
                             </div>
                             <div class="detail-row">
@@ -705,7 +1387,6 @@
                         </div>
                     </div>
 
-                    <!-- Technical Momentum -->
                     <div class="method-card">
                         <div class="method-header">
                             <h3>Technical Momentum</h3>
@@ -715,8 +1396,8 @@
                         </div>
                         <p class="method-desc">
                             Captures short-term momentum using volume surges,
-                            RSI extremes, breakouts, and Bollinger Band
-                            squeezes.
+                            RSI signals, breakout patterns, and Bollinger Band
+                            analysis.
                         </p>
                         <div class="method-details">
                             <div class="detail-row">
@@ -727,25 +1408,18 @@
                                 <span>Best For:</span>
                                 <span>Short-term momentum plays</span>
                             </div>
-                            <div class="detail-row">
-                                <span>Key Indicators:</span>
-                                <span>RSI, Volume Z, Bollinger, ATR</span>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- CAN SLIM -->
                     <div class="method-card">
                         <div class="method-header">
                             <h3>CAN SLIM</h3>
-                            <span class="method-badge tertiary"
-                                >Growth Stocks</span
-                            >
+                            <span class="method-badge tertiary">Growth</span>
                         </div>
                         <p class="method-desc">
                             Based on William O'Neil's proven methodology.
                             Focuses on relative strength, Stage-2 uptrends, and
-                            institutional accumulation.
+                            institutional buying.
                         </p>
                         <div class="method-details">
                             <div class="detail-row">
@@ -756,14 +1430,9 @@
                                 <span>Best For:</span>
                                 <span>Growth stocks, $10+</span>
                             </div>
-                            <div class="detail-row">
-                                <span>Key Indicators:</span>
-                                <span>RS Rating, Stage-2, VCP</span>
-                            </div>
                         </div>
                     </div>
 
-                    <!-- Composite Rating -->
                     <div class="method-card">
                         <div class="method-header">
                             <h3>Composite Rating</h3>
@@ -772,8 +1441,8 @@
                             >
                         </div>
                         <p class="method-desc">
-                            Multi-factor approach combining technical, volume,
-                            and fundamental data with market regime awareness.
+                            Multi-factor approach combining technical signals
+                            with fundamental data and market regime awareness.
                         </p>
                         <div class="method-details">
                             <div class="detail-row">
@@ -782,100 +1451,9 @@
                             </div>
                             <div class="detail-row">
                                 <span>Best For:</span>
-                                <span>General watchlist, any stock</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Key Indicators:</span>
-                                <span>SMA, RSI, Volume, PE, YTD</span>
+                                <span>General watchlist building</span>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Penny Sniper -->
-                    <div class="method-card inactive">
-                        <div class="method-header">
-                            <h3>Penny Sniper</h3>
-                            <span class="method-badge inactive">Dormant</span>
-                        </div>
-                        <p class="method-desc">
-                            High-risk microcap hunter for stocks $0.50-$15.
-                            Requires volume spikes and golden cross patterns.
-                        </p>
-                        <div class="method-details">
-                            <div class="detail-row">
-                                <span>Hold Time:</span>
-                                <span>24 hours</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Status:</span>
-                                <span>Needs more penny stocks in universe</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Value Sleeper -->
-                    <div class="method-card inactive">
-                        <div class="method-header">
-                            <h3>Value Sleeper</h3>
-                            <span class="method-badge inactive">Dormant</span>
-                        </div>
-                        <p class="method-desc">
-                            Mean reversion strategy for undervalued companies
-                            near 52-week lows with solid fundamentals.
-                        </p>
-                        <div class="method-details">
-                            <div class="detail-row">
-                                <span>Hold Time:</span>
-                                <span>3+ months</span>
-                            </div>
-                            <div class="detail-row">
-                                <span>Status:</span>
-                                <span>Requires specific market conditions</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Validation Process -->
-            <section class="validation-section">
-                <h2>How We Validate Results</h2>
-                <div class="validation-steps">
-                    <div class="val-step">
-                        <div class="val-number">1</div>
-                        <h3>Timestamp & Hash</h3>
-                        <p>
-                            Every pick is timestamped and given a SHA-256 hash
-                            before markets open. This creates an immutable
-                            record that cannot be altered.
-                        </p>
-                    </div>
-                    <div class="val-step">
-                        <div class="val-number">2</div>
-                        <h3>Slippage Simulation</h3>
-                        <p>
-                            We add +0.5% to entry prices to account for
-                            real-world execution costs. This makes our reported
-                            returns more realistic.
-                        </p>
-                    </div>
-                    <div class="val-step">
-                        <div class="val-number">3</div>
-                        <h3>Automated Verification</h3>
-                        <p>
-                            GitHub Actions run every 6 hours to check if any
-                            picks have completed their holding period, then
-                            fetch current prices.
-                        </p>
-                    </div>
-                    <div class="val-step">
-                        <div class="val-number">4</div>
-                        <h3>Transparent Results</h3>
-                        <p>
-                            All results are published to our GitHub repo and
-                            this page. Wins and losses are both displayed
-                            honestly.
-                        </p>
                     </div>
                 </div>
             </section>
@@ -887,11 +1465,11 @@
                     <div class="budget-card">
                         <h3>Small Budget ($500-$5,000)</h3>
                         <ul>
-                            <li>Focus on STRONG BUY, Medium Risk picks</li>
+                            <li>Focus on STRONG BUY with Medium Risk</li>
                             <li>Hold 3-5 positions maximum</li>
-                            <li>Stick to 1-month timeframes</li>
-                            <li>Avoid penny stocks</li>
-                            <li>Keep 20% in cash</li>
+                            <li>Prefer 1-month timeframes (less monitoring)</li>
+                            <li>Avoid penny stocks and high volatility</li>
+                            <li>Keep 20% in cash for opportunities</li>
                         </ul>
                         <div class="recommended-today">
                             <strong>Today's Best Fit:</strong> SBUX, PFE
@@ -901,8 +1479,8 @@
                         <h3>Medium Budget ($5,000-$50,000)</h3>
                         <ul>
                             <li>Diversify across 6-10 positions</li>
-                            <li>Mix of timeframes OK</li>
-                            <li>Can include some swing trades</li>
+                            <li>Mix of timeframes is OK</li>
+                            <li>Can include swing trades (3-7 days)</li>
                             <li>Limit any single position to 15%</li>
                             <li>Keep 15% in cash</li>
                         </ul>
@@ -916,13 +1494,13 @@
                         <ul>
                             <li>Hold 12-20 positions</li>
                             <li>Sector diversification required</li>
-                            <li>Can allocate small % to high-risk</li>
+                            <li>Can allocate small % to higher risk</li>
                             <li>Position sizes 5-7% max</li>
                             <li>Keep 10% in cash</li>
                         </ul>
                         <div class="recommended-today">
                             <strong>Today's Best Fit:</strong> Full portfolio
-                            from today's picks
+                            from picks
                         </div>
                     </div>
                 </div>
@@ -968,12 +1546,16 @@
                 </p>
                 <p class="disclaimer">
                     This page is for
-                    <strong>informational purposes only</strong> and does not
-                    constitute financial advice. All stock investments carry
-                    risk. Past performance does not guarantee future results.
-                    Always conduct your own research and consult a licensed
-                    financial advisor before making investment decisions. Never
-                    invest more than you can afford to lose.
+                    <strong>informational and educational purposes only</strong>
+                    and does not constitute financial advice. All stock
+                    investments carry risk, including the potential loss of your
+                    entire investment. Past performance does not guarantee
+                    future results. Always conduct your own research and consult
+                    with a licensed financial advisor before making investment
+                    decisions.
+                    <strong
+                        >Never invest more than you can afford to lose.</strong
+                    >
                 </p>
                 <p class="footer-meta">
                     Last Updated: January 28, 2026 12:24 UTC | Data Source:

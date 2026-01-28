@@ -108,6 +108,15 @@ function loadArchivedPicks(): ArchvedPick[] {
     return allPicks;
 }
 
+// Helper to calculate dynamic slippage based on price and liquidity
+function calculateDynamicSlippage(price: number): number {
+    // CRITIQUE RESPONSE: "Penny Sniper" needs higher slippage modeling
+    // Microcaps (<$5) often have wide bid-ask spreads.
+    if (price < 5) return 0.03; // 3% slippage for penny stocks (High Risk)
+    if (price < 10) return 0.01; // 1% slippage for small caps
+    return 0.005; // 0.5% standard slippage for liquid mid/large caps
+}
+
 /**
  * Verify a single pick
  */
@@ -145,7 +154,12 @@ async function verifyPick(pick: ArchvedPick): Promise<VerifiedPick> {
             };
         }
 
-        const entryPrice = pick.simulatedEntryPrice || pick.price;
+        // Calculate Returns with Dynamic Slippage
+        // We simulate buying at the WORST possible price in the spread range to be safe
+        const slippageRate = calculateDynamicSlippage(pick.price);
+        const simulatedEntry = pick.price * (1 + slippageRate);
+
+        const entryPrice = simulatedEntry; // Use the dynamically calculated simulated entry price
         const exitPrice = stockData.price;
         const returnPercent = ((exitPrice - entryPrice) / entryPrice) * 100;
 
@@ -164,7 +178,8 @@ async function verifyPick(pick: ArchvedPick): Promise<VerifiedPick> {
             currentPrice: exitPrice,
             returnPercent: Math.round(returnPercent * 100) / 100,
             status,
-            daysHeld: Math.round(daysHeld * 10) / 10
+            daysHeld: Math.round(daysHeld * 10) / 10,
+            simulatedEntryPrice: simulatedEntry // Update simulatedEntryPrice in the verified pick
         };
 
     } catch (error) {

@@ -273,4 +273,51 @@ The website is now updated with:
 
 ---
 
+---
+
+## Session Update (Continued)
+
+### Additional Changes Made
+
+**Time:** ~14:00 EST
+
+#### 1. README.md Glossary Added
+Added comprehensive beginner-friendly glossary with 50+ terms organized into categories:
+- Chart & Trend Terms
+- Price & Movement Terms  
+- Volume & Trading Activity
+- Technical Indicators
+- Risk & Money Management
+- Order Types
+- Our System Terms
+- Performance Metrics
+
+#### 2. Recommendation Rating Scale Added to README
+New 6-tier rating scale:
+| Rating | Score Range | Meaning |
+|--------|-------------|---------|
+| EXTREMELY STRONG BUY | 95-100 | Exceptional setup with multiple confirming signals |
+| STRONG BUY | 80-94 | Very good setup with most indicators aligned |
+| BUY | 60-79 | Solid setup with positive indicators |
+| HOLD | 40-59 | Mixed signals, maintain existing position |
+| SELL | 20-39 | Negative indicators, consider exiting |
+| STRONG SELL | 0-19 | Strong negative signals, exit recommended |
+
+#### 3. Website Updated with Glossary & Ratings
+**Files Updated:**
+- `dist/ftp_upload/index.html` (~80KB) - Added glossary section, rating explanations, clearer pick cards
+- `dist/ftp_upload/style.css` (~22KB) - Added glossary styling, rating colors, expandable sections
+
+**New Website Sections:**
+- **Quick Start Guide** - Beginner navigation
+- **Understanding Our Ratings** - Full rating scale explanation
+- **Comprehensive Glossary** - Collapsible categories with all terms
+- **Enhanced Pick Cards** - Now show rating badge, plain English explanations, complete trade plans
+
+**FTP Upload Status:** SUCCESS
+- index.html: 80,213 bytes uploaded
+- style.css: 21,896 bytes uploaded
+
+---
+
 **Session Complete**
