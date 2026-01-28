@@ -666,8 +666,55 @@ export default function ResearchClient() {
                     </div>
                 </section>
 
+                {/* Section: The Global Research Audit (New based on AG Deep Research) */}
+                <section id="global-audit" className="mb-64">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-bold mb-4">The Global Research Audit</h2>
+                        <p className="text-neutral-500 font-mono text-sm tracking-widest uppercase italic">Synthesizing 49 searches across 12 institutional sources</p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        {/* Audit Category 1 */}
+                        <div className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-white/[0.01]">
+                            <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center mb-6">
+                                <span className="text-orange-500">⚠</span>
+                            </div>
+                            <h3 className="text-lg font-bold mb-4">Structural Biases</h3>
+                            <p className="text-sm text-neutral-400 leading-relaxed mb-6">
+                                Analysis flagged <strong className="text-white">Survivorship Bias</strong> and <strong className="text-white">Look-ahead Bias</strong> as the primary killers of retail alpha. Systems often ignore bankrupt companies or use revised earnings figures unconsciously.
+                            </p>
+                            <div className="text-[10px] font-mono text-orange-400/60 uppercase tracking-widest">Severity: Extreme</div>
+                        </div>
+
+                        {/* Audit Category 2 */}
+                        <div className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-white/[0.01]">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6">
+                                <span className="text-blue-500">🔬</span>
+                            </div>
+                            <h3 className="text-lg font-bold mb-4">Multiple Testing</h3>
+                            <p className="text-sm text-neutral-400 leading-relaxed mb-6">
+                                The "Crisis of Over-Discovery": Testing 10,000 patterns will yield 50 "winners" by pure chance. Without <strong className="text-white">Bonferroni</strong> or <strong className="text-white">DSR</strong> corrections, your "Strategy" is just a catalog of coincidences.
+                            </p>
+                            <div className="text-[10px] font-mono text-blue-400/60 uppercase tracking-widest">Status: Critical Risk</div>
+                        </div>
+
+                        {/* Audit Category 3 */}
+                        <div className="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-white/[0.01]">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-6">
+                                <span className="text-emerald-500">⚙</span>
+                            </div>
+                            <h3 className="text-lg font-bold mb-4">Slippage Torture</h3>
+                            <p className="text-sm text-neutral-400 leading-relaxed mb-6">
+                                Performance routinely evaporates under <strong>3-5x slippage stress</strong>. Real-world liquidity constraints make most high-frequency signals commercially unviable for retail desks.
+                            </p>
+                            <div className="text-[10px] font-mono text-emerald-400/60 uppercase tracking-widest">Solution: V2 Engine</div>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="system-audit" className="mb-64">
                     <div className="glass-panel p-1 border-white/10 bg-gradient-to-br from-indigo-500/20 via-transparent to-purple-500/20 rounded-[3rem]">
+
                         <div className="bg-[#06070a] rounded-[2.8rem] p-12 md:p-20 overflow-hidden relative">
                             {/* Meta Banner - Transparency Note */}
                             <div className="inline-flex items-center gap-4 px-6 py-2 rounded-full bg-white/5 border border-white/10 mb-12 cursor-help group/meta">
@@ -705,13 +752,14 @@ export default function ResearchClient() {
                                             </div>
                                             <div className="space-y-6">
                                                 <div className="text-red-400 font-bold uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 opacity-50" /> Scientific Gaps
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 opacity-50" /> Scientific Gaps (V1 Inherited)
                                                 </div>
                                                 <ul className="space-y-3 text-sm text-neutral-400 font-light">
-                                                    <li>• <strong className="text-white font-medium">Falsifiability:</strong> Missing append-only ledger</li>
-                                                    <li>• Backtesting framework is not yet automated</li>
-                                                    <li>• Potential "Data Freshness" synchronization gaps</li>
+                                                    <li>• <strong className="text-emerald-400 font-medium">Falsifiability:</strong> <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded ml-2">SOLVED V2</span></li>
+                                                    <li>• <strong className="text-emerald-400 font-medium">Backtesting:</strong> <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded ml-2">SOLVED V2</span></li>
+                                                    <li>• <strong className="text-white font-medium">Multiple-Testing Bias:</strong> Ongoing</li>
                                                 </ul>
+
                                             </div>
                                         </div>
 
@@ -726,8 +774,10 @@ export default function ResearchClient() {
                                                     { t: "Temporal Isolation", d: "Strict Walk-Forward purging to eliminate silent data leakage." },
                                                     { t: "Liquidity Torture", d: "Applying 'Slippage Multipliers' (2x-5x) to prevent liquidity mirages." }
                                                 ].map((phase, i) => (
-                                                    <div key={i} className="group flex items-start gap-4 p-4 rounded-2xl hover:bg-white/[0.02] transition-colors">
+                                                    <div key={i} className="group flex items-start gap-4 p-4 rounded-2xl hover:bg-white/[0.02] transition-colors relative">
+                                                        {i < 2 && <div className="absolute right-4 top-4 text-[10px] font-mono text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">DEPLOYED</div>}
                                                         <span className="font-mono text-xs text-indigo-500/40 mt-1">0{i + 1}</span>
+
                                                         <div>
                                                             <div className="text-white font-bold group-hover:text-indigo-400 transition-colors">{phase.t}</div>
                                                             <div className="text-xs text-neutral-500 leading-relaxed max-w-lg">{phase.d}</div>
@@ -831,6 +881,6 @@ export default function ResearchClient() {
                     </div>
                 </div>
             </footer>
-        </div>
+        </div >
     );
 }
