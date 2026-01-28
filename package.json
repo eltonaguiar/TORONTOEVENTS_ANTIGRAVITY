@@ -24,6 +24,11 @@
     "stocks:mature": "npm run stocks:generate && npm run stocks:backtest",
     "stocks:sync": "tsx scripts/sync-to-stocksunify.ts",
     "stocks:full": "npm run stocks:mature && npm run stocks:sync",
+    "stocks:v2:generate": "tsx scripts/v2/generate-ledger.ts",
+    "stocks:v2:verify": "tsx scripts/v2/verify-performance.ts",
+    "stocks:v2:sync": "tsx scripts/sync-to-stocksunify2.ts",
+    "stocks:v2:full": "npm run stocks:v2:generate && npm run stocks:v2:sync",
+    "stocks:all": "npm run stocks:full && npm run stocks:v2:full",
     "findstocks:verify": "tsx scripts/verify-findstocks.ts"
   },
   "dependencies": {
