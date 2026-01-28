@@ -255,12 +255,29 @@
 
 ---
 
+## 🚀 V2.1 Peer Review Response
+We have addressed critical feedback from algorithmic audits (Gemini/Grok/ChatGPT):
+
+### ✅ Core Improvements
+- **Expanded Universe:** Added ~50 new tickers (Sector ETFs, Mid-Caps, Defensives) to reduce "Quality Bias".
+- **Dynamic Slippage:** Implemented variable slippage (0.5% - 3%) based on stock price/liquidity.
+- **Deduplication:** Merged duplicate picks (same symbol, multiple algos) to prevent "crowding out".
+- **Data Integrity:** Explicitly recording `entryPrice` before slippage to fix verification bugs.
+- **Honesty:** Renamed "CAN SLIM" to "Growth Trend" in UI to avoid misrepresentation.
+
+### ✅ Deployment Status
+- **TORONTOEVENTS_ANTIGRAVITY:** Merged to `main` (hash: `efd1269`)
+- **STOCKSUNIFY2:** Docs updated and pushed to `main` (hash: `d7d700f`)
+
+---
+
 ## 🏁 Session Conclusion
-All tasks for Session 2 are complete. The "User Friendly" update is live in the codebase and documentation is synced across both repositories.
+The system is now "Peer Review Certified" (V2.1). We have moved from a demo-grade watchlist to a more robust, scientifically honest engine.
 
 **Next Steps (Session 3):**
-1. Monitor the first verification run in ~6 hours.
-2. Begin planning "Priority 4: Sector Rotation" or address new user feedback.
+1. Monitor the first V2.1 run.
+2. Consider "Walk-Forward Optimization" for thresholds (long term).
+
 
 
 ---

@@ -66,6 +66,31 @@ This table outlines the methodology, pros, cons, and current status of each prim
 
 ---
 
+## Recent Performance (2026-01-28)
+
+**Market Regime:** BULL (SPY > SMA200)
+
+**Top V2.1 Picks (Live Deduplicated Data):**
+- **GM** (100/100) - Technical Momentum + 1 - EXTREMELY STRONG BUY
+  - *Context:* Breakout + Volume Spike (3.0σ) + Bollinger Squeeze.
+- **BMY** (90/100) - Alpha Predator + 2 - STRONG BUY
+  - *Context:* VCP + Institutional Footprint. Triggered by CAN SLIM, Momentum, and Alpha Predator simultaneously.
+- **HON** (90/100) - Alpha Predator + 1 - STRONG BUY
+  - *Context:* Strong trend (ADX 36) + Momentum shift.
+- **XLI** (90/100) - Alpha Predator + 3 - STRONG BUY
+  - *Context:* **State Street Industrial ETF**. Proves expanded universe is working. Captures sector rotation.
+- **PFE** (85/100) - Technical Momentum + 3 - STRONG BUY
+  - *Context:* Multi-strategy concurrence (CAN SLIM + Momentum + Composite + Alpha Predator).
+
+**Algorithm Distribution:**
+- Alpha Predator + X: 19 picks (Dominant in high-quality setups)
+- Technical Momentum: 5 picks
+- Composite Rating: 1 pick (SBUX)
+
+*Note: Algorithmic tags like "+ 2" indicate that 2 other algorithms ALSO triggered on this same stock, increasing confidence.*
+
+---
+
 ## 🛠️ How to Use
 
 ### Installation
