@@ -1,80 +1,147 @@
 #!/usr/bin/env tsx
 /**
  * STOCKSUNIFY2: Performance Verification Script
- * 
+ *
  * "Life-on-the-line" Truth Engine.
  * This script looks back at archived picks and verifies their performance.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { fetchStockData } from '../lib/stock-data-fetcher-enhanced';
+import * as fs from "fs";
+import * as path from "path";
+import { fetchStockData } from "../lib/stock-data-fetcher-enhanced";
 
-async function main() {
-    console.log('🏁 STOCKSUNIFY2: Truth Engine Initializing...');
+/**
+ * Parses a timeframe string (e.g., "7d", "1m", "24h", "1y") into a number of days.
+ */
+function parseTimeframeToDays(timeframe: string): number {
+  if (!timeframe) return 7; // Default to 7 days if undefined
 
-    const indexPath = path.join(process.cwd(), 'data', 'v2', 'ledger-index.json');
-    if (!fs.existsSync(indexPath)) {
-        console.error('❌ Ledger index missing. Nothing to verify.');
-        return;
-    }
+  const unit = timeframe.slice(-1).toLowerCase();
+  const value = parseInt(timeframe.slice(0, -1), 10);
 
-    const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
-    const performanceDir = path.join(process.cwd(), 'data', 'v2', 'performance');
-    if (!fs.existsSync(performanceDir)) {
-        fs.mkdirSync(performanceDir, { recursive: true });
-    }
+  if (isNaN(value)) return 7;
 
-    // We only verify picks that are older than X days (e.g. 7 days or 1 month)
-    const today = new Date();
-
-    for (const entry of index) {
-        const pickDate = new Date(entry.date);
-        const daysPassed = Math.floor((today.getTime() - pickDate.getTime()) / (1000 * 60 * 60 * 24));
-
-        if (daysPassed >= 7) { // 7-day horizon check
-            console.log(`🔍 Verifying picks from ${entry.date} (${daysPassed} days ago)...`);
-            await verifyLedger(entry.date);
-        }
-    }
+  switch (unit) {
+    case "h":
+      return Math.ceil(value / 24); // 24h -> 1 day
+    case "d":
+      return value; // 7d -> 7
+    case "m":
+      return value * 30; // 1m -> 30
+    case "y":
+      return value * 365; // 1y -> 365
+    default:
+      return 7;
+  }
 }
 
-async function verifyLedger(dateStr: string) {
-    const [year, month, day] = dateStr.split('-');
-    const ledgerPath = path.join(process.cwd(), 'data', 'v2', 'history', year, month, `${day}.json`);
+async function main() {
+  console.log("🏁 STOCKSUNIFY2: Truth Engine Initializing...");
 
-    if (!fs.existsSync(ledgerPath)) return;
+  const indexPath = path.join(process.cwd(), "data", "v2", "ledger-index.json");
+  if (!fs.existsSync(indexPath)) {
+    console.error("❌ Ledger index missing. Nothing to verify.");
+    return;
+  }
 
-    const ledger = JSON.parse(fs.readFileSync(ledgerPath, 'utf8'));
-    const verifiedPicks = [];
+  const index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+  const performanceDir = path.join(process.cwd(), "data", "v2", "performance");
+  if (!fs.existsSync(performanceDir)) {
+    fs.mkdirSync(performanceDir, { recursive: true });
+  }
 
-    for (const pick of ledger.picks) {
-        console.log(`  ↪ Checking ${pick.symbol}...`);
-        const currentData = await fetchStockData(pick.symbol);
+  const today = new Date();
 
-        if (currentData) {
-            const entryPrice = pick.metrics.price || pick.price; // Fallback to recorded price
-            const exitPrice = currentData.price;
-            const realizedReturn = ((exitPrice - entryPrice) / entryPrice) * 100;
+  for (const entry of index) {
+    const pickDate = new Date(entry.date);
+    const daysPassed = Math.floor(
+      (today.getTime() - pickDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
-            verifiedPicks.push({
-                ...pick,
-                exitPrice,
-                realizedReturn,
-                verifiedAt: new Date().toISOString()
-            });
-        }
+    // Only process ledgers that are at least a day old
+    if (daysPassed >= 1) {
+      console.log(
+        `🔍 Evaluating ledger from ${entry.date} (${daysPassed} days ago)...`,
+      );
+      await verifyLedger(entry.date, daysPassed);
     }
+  }
+}
 
-    const resultsPath = path.join(process.cwd(), 'data', 'v2', 'performance', `${dateStr}-audit.json`);
-    fs.writeFileSync(resultsPath, JSON.stringify({
-        date: dateStr,
-        totalPicks: verifiedPicks.length,
-        avgReturn: verifiedPicks.reduce((acc, p) => acc + p.realizedReturn, 0) / verifiedPicks.length,
-        picks: verifiedPicks
-    }, null, 2));
+async function verifyLedger(dateStr: string, daysPassed: number) {
+  const [year, month, day] = dateStr.split("-");
+  const ledgerPath = path.join(
+    process.cwd(),
+    "data",
+    "v2",
+    "history",
+    year,
+    month,
+    `${day}.json`,
+  );
 
-    console.log(`📊 Result for ${dateStr}: ${verifiedPicks.length} verified. Stats written to disk.`);
+  if (!fs.existsSync(ledgerPath)) return;
+
+  const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
+  const verifiedPicks = [];
+
+  for (const pick of ledger.picks) {
+    const requiredDays = parseTimeframeToDays(pick.timeframe);
+
+    // Check if this specific pick is mature enough to be verified
+    if (daysPassed >= requiredDays) {
+      console.log(
+        `  ↪ Checking ${pick.symbol} (timeframe: ${pick.timeframe}, days passed: ${daysPassed})...`,
+      );
+      const currentData = await fetchStockData(pick.symbol);
+
+      if (currentData) {
+        const entryPrice = pick.metrics.price || pick.price; // Fallback to recorded price
+        const exitPrice = currentData.price;
+        const realizedReturn = ((exitPrice - entryPrice) / entryPrice) * 100;
+
+        verifiedPicks.push({
+          ...pick,
+          exitPrice,
+          realizedReturn,
+          verifiedAt: new Date().toISOString(),
+        });
+      }
+    }
+  }
+
+  if (verifiedPicks.length > 0) {
+    const resultsPath = path.join(
+      process.cwd(),
+      "data",
+      "v2",
+      "performance",
+      `${dateStr}-audit.json`,
+    );
+    fs.writeFileSync(
+      resultsPath,
+      JSON.stringify(
+        {
+          date: dateStr,
+          totalPicks: verifiedPicks.length,
+          avgReturn:
+            verifiedPicks.reduce((acc, p) => acc + p.realizedReturn, 0) /
+            verifiedPicks.length,
+          picks: verifiedPicks,
+        },
+        null,
+        2,
+      ),
+    );
+
+    console.log(
+      `📊 Result for ${dateStr}: ${verifiedPicks.length} picks mature and verified. Stats written to disk.`,
+    );
+  } else {
+    console.log(
+      `  -> No picks from ${dateStr} are mature for verification yet.`,
+    );
+  }
 }
 
 main();

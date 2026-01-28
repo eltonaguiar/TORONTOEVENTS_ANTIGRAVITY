@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-01-28T02:50:07.369Z",
+  "lastUpdated": "2026-01-28T07:07:26.171Z",
   "totalPicks": 30,
   "stocks": [
     {
@@ -15,15 +15,20 @@
       "risk": "High",
       "stopLoss": 82.42,
       "indicators": {
-        "rsi": 59,
-        "rsiZScore": 0.51,
-        "volumeSurge": 2.33,
-        "volumeZScore": 3.01,
+        "rsi": 58.92,
+        "rsiZScore": 0.5089749936982882,
+        "volZ": 3.005510966676175,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 2.64
+        "bollinger": {
+          "bandWidth": 0.09151261635629802,
+          "squeeze": true
+        },
+        "atr": 2.6399999346051897
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 86.81189999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "af94d8a220ea97acc176bc05b6c98c18a0254317f377a964d4be50bb221499da"
     },
     {
       "symbol": "PFE",
@@ -38,15 +43,20 @@
       "risk": "High",
       "stopLoss": 25.69,
       "indicators": {
-        "rsi": 65,
-        "rsiZScore": 0.91,
-        "volumeSurge": 1.42,
-        "volumeZScore": 2.48,
+        "rsi": 64.58,
+        "rsiZScore": 0.9127449414601484,
+        "volZ": 2.479341772406557,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 0.54
+        "bollinger": {
+          "bandWidth": 0.06289706999942056,
+          "squeeze": true
+        },
+        "atr": 0.5421427318028041
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 26.632499999999997,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "73a5de85aeb3cca729ee4d733fd49119cdc7997e1b50b51d714fb63668da962f"
     },
     {
       "symbol": "PFE",
@@ -61,15 +71,20 @@
       "risk": "High",
       "stopLoss": 25.69,
       "indicators": {
-        "rsi": 65,
-        "rsiZScore": 0.91,
-        "volumeSurge": 1.42,
-        "volumeZScore": 2.48,
+        "rsi": 64.58,
+        "rsiZScore": 0.9127449414601484,
+        "volZ": 2.479341772406557,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 0.54
+        "bollinger": {
+          "bandWidth": 0.06289706999942056,
+          "squeeze": true
+        },
+        "atr": 0.5421427318028041
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 26.632499999999997,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "47b85489f82e73d2384ae9b7619766b4b2c0d3cf8ccc5bc9f684ed190949c7ec"
     },
     {
       "symbol": "F",
@@ -84,15 +99,20 @@
       "risk": "High",
       "stopLoss": 13.44,
       "indicators": {
-        "rsi": 52,
-        "rsiZScore": -0.37,
-        "volumeSurge": 1.81,
-        "volumeZScore": 1.44,
+        "rsi": 52.06,
+        "rsiZScore": -0.36841954274371297,
+        "volZ": 1.4354459798442283,
         "breakout": false,
-        "bollingerSqueeze": true,
-        "atr": 0.33
+        "bollinger": {
+          "bandWidth": 0.09716196247988991,
+          "squeeze": true
+        },
+        "atr": 0.32928575788225445
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 13.999649999999999,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "e9da6d8b0f63d9114de179bde6a95b3c294a41f87be623d07642d8504157cdc0"
     },
     {
       "symbol": "GM",
@@ -107,53 +127,20 @@
       "risk": "High",
       "stopLoss": 82.42,
       "indicators": {
-        "rsi": 59,
-        "rsiZScore": 0.51,
-        "volumeSurge": 2.33,
-        "volumeZScore": 3.01,
+        "rsi": 58.92,
+        "rsiZScore": 0.5089749936982882,
+        "volZ": 3.005510966676175,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 2.64
+        "bollinger": {
+          "bandWidth": 0.09151261635629802,
+          "squeeze": true
+        },
+        "atr": 2.6399999346051897
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "PFE",
-      "name": "Pfizer Inc.",
-      "price": 26.5,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "STRONG BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 75,
-      "risk": "Medium",
-      "stopLoss": 25.14,
-      "indicators": {
-        "rsi": 65,
-        "volumeZScore": 2.48,
-        "atr": 0.54
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "GM",
-      "name": "General Motors Company",
-      "price": 86.38,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "STRONG BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 75,
-      "risk": "Medium",
-      "stopLoss": 79.78,
-      "indicators": {
-        "rsi": 59,
-        "volumeZScore": 3.01,
-        "atr": 2.64
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 86.81189999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "b1bed410c7ee8a15b9d8a91d53b83cb5b39cb0a200507024eb620730ce496415"
     },
     {
       "symbol": "SBUX",
@@ -168,30 +155,268 @@
       "risk": "Medium",
       "stopLoss": 89.8,
       "indicators": {
-        "rsi": 68,
-        "volumeZScore": 1.73,
-        "atr": 2.37
+        "rsi": 68.01,
+        "volZ": 1.7284805987103846,
+        "atr": 2.3664272853306363,
+        "ytdPerf": 13.993091114067848,
+        "regime": "neutral"
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 96.19859999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "7fe2c98536c3e2a01bae4ef16993d74965fd9e8752a8f2ebd23193f74803538a"
     },
     {
-      "symbol": "F",
-      "name": "Ford Motor Company",
-      "price": 13.93,
+      "symbol": "WMT",
+      "name": "Walmart Inc.",
+      "price": 116.94,
       "change": 0,
       "changePercent": 0,
-      "rating": "STRONG BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 80,
+      "risk": "Medium",
+      "stopLoss": 111.43,
+      "indicators": {
+        "rsi": 58.68,
+        "adx": 21,
+        "ao": 2.8155585569493837,
+        "vcp": true,
+        "institutionalFootprint": true,
+        "atr": 2.752856118338449
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 117.52469999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "5d0b8156886b11b4d72c357b20c18375ace32fdd71e0d76a9555dbc1d68b46e3"
+    },
+    {
+      "symbol": "PFE",
+      "name": "Pfizer Inc.",
+      "price": 26.5,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 80,
+      "risk": "Medium",
+      "stopLoss": 25.42,
+      "indicators": {
+        "rsi": 64.58,
+        "adx": 23.69,
+        "ao": 0.4115882929633621,
+        "vcp": true,
+        "institutionalFootprint": true,
+        "atr": 0.5421427318028041
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 26.632499999999997,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "e0c1f53bed84713b11f3ae390c772ffe2bcf50b6b25f7e0f5e18ae674ba047d7"
+    },
+    {
+      "symbol": "XOM",
+      "name": "Exxon Mobil Corporation",
+      "price": 136.83,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 75,
+      "risk": "Medium",
+      "stopLoss": 131.35,
+      "indicators": {
+        "rsi": 82.26,
+        "adx": 39.51,
+        "ao": 11.31799899830537,
+        "vcp": true,
+        "institutionalFootprint": true,
+        "atr": 2.741426740373884
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 137.51415,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "872b89cbd728b11a7e42fe8e9e0e0867eb04e64bc8f507bd079cbfba37aa9dd0"
+    },
+    {
+      "symbol": "CVX",
+      "name": "Chevron Corporation",
+      "price": 169.05,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 75,
+      "risk": "Medium",
+      "stopLoss": 163.11,
+      "indicators": {
+        "rsi": 82.23,
+        "adx": 39.39,
+        "ao": 10.632675619686353,
+        "vcp": true,
+        "institutionalFootprint": true,
+        "atr": 2.9678573608398438
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 169.89525,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "0d508b0996e972102b40249eacdf65ae6648c72a85877da6d1b972dfafc93c31"
+    },
+    {
+      "symbol": "PFE",
+      "name": "Pfizer Inc.",
+      "price": 26.5,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM",
+      "score": 75,
+      "risk": "Medium",
+      "stopLoss": 25.42,
+      "indicators": {
+        "rsRating": 50,
+        "rsi": 64.58,
+        "stage2": true,
+        "volZ": 2.479341772406557,
+        "atr": 0.5421427318028041,
+        "vcp": true,
+        "institutionalFootprint": true
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 26.632499999999997,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "fb5499948cea16f6a2dc58cfb7014a1bc217cb567aba2d95fb009f89f7146f14"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet Inc.",
+      "price": 334.55,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
       "score": 70,
       "risk": "Medium",
-      "stopLoss": 13.11,
+      "stopLoss": 318.41,
       "indicators": {
-        "rsi": 52,
-        "volumeZScore": 1.44,
-        "atr": 0.33
+        "rsi": 68.93,
+        "adx": 27.13,
+        "ao": 11.914710459989635,
+        "vcp": false,
+        "institutionalFootprint": true,
+        "atr": 8.069996425083705
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 336.22274999999996,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "4eb27ee4bdeec27575296bfdd378add54617df8994d31332c1f2dd8ed1ab703e"
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "price": 188.52,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 70,
+      "risk": "Medium",
+      "stopLoss": 178.66,
+      "indicators": {
+        "rsi": 51.8,
+        "adx": 10.3,
+        "ao": 1.61585302913889,
+        "vcp": true,
+        "institutionalFootprint": true,
+        "atr": 4.930712018694196
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 189.46259999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "ccc362fe1cdefcbad97cbff81d159f2d285549adf9e33ef797a389a61796f280"
+    },
+    {
+      "symbol": "INTC",
+      "name": "Intel Corporation",
+      "price": 43.93,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 70,
+      "risk": "Medium",
+      "stopLoss": 36.68,
+      "indicators": {
+        "rsi": 55.24,
+        "adx": 34.65,
+        "ao": 6.312235293668863,
+        "vcp": false,
+        "institutionalFootprint": true,
+        "atr": 3.625713348388672
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 44.149649999999994,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "19f3b9088f3c8b3a45c399937f78f6cf6666d94c8207c747db173ff7033e9c36"
+    },
+    {
+      "symbol": "WMT",
+      "name": "Walmart Inc.",
+      "price": 116.94,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM",
+      "score": 70,
+      "risk": "Medium",
+      "stopLoss": 111.43,
+      "indicators": {
+        "rsRating": 50,
+        "rsi": 58.68,
+        "stage2": true,
+        "volZ": -0.25186084519531676,
+        "atr": 2.752856118338449,
+        "vcp": true,
+        "institutionalFootprint": true
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 117.52469999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "acc72e9743a43a1ad5a744303e4d6683f0760e1c7a1e10b990f97e1b14116d19"
+    },
+    {
+      "symbol": "SBUX",
+      "name": "Starbucks Corporation",
+      "price": 95.72,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 70,
+      "risk": "Medium",
+      "stopLoss": 90.99,
+      "indicators": {
+        "rsi": 68.01,
+        "adx": 31.14,
+        "ao": 7.945265040678137,
+        "vcp": false,
+        "institutionalFootprint": true,
+        "atr": 2.3664272853306363
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 96.19859999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "13a54984c4b33bf837e3cc6116efb7968ff91e0bee0540fbc751871a2964183f"
     },
     {
       "symbol": "UNH",
@@ -206,15 +431,20 @@
       "risk": "High",
       "stopLoss": 262.64,
       "indicators": {
-        "rsi": 26,
-        "rsiZScore": -3.62,
-        "volumeSurge": 8.16,
-        "volumeZScore": 4.28,
+        "rsi": 25.83,
+        "rsiZScore": -3.6191174922005382,
+        "volZ": 4.28376191607714,
         "breakout": false,
-        "bollingerSqueeze": false,
-        "atr": 13.37
+        "bollinger": {
+          "bandWidth": 0.17689473002759998,
+          "squeeze": false
+        },
+        "atr": 13.372146606445312
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 284.11349999999993,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "f934685236ceebf011cf5bbd55fb8a357b58693488165af844910000a373e1db"
     },
     {
       "symbol": "GM",
@@ -229,15 +459,196 @@
       "risk": "High",
       "stopLoss": 82.42,
       "indicators": {
-        "rsi": 59,
-        "rsiZScore": 0.51,
-        "volumeSurge": 2.33,
-        "volumeZScore": 3.01,
+        "rsi": 58.92,
+        "rsiZScore": 0.5089749936982882,
+        "volZ": 3.005510966676175,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 2.64
+        "bollinger": {
+          "bandWidth": 0.09151261635629802,
+          "squeeze": true
+        },
+        "atr": 2.6399999346051897
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 86.81189999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "eb14451ab0a01cc0966063ddd32c547222c1d6bcd724072a384e8ce07c984f7c"
+    },
+    {
+      "symbol": "META",
+      "name": "Meta Platforms, Inc.",
+      "price": 672.97,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 65,
+      "risk": "Medium",
+      "stopLoss": 638.15,
+      "indicators": {
+        "rsi": 54.12,
+        "adx": 22.75,
+        "ao": -1.6125296200023058,
+        "vcp": true,
+        "institutionalFootprint": true,
+        "atr": 17.412152971540177
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 676.33485,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "5fb63b5b53102523b28759b2852bc9f13cde3b921237d149f79a41cf6a73ea5c"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "price": 224.44,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 65,
+      "risk": "Medium",
+      "stopLoss": 215.93,
+      "indicators": {
+        "rsi": 83.91,
+        "adx": 23.53,
+        "ao": 9.438440794103286,
+        "vcp": true,
+        "institutionalFootprint": true,
+        "atr": 4.2528566632952005
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 225.56219999999996,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "8c5101e5948ad04bd0d43c95a5749ff0c6c1c5e370ed34db3883d84c210d075a"
+    },
+    {
+      "symbol": "PFE",
+      "name": "Pfizer Inc.",
+      "price": 26.5,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "1m",
+      "algorithm": "Composite Rating",
+      "score": 65,
+      "risk": "Medium",
+      "stopLoss": 25.14,
+      "indicators": {
+        "rsi": 64.58,
+        "volZ": 2.479341772406557,
+        "atr": 0.5421427318028041,
+        "ytdPerf": 5.242254483026718,
+        "regime": "neutral"
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 26.632499999999997,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "081e6d4eea9a5a01437cd4cfdefa5593b70fb53b3151a94c8ace7879307d41c7"
+    },
+    {
+      "symbol": "GM",
+      "name": "General Motors Company",
+      "price": 86.38,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "1m",
+      "algorithm": "Composite Rating",
+      "score": 65,
+      "risk": "Medium",
+      "stopLoss": 79.78,
+      "indicators": {
+        "rsi": 58.92,
+        "volZ": 3.005510966676175,
+        "atr": 2.6399999346051897,
+        "ytdPerf": 6.668308741930977,
+        "regime": "neutral"
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 86.81189999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "e074592976a490134b0dc27009ec4db5b6d79664396394f89e99ffb27aaf8b5b"
+    },
+    {
+      "symbol": "XOM",
+      "name": "Exxon Mobil Corporation",
+      "price": 136.83,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM",
+      "score": 60,
+      "risk": "Medium",
+      "stopLoss": 131.35,
+      "indicators": {
+        "rsRating": 50,
+        "rsi": 82.26,
+        "stage2": true,
+        "volZ": -1.30420850725594,
+        "atr": 2.741426740373884,
+        "vcp": true,
+        "institutionalFootprint": true
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 137.51415,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "dd487e8858d9e67275905aa9d497a400a242be382795b76a8c27e1339c889daa"
+    },
+    {
+      "symbol": "CVX",
+      "name": "Chevron Corporation",
+      "price": 169.05,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM",
+      "score": 60,
+      "risk": "Medium",
+      "stopLoss": 163.11,
+      "indicators": {
+        "rsRating": 50,
+        "rsi": 82.23,
+        "stage2": true,
+        "volZ": -0.28061735300373086,
+        "atr": 2.9678573608398438,
+        "vcp": true,
+        "institutionalFootprint": true
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 169.89525,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "11258d0869c2b7eb8ba665fd6a25b61dc44d7e9ad208bf2f8bbd17f9c799dda5"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "price": 224.44,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM",
+      "score": 60,
+      "risk": "Medium",
+      "stopLoss": 215.93,
+      "indicators": {
+        "rsRating": 50,
+        "rsi": 83.91,
+        "stage2": true,
+        "volZ": -0.5419287375168562,
+        "atr": 4.2528566632952005,
+        "vcp": true,
+        "institutionalFootprint": true
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 225.56219999999996,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "e4d3eb61df595b1127ec2e24c4a4697967e90935c2d125b5e9b18f3bb93b2081"
     },
     {
       "symbol": "PFE",
@@ -252,15 +663,44 @@
       "risk": "High",
       "stopLoss": 25.69,
       "indicators": {
-        "rsi": 65,
-        "rsiZScore": 0.91,
-        "volumeSurge": 1.42,
-        "volumeZScore": 2.48,
+        "rsi": 64.58,
+        "rsiZScore": 0.9127449414601484,
+        "volZ": 2.479341772406557,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 0.54
+        "bollinger": {
+          "bandWidth": 0.06289706999942056,
+          "squeeze": true
+        },
+        "atr": 0.5421427318028041
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 26.632499999999997,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "f01fb841a0727efe60f042a3cef2d8e50a32997b228f27135c88f346af19d1e3"
+    },
+    {
+      "symbol": "F",
+      "name": "Ford Motor Company",
+      "price": 13.93,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "1m",
+      "algorithm": "Composite Rating",
+      "score": 60,
+      "risk": "Medium",
+      "stopLoss": 13.11,
+      "indicators": {
+        "rsi": 52.06,
+        "volZ": 1.4354459798442283,
+        "atr": 0.32928575788225445,
+        "ytdPerf": 4.422787411270398,
+        "regime": "neutral"
+      },
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 13.999649999999999,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "750e36ff21d745de0dad1156315f96b89a8d8b91c0f106e658c48ed930055fbf"
     },
     {
       "symbol": "MSFT",
@@ -275,15 +715,20 @@
       "risk": "High",
       "stopLoss": 464.23,
       "indicators": {
-        "rsi": 51,
-        "rsiZScore": 0.93,
-        "volumeSurge": 1.17,
-        "volumeZScore": 0.58,
+        "rsi": 51.16,
+        "rsiZScore": 0.9257651618782471,
+        "volZ": 0.5782638626167698,
         "breakout": true,
-        "bollingerSqueeze": false,
-        "atr": 10.9
+        "bollinger": {
+          "bandWidth": 0.10470831701200276,
+          "squeeze": false
+        },
+        "atr": 10.902856009347099
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 482.9828999999999,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "7c009d54f209f351bf9eabb6af9a741dc5e1bf3ddfefbbe9bef77afa8e1444dc"
     },
     {
       "symbol": "GOOGL",
@@ -298,15 +743,20 @@
       "risk": "High",
       "stopLoss": 322.45,
       "indicators": {
-        "rsi": 69,
-        "rsiZScore": 0.06,
-        "volumeSurge": 0.54,
-        "volumeZScore": -1.46,
+        "rsi": 68.93,
+        "rsiZScore": 0.06092823056190609,
+        "volZ": -1.4568050540401967,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 8.07
+        "bollinger": {
+          "bandWidth": 0.09881921910915177,
+          "squeeze": true
+        },
+        "atr": 8.069996425083705
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 336.22274999999996,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "a31ee548288e03920764ce04068cc60d8c6abec39cda00520c8e9d55945a3ad9"
     },
     {
       "symbol": "AMZN",
@@ -321,327 +771,20 @@
       "risk": "High",
       "stopLoss": 236.48,
       "indicators": {
-        "rsi": 54,
-        "rsiZScore": -0.62,
-        "volumeSurge": 0.93,
-        "volumeZScore": -0.1,
+        "rsi": 54.37,
+        "rsiZScore": -0.617845923555358,
+        "volZ": -0.09826468861272045,
         "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 5.47
+        "bollinger": {
+          "bandWidth": 0.09944418629833081,
+          "squeeze": true
+        },
+        "atr": 5.466428484235491
       },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "META",
-      "name": "Meta Platforms, Inc.",
-      "price": 672.97,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3d",
-      "algorithm": "Technical Momentum",
-      "score": 55,
-      "risk": "High",
-      "stopLoss": 646.85,
-      "indicators": {
-        "rsi": 54,
-        "rsiZScore": 0.93,
-        "volumeSurge": 0.81,
-        "volumeZScore": -0.23,
-        "breakout": true,
-        "bollingerSqueeze": false,
-        "atr": 17.41
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "AMZN",
-      "name": "Amazon.com, Inc.",
-      "price": 244.68,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "7d",
-      "algorithm": "Technical Momentum",
-      "score": 55,
-      "risk": "High",
-      "stopLoss": 236.48,
-      "indicators": {
-        "rsi": 54,
-        "rsiZScore": -0.62,
-        "volumeSurge": 0.93,
-        "volumeZScore": -0.1,
-        "breakout": true,
-        "bollingerSqueeze": true,
-        "atr": 5.47
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "NVDA",
-      "name": "NVIDIA Corporation",
-      "price": 188.52,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "7d",
-      "algorithm": "Technical Momentum",
-      "score": 55,
-      "risk": "High",
-      "stopLoss": 181.12,
-      "indicators": {
-        "rsi": 52,
-        "rsiZScore": -0.11,
-        "volumeSurge": 0.77,
-        "volumeZScore": -0.56,
-        "breakout": false,
-        "bollingerSqueeze": true,
-        "atr": 4.93
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "ABBV",
-      "name": "AbbVie Inc.",
-      "price": 223.93,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "7d",
-      "algorithm": "Technical Momentum",
-      "score": 55,
-      "risk": "High",
-      "stopLoss": 214.95,
-      "indicators": {
-        "rsi": 50,
-        "rsiZScore": 0.26,
-        "volumeSurge": 0.91,
-        "volumeZScore": -0.47,
-        "breakout": false,
-        "bollingerSqueeze": true,
-        "atr": 5.98
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "MSFT",
-      "name": "Microsoft Corporation",
-      "price": 480.58,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 55,
-      "risk": "Medium",
-      "stopLoss": 453.32,
-      "indicators": {
-        "rsi": 51,
-        "volumeZScore": 0.58,
-        "atr": 10.9
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "GOOGL",
-      "name": "Alphabet Inc.",
-      "price": 334.55,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 55,
-      "risk": "Medium",
-      "stopLoss": 314.38,
-      "indicators": {
-        "rsi": 69,
-        "volumeZScore": -1.46,
-        "atr": 8.07
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "AMZN",
-      "name": "Amazon.com, Inc.",
-      "price": 244.68,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 55,
-      "risk": "Medium",
-      "stopLoss": 231.01,
-      "indicators": {
-        "rsi": 54,
-        "volumeZScore": -0.1,
-        "atr": 5.47
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "NVDA",
-      "name": "NVIDIA Corporation",
-      "price": 188.52,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 55,
-      "risk": "Medium",
-      "stopLoss": 176.19,
-      "indicators": {
-        "rsi": 52,
-        "volumeZScore": -0.56,
-        "atr": 4.93
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "WMT",
-      "name": "Walmart Inc.",
-      "price": 116.94,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 55,
-      "risk": "Medium",
-      "stopLoss": 110.06,
-      "indicators": {
-        "rsi": 59,
-        "volumeZScore": -0.25,
-        "atr": 2.75
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "GME",
-      "name": "GameStop Corp.",
-      "price": 24.21,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 55,
-      "risk": "Medium",
-      "stopLoss": 22.1,
-      "indicators": {
-        "rsi": 84,
-        "volumeZScore": 0.98,
-        "atr": 0.84
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "XOM",
-      "name": "Exxon Mobil Corporation",
-      "price": 136.83,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "24h",
-      "algorithm": "Technical Momentum",
-      "score": 50,
-      "risk": "High",
-      "stopLoss": 132.72,
-      "indicators": {
-        "rsi": 82,
-        "rsiZScore": 2.64,
-        "volumeSurge": 0.71,
-        "volumeZScore": -1.3,
-        "breakout": true,
-        "bollingerSqueeze": false,
-        "atr": 2.74
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "CVX",
-      "name": "Chevron Corporation",
-      "price": 169.05,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "24h",
-      "algorithm": "Technical Momentum",
-      "score": 50,
-      "risk": "High",
-      "stopLoss": 164.6,
-      "indicators": {
-        "rsi": 82,
-        "rsiZScore": 2.03,
-        "volumeSurge": 0.99,
-        "volumeZScore": -0.28,
-        "breakout": true,
-        "bollingerSqueeze": false,
-        "atr": 2.97
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "CVX",
-      "name": "Chevron Corporation",
-      "price": 169.05,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 50,
-      "risk": "Medium",
-      "stopLoss": 161.63,
-      "indicators": {
-        "rsi": 82,
-        "volumeZScore": -0.28,
-        "atr": 2.97
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "JNJ",
-      "name": "Johnson & Johnson",
-      "price": 224.44,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "1m",
-      "algorithm": "Composite Rating",
-      "score": 50,
-      "risk": "Medium",
-      "stopLoss": 213.81,
-      "indicators": {
-        "rsi": 84,
-        "volumeZScore": -0.54,
-        "atr": 4.25
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
-    },
-    {
-      "symbol": "PFE",
-      "name": "Pfizer Inc.",
-      "price": 26.5,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "HOLD",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 45,
-      "risk": "Medium",
-      "stopLoss": 25.42,
-      "indicators": {
-        "rsRating": 50,
-        "rsi": 65,
-        "stage2Uptrend": true,
-        "volumeSurge": 1.42,
-        "volumeZScore": 2.48,
-        "atr": 0.54
-      },
-      "pickedAt": "2026-01-28T02:50:07.369Z"
+      "slippageSimulated": true,
+      "simulatedEntryPrice": 245.90339999999998,
+      "pickedAt": "2026-01-28T07:07:26.171Z",
+      "pickHash": "f2e78d3baa2e7d04e211cef717a2f38366590af762119c3476b041a13572f027"
     }
   ]
 }

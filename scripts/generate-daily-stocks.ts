@@ -1,29 +1,26 @@
 #!/usr/bin/env tsx
 /**
- * Daily Stock Picks Generator
+ * Daily Stock Picks Generator (V1 Engine - Refactored)
  *
- * This script generates daily stock picks by combining multiple algorithms:
- * - CAN SLIM Growth Screener (long-term)
- * - Technical Momentum (short-term)
- * - Composite Rating (medium-term)
- *
- * Output: data/daily-stocks.json
+ * This script generates daily stock picks by combining multiple algorithms
+ * and is now refactored for efficiency and readability.
  */
 
 import * as fs from "fs";
 import * as path from "path";
-// Use enhanced fetcher with multi-API fallbacks (Yahoo, Polygon, Twelve Data, Finnhub)
-import { fetchMultipleStocks } from "./lib/stock-data-fetcher-enhanced";
+import * as crypto from "crypto";
+import { fetchMultipleStocks, fetchStockData } from "./lib/stock-data-fetcher-enhanced";
 import {
   scoreCANSLIM,
   scoreTechnicalMomentum,
   scoreComposite,
+  scorePennySniper,
+  scoreValueSleeper,
+  scoreAlphaPredator,
+  StockPick,
 } from "./lib/stock-scorers";
-import type { StockPick } from "./lib/stock-scorers";
 
-// Popular stocks to screen (mix of large cap, mid cap, and some penny stocks)
 const STOCK_UNIVERSE = [
-  // Large Cap Tech
   "AAPL",
   "MSFT",
   "GOOGL",
@@ -32,7 +29,6 @@ const STOCK_UNIVERSE = [
   "META",
   "TSLA",
   "NFLX",
-  // Growth Stocks
   "AMD",
   "INTC",
   "CRM",
@@ -41,128 +37,49 @@ const STOCK_UNIVERSE = [
   "NOW",
   "SNOW",
   "PLTR",
-  // Financials
   "JPM",
   "BAC",
   "GS",
   "MS",
   "V",
   "MA",
-  // Consumer
   "WMT",
   "TGT",
   "HD",
   "NKE",
   "SBUX",
-  // Energy
   "XOM",
   "CVX",
   "SLB",
-  // Healthcare
   "JNJ",
   "PFE",
   "UNH",
   "ABBV",
-  // Penny/Momentum (for short-term screener)
   "GME",
   "AMC",
   "BB",
   "SNDL",
   "NAKD",
-  // Additional momentum plays
   "RIVN",
   "LCID",
   "F",
   "GM",
 ];
 
-async function generateStockPicks(): Promise<StockPick[]> {
-  console.log("📊 Fetching stock data...");
-  const stockData = await fetchMultipleStocks(STOCK_UNIVERSE);
-  console.log(`✅ Fetched data for ${stockData.length} stocks`);
+const ALGORITHM_THRESHOLDS = {
+  "CAN SLIM": 40,
+  "Technical Momentum": 45,
+  "Composite Rating": 50,
+  "Penny Sniper": 60, // Stricter
+  "Value Sleeper": 50,
+  "Alpha Predator": 60 // Minimum for consideration
+};
 
-  const picks: StockPick[] = [];
-  const algorithmStats: Record<string, number> = {};
-
-  // 1. CAN SLIM Growth Screener (Long-term: 3m, 6m, 1y)
-  console.log("\n🔍 Running CAN SLIM Growth Screener (Long-term)...");
-  for (const data of stockData) {
-    const score = scoreCANSLIM(data);
-    if (score && score.score >= 40) {
-      // Lower threshold to get more picks
-      picks.push(score);
-      algorithmStats[score.algorithm] =
-        (algorithmStats[score.algorithm] || 0) + 1;
-      console.log(
-        `  ✓ ${score.symbol}: ${score.score}/100 (${score.rating}) - ${score.timeframe}`,
-      );
-    }
-  }
-
-  // 2. Technical Momentum - All Timeframes
-  const momentumTimeframes: Array<"24h" | "3d" | "7d"> = ["24h", "3d", "7d"];
-  for (const timeframe of momentumTimeframes) {
-    console.log(`\n🔍 Running Technical Momentum Screener (${timeframe})...`);
-    for (const data of stockData) {
-      const score = scoreTechnicalMomentum(data, timeframe);
-      if (score && score.score >= 45) {
-        // Lower threshold for more picks
-        picks.push(score);
-        algorithmStats[`Technical Momentum (${timeframe})`] =
-          (algorithmStats[`Technical Momentum (${timeframe})`] || 0) + 1;
-        console.log(
-          `  ✓ ${score.symbol}: ${score.score}/100 (${score.rating})`,
-        );
-      }
-    }
-  }
-
-  // 3. Composite Rating Engine (Medium-term: 1m, 3m)
-  console.log("\n🔍 Running Composite Rating Engine (Medium-term)...");
-  for (const data of stockData) {
-    const score = scoreComposite(data);
-    if (score && score.score >= 50) {
-      // Keep threshold for quality
-      picks.push(score);
-      algorithmStats[score.algorithm] =
-        (algorithmStats[score.algorithm] || 0) + 1;
-      console.log(`  ✓ ${score.symbol}: ${score.score}/100 (${score.rating})`);
-    }
-  }
-
-  // Print algorithm statistics
-  console.log("\n📊 Algorithm Statistics:");
-  for (const [algorithm, count] of Object.entries(algorithmStats)) {
-    console.log(`  • ${algorithm}: ${count} picks`);
-  }
-
-  // Group picks by algorithm for better organization
-  const picksByAlgorithm = new Map<string, StockPick[]>();
-  for (const pick of picks) {
-    const key = pick.algorithm;
-    if (!picksByAlgorithm.has(key)) {
-      picksByAlgorithm.set(key, []);
-    }
-    picksByAlgorithm.get(key)!.push(pick);
-  }
-
-  // Sort each algorithm's picks by score
-  for (const [algorithm, algorithmPicks] of picksByAlgorithm.entries()) {
-    algorithmPicks.sort((a, b) => b.score - a.score);
-  }
-
-  // Combine picks: prioritize STRONG BUY, then BUY, sorted by score
-  const strongBuys = picks
-    .filter((p) => p.rating === "STRONG BUY")
-    .sort((a, b) => b.score - a.score);
-  const buys = picks
-    .filter((p) => p.rating === "BUY")
-    .sort((a, b) => b.score - a.score);
-  const holds = picks
-    .filter((p) => p.rating === "HOLD")
-    .sort((a, b) => b.score - a.score);
-
-  // Remove duplicates (same symbol + algorithm) - keep highest score
+/**
+ * Takes a raw array of picks, de-duplicates, sorts, and returns the top 30.
+ */
+function processAndRankPicks(picks: StockPick[]): StockPick[] {
+  // Remove duplicates (same symbol + algorithm + timeframe) - keep highest score
   const uniquePicks = new Map<string, StockPick>();
   for (const pick of picks) {
     const key = `${pick.symbol}-${pick.algorithm}-${pick.timeframe}`;
@@ -177,117 +94,212 @@ async function generateStockPicks(): Promise<StockPick[]> {
   // Sort by rating priority (STRONG BUY > BUY > HOLD) then by score
   finalPicks.sort((a, b) => {
     const ratingOrder = { "STRONG BUY": 3, BUY: 2, HOLD: 1, SELL: 0 };
-    const ratingDiff = ratingOrder[b.rating] - ratingOrder[a.rating];
+    const ratingDiff =
+      (ratingOrder[b.rating] || 0) - (ratingOrder[a.rating] || 0);
     if (ratingDiff !== 0) return ratingDiff;
     return b.score - a.score;
   });
 
-  // Return top picks (increased limit to show more variety)
   return finalPicks.slice(0, 30);
 }
 
+
+/**
+ * Detect Global Market Regime using SPY
+ * Bull: Price > 200 SMA
+ * Bear: Price < 200 SMA
+ */
+async function determineMarketRegime(): Promise<"bull" | "bear" | "neutral"> {
+  const spyData = await fetchStockData("SPY");
+
+  if (!spyData || !spyData.price || !spyData.history || spyData.history.length < 200) {
+    console.warn("⚠️ Could not fetch SPY data for regime detection. Defaulting to NEUTRAL.");
+    return "neutral";
+  }
+
+  // Calculate 200 SMA manually if not pre-calculated
+  const closes = spyData.history.map(h => h.close);
+  const sma200 = closes.slice(-200).reduce((a, b) => a + b, 0) / 200;
+
+  const regime = spyData.price > sma200 ? "bull" : "bear";
+  console.log(`🌍 Market Regime Detected (SPY vs 200 SMA): ${regime.toUpperCase()} (SPY: ${spyData.price}, SMA200: ${sma200.toFixed(2)})`);
+
+  return regime;
+}
+
+async function generateStockPicks(): Promise<StockPick[]> {
+  console.log("📊 Fetching stock data for V2 Scientific Engine...");
+
+  // 1. Detect Regime First (Scientific Validation Step 1)
+  const regime = await determineMarketRegime();
+  if (regime === "bear") {
+    console.log("🛑 BEAR MARKET DETECTED. Engine will apply strict penalties to all long signals.");
+  }
+
+  const stockData = await fetchMultipleStocks(STOCK_UNIVERSE);
+  console.log(
+    `✅ Fetched data for ${stockData.length} stocks. Running V2 Regime-Aware Scorers...`,
+  );
+
+  const allFoundPicks: StockPick[] = [];
+  const momentumTimeframes: Array<"24h" | "3d" | "7d"> = ["24h", "3d", "7d"];
+
+  for (const data of stockData) {
+    // 1. CAN SLIM
+    const canslimScore = scoreCANSLIM(data, regime);
+    if (
+      canslimScore &&
+      canslimScore.score >= ALGORITHM_THRESHOLDS["CAN SLIM"]
+    ) {
+      allFoundPicks.push(canslimScore);
+    }
+
+    // 2. Technical Momentum (all timeframes)
+    // Momentum strategies are less regime-dependent but higher risk
+    for (const timeframe of momentumTimeframes) {
+      const momentumScore = scoreTechnicalMomentum(data, timeframe);
+      if (
+        momentumScore &&
+        momentumScore.score >= ALGORITHM_THRESHOLDS["Technical Momentum"]
+      ) {
+        allFoundPicks.push(momentumScore);
+      }
+    }
+
+    // 3. Composite Rating
+    const compositeScore = scoreComposite(data, regime);
+    if (
+      compositeScore &&
+      compositeScore.score >= ALGORITHM_THRESHOLDS["Composite Rating"]
+    ) {
+      allFoundPicks.push(compositeScore);
+    }
+
+    // 4. Penny Sniper
+    const pennyScore = scorePennySniper(data);
+    if (pennyScore && pennyScore.score >= ALGORITHM_THRESHOLDS["Penny Sniper"]) {
+      allFoundPicks.push(pennyScore);
+    }
+
+    // 5. Value Sleeper
+    const valueScore = scoreValueSleeper(data);
+    if (valueScore && valueScore.score >= ALGORITHM_THRESHOLDS["Value Sleeper"]) {
+      allFoundPicks.push(valueScore);
+    }
+
+    // 6. Alpha Predator (The Scientific Composite)
+    const alphaScore = scoreAlphaPredator(data, regime);
+    if (alphaScore && alphaScore.score >= ALGORITHM_THRESHOLDS["Alpha Predator"]) {
+      allFoundPicks.push(alphaScore);
+    }
+  }
+
+  console.log(
+    `🔍 Found ${allFoundPicks.length} potential picks (pre-filtering).`,
+  );
+
+  const rankedPicks = processAndRankPicks(allFoundPicks);
+
+  // Scientific Validation Step 2: Slippage Torture
+  // Simulate buying at worst-case prices (e.g., +0.5% slippage on entry)
+  // For generation purposes, we just log this as metadata, but we could filter out marginally profitable ones.
+  // Here we just attach the metadata.
+  const torturedPicks = rankedPicks.map(p => ({
+    ...p,
+    slippageSimulated: true,
+    simulatedEntryPrice: p.price * 1.005 // +0.5% slippage
+  }));
+
+  return torturedPicks;
+}
+
+function logSummary(picks: StockPick[]) {
+  console.log("\n📊 V1 Engine Summary:");
+  console.log(`  • Total Picks Generated: ${picks.length}`);
+  console.log(
+    `  • STRONG BUY: ${picks.filter((s) => s.rating === "STRONG BUY").length}`,
+  );
+  console.log(`  • BUY: ${picks.filter((s) => s.rating === "BUY").length}`);
+  console.log(`  • HOLD: ${picks.filter((s) => s.rating === "HOLD").length}`);
+
+  const byAlgorithm = new Map<string, StockPick[]>();
+  for (const pick of picks) {
+    // Group by main algorithm, not timeframe specific
+    const key = pick.algorithm;
+    if (!byAlgorithm.has(key)) {
+      byAlgorithm.set(key, []);
+    }
+    byAlgorithm.get(key)!.push(pick);
+  }
+
+  console.log("\n📈 Picks by Algorithm:");
+  for (const [algorithm, algorithmPicks] of byAlgorithm.entries()) {
+    algorithmPicks.sort((a, b) => b.score - a.score); // Sort before getting top pick
+    console.log(`  • ${algorithm}: ${algorithmPicks.length} picks`);
+    const topPick = algorithmPicks[0];
+    if (topPick) {
+      console.log(
+        `    Top: ${topPick.symbol} (${topPick.score}/100, ${topPick.rating})`,
+      );
+    }
+  }
+
+  if (picks.length > 0) {
+    console.log(
+      `\n🏆 Top Overall V1 Pick: ${picks[0].symbol} (${picks[0].score}/100, ${picks[0].rating})`,
+    );
+  }
+}
+
 async function main() {
-  console.log("📈 Generating daily stock picks...\n");
+  console.log("📈 Generating V1 daily stock picks...\n");
 
   try {
-    const stocks = await generateStockPicks();
+    const finalPicks = await generateStockPicks();
     const lastUpdated = new Date().toISOString();
 
-    // Stamp each pick with prediction timestamp for retroactive analysis
-    const stampedStocks = stocks.map((s) => ({
-      ...s,
-      pickedAt: lastUpdated,
-    }));
+    const stampedPicks = finalPicks.map((p) => {
+      // Create a deterministic hash of the pick content (Symbol + Score + Algo + Rating)
+      // This serves as the "Immutable Audit Trail" validation signature
+      const contentToHash = `${p.symbol}-${p.score}-${p.algorithm}-${p.rating}-${lastUpdated}`;
+      const pickHash = crypto.createHash("sha256").update(contentToHash).digest("hex");
+
+      return {
+        ...p,
+        pickedAt: lastUpdated,
+        pickHash,
+      };
+    });
 
     const output = {
       lastUpdated,
-      totalPicks: stampedStocks.length,
-      stocks: stampedStocks,
+      totalPicks: stampedPicks.length,
+      stocks: stampedPicks,
     };
 
-    // Ensure data directory exists
     const dataDir = path.join(process.cwd(), "data");
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-
-    // Archive today's picks by date (YYYY-MM-DD) for historical backtest
     const archiveDir = path.join(dataDir, "picks-archive");
-    if (!fs.existsSync(archiveDir)) {
-      fs.mkdirSync(archiveDir, { recursive: true });
-    }
-    const dateKey = lastUpdated.slice(0, 10); // YYYY-MM-DD
-    const archivePath = path.join(archiveDir, `${dateKey}.json`);
-    fs.writeFileSync(
-      archivePath,
-      JSON.stringify(
-        {
-          lastUpdated,
-          totalPicks: stampedStocks.length,
-          stocks: stampedStocks,
-        },
-        null,
-        2,
-      ),
-    );
-    console.log(`📁 Archived to ${archivePath}`);
+    const publicDataDir = path.join(process.cwd(), "public", "data");
 
-    // Write to data/daily-stocks.json
+    fs.mkdirSync(archiveDir, { recursive: true });
+    fs.mkdirSync(publicDataDir, { recursive: true });
+
+    const dateKey = lastUpdated.slice(0, 10);
+    const archivePath = path.join(archiveDir, `${dateKey}.json`);
+    fs.writeFileSync(archivePath, JSON.stringify(output, null, 2));
+    console.log(`\n📁 Archived to ${archivePath}`);
+
     const outputPath = path.join(dataDir, "daily-stocks.json");
     fs.writeFileSync(outputPath, JSON.stringify(output, null, 2));
-
-    console.log(`\n✅ Generated ${stampedStocks.length} stock picks`);
     console.log(`📁 Saved to: ${outputPath}`);
 
-    // Also write to public/data for web access
-    const publicDataDir = path.join(process.cwd(), "public", "data");
-    if (!fs.existsSync(publicDataDir)) {
-      fs.mkdirSync(publicDataDir, { recursive: true });
-    }
     const publicOutputPath = path.join(publicDataDir, "daily-stocks.json");
     fs.writeFileSync(publicOutputPath, JSON.stringify(output, null, 2));
     console.log(`📁 Also saved to: ${publicOutputPath}`);
-    console.log(`📅 All picks stamped with pickedAt: ${lastUpdated}`);
 
-    // Print detailed summary
-    console.log("\n📊 Summary:");
-    console.log(`  • Total Picks: ${stampedStocks.length}`);
-    console.log(
-      `  • STRONG BUY: ${stampedStocks.filter((s) => s.rating === "STRONG BUY").length}`,
-    );
-    console.log(
-      `  • BUY: ${stampedStocks.filter((s) => s.rating === "BUY").length}`,
-    );
-    console.log(
-      `  • HOLD: ${stampedStocks.filter((s) => s.rating === "HOLD").length}`,
-    );
-
-    // Group by algorithm
-    const byAlgorithm = new Map<string, StockPick[]>();
-    for (const stock of stampedStocks) {
-      const key = stock.algorithm;
-      if (!byAlgorithm.has(key)) {
-        byAlgorithm.set(key, []);
-      }
-      byAlgorithm.get(key)!.push(stock);
-    }
-
-    console.log("\n📈 Picks by Algorithm:");
-    for (const [algorithm, algorithmStocks] of byAlgorithm.entries()) {
-      console.log(`  • ${algorithm}: ${algorithmStocks.length} picks`);
-      const topPick = algorithmStocks[0];
-      if (topPick) {
-        console.log(
-          `    Top: ${topPick.symbol} (${topPick.score}/100, ${topPick.rating})`,
-        );
-      }
-    }
-
-    console.log(
-      `\n🏆 Top Overall Pick: ${stampedStocks[0]?.symbol} (${stampedStocks[0]?.score}/100, ${stampedStocks[0]?.rating})`,
-    );
+    logSummary(stampedPicks);
   } catch (error) {
-    console.error("❌ Error generating stock picks:", error);
+    console.error("❌ Error generating V1 stock picks:", error);
     process.exit(1);
   }
 }

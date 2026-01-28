@@ -86,13 +86,16 @@ jobs:
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
-        run: npx tsx scripts/v2/verify-performance.ts
+        run: npm run stocks:v2:verify
+
+      - name: Aggregate Performance Reports
+        run: npm run stocks:v2:aggregate
 
       - name: Commit Performance Report
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action [Truth Engine]"
           DATE=$(date +'%Y-%m-%d')
-          git add data/v2/performance/
+          git add data/v2/performance/ public/data/v2/performance-report.json
           git commit -m "TRUTH ENGINE: Weekly Verification for $DATE" || echo "No changes to commit"
           git push

@@ -12,6 +12,15 @@
 
 import { STOCK_API_KEYS, API_PRIORITY } from "./stock-api-keys";
 
+export interface StockHistory {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
 export interface StockData {
   symbol: string;
   name: string;
@@ -22,16 +31,12 @@ export interface StockData {
   avgVolume: number;
   marketCap?: number;
   pe?: number;
+  roe?: number;
+  debtToEquity?: number;
+  sharesOutstanding?: number;
   high52Week?: number;
   low52Week?: number;
-  history?: {
-    date: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-  }[];
+  history?: StockHistory[];
 }
 
 /**
@@ -72,7 +77,7 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
     const avgVolume =
       recentVolumes.length > 0
         ? recentVolumes.reduce((a: number, b: number) => a + b, 0) /
-          recentVolumes.length
+        recentVolumes.length
         : meta.regularMarketVolume || 0;
 
     const history = timestamps
@@ -86,7 +91,7 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
       }))
       .filter((h: any) => h.close > 0);
 
-    let marketCap, pe, high52Week, low52Week;
+    let marketCap, pe, roe, debtToEquity, sharesOutstanding, high52Week, low52Week;
     if (infoResponse?.ok) {
       try {
         const infoData = await infoResponse.json();
@@ -98,6 +103,10 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
           pe = summary.defaultKeyStatistics?.trailingPE?.raw;
           high52Week = summary.defaultKeyStatistics?.fiftyTwoWeekHigh?.raw;
           low52Week = summary.defaultKeyStatistics?.fiftyTwoWeekLow?.raw;
+          // New Fundamental Fields
+          roe = summary.financialData?.returnOnEquity?.raw;
+          debtToEquity = summary.financialData?.debtToEquity?.raw;
+          sharesOutstanding = summary.defaultKeyStatistics?.sharesOutstanding?.raw;
         }
       } catch (e) {
         // Ignore
@@ -114,6 +123,9 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
       avgVolume,
       marketCap,
       pe,
+      roe,
+      debtToEquity,
+      sharesOutstanding,
       high52Week,
       low52Week,
       history,
@@ -193,7 +205,7 @@ async function fetchFromPolygon(symbol: string): Promise<StockData | null> {
     const avgVolume =
       recentVolumes.length > 0
         ? recentVolumes.reduce((a: number, b: number) => a + b, 0) /
-          recentVolumes.length
+        recentVolumes.length
         : volume;
 
     return {
@@ -287,7 +299,7 @@ async function fetchFromFinnhub(symbol: string): Promise<StockData | null> {
     const avgVolume =
       recentVolumes.length > 0
         ? recentVolumes.reduce((a: number, b: number) => a + b, 0) /
-          recentVolumes.length
+        recentVolumes.length
         : volume;
 
     return {
@@ -364,7 +376,7 @@ async function fetchFromTwelveData(symbol: string): Promise<StockData | null> {
         avgVolume =
           recentVolumes.length > 0
             ? recentVolumes.reduce((a: number, b: number) => a + b, 0) /
-              recentVolumes.length
+            recentVolumes.length
             : 0;
       }
     }

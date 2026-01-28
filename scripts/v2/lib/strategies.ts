@@ -87,6 +87,8 @@ export function scoreRAR(
   return null;
 }
 
+import { calculateYTDPerformance } from "../../lib/stock-indicators";
+
 /**
  * Strategy B: Volatility-Adjusted Momentum (VAM)
  * Ranks stocks by Return / Ulcer Index
@@ -101,6 +103,7 @@ export function scoreVAM(data: StockData): V2Pick | null {
   if (totalReturn < 5) return null;
 
   const ulcerIndex = calculateUlcerIndex(prices);
+  const ytdReturn = calculateYTDPerformance(data.history, data.price);
 
   // Performance Ratio (Similar to Martin Ratio)
   // We want maximum return with minimum drawdown "duration/depth"
@@ -119,6 +122,7 @@ export function scoreVAM(data: StockData): V2Pick | null {
       metrics: {
         ulcerIndex,
         totalReturn,
+        ytdReturn,
         martinRatio: totalReturn / ulcerIndex,
       },
       v2_hash: "vam-v2.0.0-alpha",
@@ -405,7 +409,7 @@ export function scoreInstitutionalFootprint(data: StockData): V2Pick | null {
       score: Math.round(score),
       rating: score > 85 ? "STRONG BUY" : "BUY",
       algorithm: "Institutional Footprint (V2)",
-      timeframe: "1w",
+      timeframe: "7d",
       risk:
         data.marketCap && data.marketCap > 10_000_000_000 ? "Low" : "Medium",
       metrics: {
