@@ -9,69 +9,121 @@
 
 ## Session Progress
 
-### ✅ Completed Actions
+### ✅ COMPLETED ACTIONS
 
-1. **Read and analyzed the Gemini assist plan** - Identified 4 key initiatives:
-   - Performance Truth Dashboard
-   - Genesis Daily Automation Verification
-   - Weekly Truth Engine Integration
-   - Codebase Hygiene (data fetcher unification)
+#### 1. Codebase Hygiene - Data Fetcher Unification
 
-2. **Explored codebase for data fetcher usage** - Found:
-   - Legacy: `scripts/lib/stock-data-fetcher.ts`
-   - Enhanced: `scripts/lib/stock-data-fetcher-enhanced.ts`
-   - 7 files reference data fetchers
+| Step | File | Change | Status |
+|------|------|--------|--------|
+| 1 | `scripts/lib/stock-data-fetcher-enhanced.ts` | Added `export` to `StockData` interface | ✅ Done |
+| 2 | `scripts/lib/stock-scorers.ts` | Changed import from legacy to enhanced fetcher | ✅ Done |
+| 3 | `scripts/generate-daily-stocks.ts` | Removed unused legacy import, now uses only enhanced | ✅ Done |
+| 4 | `scripts/score-one.ts` | Simplified to use only `fetchMultipleStocks` from enhanced | ✅ Done |
+| 5 | `scripts/lib/stock-data-fetcher.ts` | **DELETED** - Legacy file removed | ✅ Done |
 
-3. **Read and analyzed key files:**
-   - `stock-data-fetcher.ts` - Yahoo Finance only, exports `StockData` interface
-   - `stock-data-fetcher-enhanced.ts` - Multi-API (Yahoo, Polygon, Twelve Data, Finnhub), interface NOT exported
-   - `stock-scorers.ts` - Imports `StockData` type from legacy fetcher
-   - `generate-daily-stocks.ts` - Imports both fetchers, uses enhanced as primary
-   - `score-one.ts` - Imports both, tries enhanced first with fallback
+#### 2. STOCKSUNIFY2 Sync Script Created
 
-### 🔄 In Progress
+- **New File**: `scripts/sync-to-stocksunify2.ts`
+- **Features**:
+  - Clones/updates STOCKSUNIFY2 repo
+  - Syncs V2 current.json and history ledgers
+  - Copies research documents (STOCK_RESEARCH_ANALYSIS.md, etc.)
+  - Copies V2 engine scripts
+  - Auto-generates README.md with live stats
+  - Auto-commits and pushes to GitHub
 
-**Step 1: Codebase Hygiene - Unify Data Fetchers**
+#### 3. V2 Scientific Ledger Generated
 
-Migration plan identified:
-1. Export `StockData` interface from enhanced fetcher
-2. Update `stock-scorers.ts` to import from enhanced
-3. Remove unused legacy import from `generate-daily-stocks.ts`
-4. Simplify `score-one.ts`
-5. Delete legacy `stock-data-fetcher.ts`
+- **Command**: `npx tsx scripts/v2/generate-ledger.ts`
+- **Result**: 22 scientific picks generated
+- **Output Files**:
+  - `data/v2/history/2026/01/28.json` (immutable archive)
+  - `public/data/v2/current.json` (live site)
+  - `data/v2/ledger-index.json` (30-day index)
 
-**Action attempted:** Edit `stock-data-fetcher-enhanced.ts` to export `StockData` interface
-- Status: Interrupted by user
+#### 4. STOCKSUNIFY2 Repository Synced
 
-### ⏳ Pending Tasks
+- **Command**: `npx tsx scripts/sync-to-stocksunify2.ts`
+- **Result**: Successfully pushed to https://github.com/eltonaguiar/stocksunify2
+- **Commit**: `V2 Scientific Audit: 2026-01-28 - Auto-sync from TORONTOEVENTS_ANTIGRAVITY`
+- **Files Synced**:
+  - V2 current data and history
+  - Research documents (5 files)
+  - V2 engine scripts
+  - Enhanced data fetcher
+  - Auto-generated README.md
 
-- [ ] Export StockData interface from enhanced fetcher
-- [ ] Update stock-scorers.ts to use enhanced fetcher
-- [ ] Remove legacy import from generate-daily-stocks.ts
-- [ ] Simplify score-one.ts to use enhanced fetcher
-- [ ] Delete legacy stock-data-fetcher.ts
-- [ ] Create Performance Truth Dashboard component
-- [ ] Integrate dashboard into FindStocksV2Client
-- [ ] Update Truth Engine section with dynamic data
+#### 5. Backup Branch Created
 
----
-
-## Files Analyzed
-
-| File | Purpose | Status |
-|------|---------|--------|
-| `scripts/lib/stock-data-fetcher.ts` | Legacy Yahoo-only fetcher | To be deleted |
-| `scripts/lib/stock-data-fetcher-enhanced.ts` | Multi-API fetcher | Needs `StockData` export |
-| `scripts/lib/stock-scorers.ts` | Scoring algorithms | Needs import update |
-| `scripts/generate-daily-stocks.ts` | Daily picks generator | Has unused fallback import |
-| `scripts/score-one.ts` | CLI single stock scorer | Has fallback logic |
-| `src/app/findstocks/FindStocksV2Client.tsx` | React client | Phase 2 dashboard target |
+- **Branch**: `CLAUDE_ZED_Jan272026_1100PMEST`
+- **Pushed to**: https://github.com/eltonaguiar/TORONTOEVENTS_ANTIGRAVITY
+- **Also pushed to main branch**
 
 ---
 
-## Next Steps
+## V2 Scientific Engine Strategies
 
-1. Resume editing `stock-data-fetcher-enhanced.ts` to add `export` to `StockData` interface
-2. Continue migration sequence
-3. Test that imports work correctly
-4. Proceed to Performance Truth Dashboard implementation
+Based on `STOCK_RESEARCH_ANALYSIS.md`:
+
+| Strategy | Abbreviation | Description | Timeframe |
+|----------|--------------|-------------|-----------|
+| Regime-Aware Reversion | RAR | Buy quality stocks in uptrend with RSI dip, only in bullish regime | 7d |
+| Volatility-Adjusted Momentum | VAM | Return / Ulcer Index (Martin Ratio) ranking | 1m |
+| Liquidity-Shielded Penny | LSP | Penny stocks passing slippage torture test | 24h |
+| Scientific CAN SLIM | SCS | Traditional O'Neil + Regime Guard + Slippage Penalty | 1y |
+| Adversarial Trend | AT | Volatility-normalized trend following | 1m |
+
+---
+
+## Files Modified/Created This Session
+
+### Modified
+- `scripts/lib/stock-data-fetcher-enhanced.ts` - Added export keyword
+- `scripts/lib/stock-scorers.ts` - Updated import
+- `scripts/generate-daily-stocks.ts` - Simplified imports
+- `scripts/score-one.ts` - Simplified to single fetcher
+
+### Created
+- `scripts/sync-to-stocksunify2.ts` - New sync script for V2 repo
+- `data/v2/history/2026/01/28.json` - Today's ledger
+- `public/data/v2/current.json` - Live site data
+
+### Deleted
+- `scripts/lib/stock-data-fetcher.ts` - Legacy Yahoo-only fetcher
+
+---
+
+## Repository Status
+
+### TORONTOEVENTS_ANTIGRAVITY
+- **Branch**: main
+- **Latest Commit**: `CLAUDE_ZED: V2 Scientific Engine - Codebase hygiene, sync scripts, and ledger generation`
+- **Backup Branch**: `CLAUDE_ZED_Jan272026_1100PMEST`
+
+### STOCKSUNIFY2
+- **Branch**: main
+- **Latest Commit**: `V2 Scientific Audit: 2026-01-28 - Auto-sync from TORONTOEVENTS_ANTIGRAVITY`
+- **Contains**: V2 engine, research docs, current picks, history ledgers
+
+---
+
+## Live URLs
+
+| Resource | URL |
+|----------|-----|
+| FindStocks V1 | https://findtorontoevents.ca/findstocks |
+| FindStocks V2 | https://findtorontoevents.ca/findstocks2 |
+| STOCKSUNIFY (Classic) | https://github.com/eltonaguiar/stocksunify |
+| STOCKSUNIFY2 (Scientific) | https://github.com/eltonaguiar/stocksunify2 |
+
+---
+
+## Next Steps (From Gemini Plan)
+
+1. **Performance Truth Dashboard** - Create React component to visualize projected vs realized returns
+2. **Genesis Daily Automation Verification** - Monitor GitHub Actions on Jan 28, 2026
+3. **Weekly Truth Engine Integration** - Make performance verification dynamic on website
+
+---
+
+## Session End: Jan 27, 2026, ~11:10 PM EST
