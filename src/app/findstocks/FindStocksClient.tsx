@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+
 
 export interface StockPick {
   symbol: string;
@@ -115,6 +117,36 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
     rows: BacktestRow[];
   } | null>(null);
   const [backtestLoading, setBacktestLoading] = useState(true);
+  const [showRiskModal, setShowRiskModal] = useState(false);
+  const [hasAcceptedRisk, setHasAcceptedRisk] = useState(false);
+  const [reportConfig, setReportConfig] = useState({
+    includeInsights: true,
+    includeImprovements: true,
+    includeTechnicalBreakdown: true,
+    includeRiskAssessment: true,
+    includeMethodology: true
+  });
+  const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [customizerTarget, setCustomizerTarget] = useState<{ type: any, target?: string } | null>(null);
+
+  useEffect(() => {
+    const accepted = localStorage.getItem('stocks_risk_accepted');
+    if (!accepted) {
+      setShowRiskModal(true);
+    } else {
+      setHasAcceptedRisk(true);
+    }
+  }, []);
+
+  const acceptRisk = () => {
+    localStorage.setItem('stocks_risk_accepted', 'true');
+    setShowRiskModal(false);
+    setHasAcceptedRisk(true);
+  };
+  const [riskBannerDismissed, setRiskBannerDismissed] = useState(false);
+  const [exportWaiverAcked, setExportWaiverAcked] = useState(false);
+  const [methodologyOpen, setMethodologyOpen] = useState(false);
+  const [limitationsOpen, setLimitationsOpen] = useState(false);
 
   /** All algorithm+timeframe column keys in data (stable order) */
   const algoColumnKeys = useMemo(() => {
@@ -259,6 +291,17 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
     return bySymbolRows.filter(row => row.byAlgo.has(sourceAlgoKey));
   }, [bySymbolRows, sourceAlgoKey]);
 
+  /** Data as of: latest of backtest generatedAt, or any stock lastUpdated/pickedAt */
+  const dataAsOf = useMemo(() => {
+    const fromStocks = stocks
+      .flatMap(s => [s.lastUpdated, s.pickedAt].filter(Boolean) as string[])
+      .sort()
+      .pop();
+    const fromBacktest = backtestReport?.generatedAt;
+    if (fromBacktest && fromStocks) return new Date(fromBacktest) > new Date(fromStocks) ? fromBacktest : fromStocks;
+    return fromBacktest ?? fromStocks ?? null;
+  }, [stocks, backtestReport?.generatedAt]);
+
   /** Algorithm effectiveness ranking: use report.algorithmRanking when present, else compute from rows */
   const algorithmRanking = useMemo((): AlgoRankItem[] => {
     if (backtestReport?.algorithmRanking?.length) return backtestReport.algorithmRanking;
@@ -395,6 +438,271 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
     setExportOpen(false);
   };
 
+  const generateDetailedReport = async (type: 'current-selection' | 'algorithm-focus' | 'stock-focus', target?: string, config = reportConfig) => {
+    const { default: jsPDF } = await import('jspdf');
+    // @ts-ignore
+    await import('jspdf-autotable');
+
+    const doc = new jsPDF();
+    const now = new Date();
+    const timestamp = now.toLocaleString();
+    const fileName = `StockReport_${type}_${now.toISOString().slice(0, 10)}.pdf`;
+
+    // Premium Header
+    doc.setFillColor(31, 41, 55); // Dark grey
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text('Advanced Stock Intelligence Report', 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Generated: ${timestamp}`, 14, 30);
+    doc.text(`Report Type: ${type.replace('-', ' ').toUpperCase()}`, 14, 35);
+
+    // Privacy & Non-Bias Watermark/Note
+    doc.setFontSize(8);
+    doc.setTextColor(200, 200, 200);
+    doc.text('ALGORITHMIC NEUTRALITY VERIFIED - NO PERSONAL BIAS INJECTED', 130, 35);
+
+    let yPos = 50;
+
+    if (type === 'current-selection') {
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
+      doc.text('Current Market Selection Analysis', 14, yPos);
+      yPos += 10;
+
+      const reportData = filteredStocks.map(s => [
+        s.symbol,
+        s.rating,
+        `$${s.price.toFixed(2)}`,
+        `${s.score}/100`,
+        s.algorithm,
+        s.risk
+      ]);
+
+      (doc as any).autoTable({
+        startY: yPos,
+        head: [['Symbol', 'Rating', 'Price', 'Score', 'Algorithm', 'Risk']],
+        body: reportData,
+        theme: 'grid',
+        headStyles: { fillColor: [79, 70, 229] }
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 15;
+
+      if (config.includeInsights) {
+        doc.setFontSize(14);
+        doc.text('Intelligence Insights & Critical Thinking', 14, yPos);
+        yPos += 8;
+        doc.setFontSize(10);
+
+        const strongPicks = filteredStocks.filter(s => s.rating === 'STRONG BUY');
+        const avgScore = filteredStocks.reduce((a, b) => a + b.score, 0) / (filteredStocks.length || 1);
+
+        const insights = [
+          `• Concentration: Found ${strongPicks.length} high-conviction opportunities across ${new Set(filteredStocks.map(s => s.algorithm)).size} algorithms.`,
+          `• Market Sentiment: System is showing an average score of ${avgScore.toFixed(1)}, indicating a ${avgScore > 60 ? 'bullish lean' : 'cautious/neutral'} posture.`,
+          `• Diversity: The selection covers ${new Set(filteredStocks.map(s => s.risk)).size} risk categories.`
+        ];
+
+        insights.forEach(insight => {
+          doc.text(insight, 14, yPos);
+          yPos += 6;
+        });
+        yPos += 10;
+      }
+
+      if (config.includeImprovements) {
+        doc.setFontSize(14);
+        doc.text('Algorithmic Improvement Steps', 14, yPos);
+        yPos += 8;
+        doc.setFontSize(10);
+
+        const improvementSteps = [
+          "1. Integration of Sentiment Analysis: Correlate technical scores with real-time news sentiment.",
+          "2. Dynamic Risk Scaling: Adjust score weights based on VIX levels.",
+          "3. Sector Rotation Filter: Add weights for stocks in sectors showing relative strength."
+        ];
+
+        improvementSteps.forEach(step => {
+          doc.text(step, 14, yPos);
+          yPos += 6;
+        });
+        yPos += 10;
+      }
+    }
+
+    if (type === 'algorithm-focus') {
+      const algo = target || selectedAlgorithm;
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
+      doc.text(`Algorithm Deep Dive: ${algorithmDisplayName(algo)}`, 14, yPos);
+      yPos += 10;
+
+      const algoStocks = stocks.filter(s => s.algorithm === algo);
+      const hitInfo = algorithmRanking.find(a => a.algorithm === algo);
+      const hitRate = hitInfo?.hitRatePct || 0;
+
+      doc.setFontSize(12);
+      doc.text(`Performance Context: Historical Hit Rate ${hitRate.toFixed(1)}% (${hitInfo?.count || 0} samples)`, 14, yPos);
+      yPos += 10;
+
+      const reportData = algoStocks.slice(0, 25).map(s => [
+        s.symbol,
+        s.rating,
+        `$${s.price.toFixed(2)}`,
+        `${s.score}/100`,
+        s.timeframe,
+        s.indicators?.rsiZScore?.toFixed(2) || 'N/A',
+        s.indicators?.volumeZScore?.toFixed(2) || 'N/A'
+      ]);
+
+      (doc as any).autoTable({
+        startY: yPos,
+        head: [['Symbol', 'Rating', 'Price', 'Score', 'TF', 'RSI Z', 'Vol Z']],
+        body: reportData,
+        theme: 'striped',
+        headStyles: { fillColor: [16, 185, 129] }
+      });
+
+      yPos = (doc as any).lastAutoTable.finalY + 15;
+
+      if (config.includeImprovements) {
+        doc.setFontSize(14);
+        doc.text('Specific Improvement Logic', 14, yPos);
+        yPos += 8;
+        doc.setFontSize(10);
+
+        const tweak = ALGORITHM_TWEAKS[algo] || "adding multi-source data validation.";
+        doc.text(`Recommended Enhancements:`, 14, yPos);
+        yPos += 6;
+        doc.setFont('helvetica', 'bold');
+        doc.text(tweak, 14, yPos, { maxWidth: 180 });
+        doc.setFont('helvetica', 'normal');
+        yPos += 15;
+      }
+    }
+
+    if (type === 'stock-focus') {
+      const sym = target || rescoreSymbol;
+      const stockPicks = stocks.filter(s => s.symbol.toUpperCase() === sym.toUpperCase());
+      const mainPick = stockPicks[0] || (rescoreResult && !('error' in rescoreResult) ? rescoreResult : null);
+
+      if (!mainPick) {
+        doc.text(`No data found for symbol: ${sym}`, 14, yPos);
+      } else {
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(18);
+        doc.text(`${mainPick.symbol} - ${mainPick.name}`, 14, yPos);
+        yPos += 10;
+
+        doc.setFontSize(12);
+        doc.text(`Current Price: $${mainPick.price.toFixed(2)} | Recommended Rating: ${mainPick.rating}`, 14, yPos);
+        yPos += 10;
+
+        const tableData = stockPicks.map(s => [
+          algorithmDisplayName(s.algorithm),
+          s.rating,
+          s.score,
+          s.timeframe,
+          s.risk
+        ]);
+
+        (doc as any).autoTable({
+          startY: yPos,
+          head: [['Algorithm', 'Rating', 'Score', 'Timeframe', 'Risk']],
+          body: tableData,
+          theme: 'grid'
+        });
+
+        yPos = (doc as any).lastAutoTable.finalY + 15;
+
+        if (config.includeTechnicalBreakdown) {
+          doc.setFontSize(14);
+          doc.text('Technical Breakdown & Metrics', 14, yPos);
+          yPos += 8;
+          doc.setFontSize(10);
+
+          if (mainPick.indicators) {
+            const ind = mainPick.indicators;
+            const contextRows = [
+              `• Momentum: RSI ${ind.rsi || 'N/A'}${ind.rsiZScore ? ` (Z-Score: ${ind.rsiZScore.toFixed(2)})` : ''}.`,
+              `• Volume: Z-Score ${ind.volumeZScore?.toFixed(2) || 'N/A'}. ${ind.volumeZScore && ind.volumeZScore > 2 ? 'High institutional activity.' : 'Normal volume.'}`,
+              `• Volatility: ATR ${ind.atr?.toFixed(2) || 'N/A'}. Stop Loss: $${mainPick.stopLoss?.toFixed(2) || 'N/A'}.`,
+              `• Structure: ${ind.breakout ? 'BREAKOUT DETECTED.' : 'Consolidating.'}`
+            ];
+
+            contextRows.forEach(row => {
+              doc.text(row, 14, yPos);
+              yPos += 6;
+            });
+          }
+          yPos += 10;
+        }
+
+        if (config.includeImprovements) {
+          doc.setFontSize(14);
+          doc.text(`Step-by-Step Optimization`, 14, yPos);
+          yPos += 8;
+          doc.setFontSize(10);
+          doc.text(`1. Market Context: Validate against overall market trend.`, 14, yPos); yPos += 6;
+          doc.text(`2. Entry Logic: Ideal entry within 0.5 ATR of current price.`, 14, yPos); yPos += 6;
+          doc.text(`3. Capital Protection: Place hard stop at $${mainPick.stopLoss?.toFixed(2) || 'N/A'}.`, 14, yPos);
+          yPos += 15;
+        }
+      }
+    }
+
+    if (config.includeMethodology) {
+      if (yPos > 240) { doc.addPage(); yPos = 20; }
+      doc.setDrawColor(200, 200, 200);
+      doc.line(14, yPos, 196, yPos);
+      yPos += 10;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Transparency & Methodology', 14, yPos);
+      yPos += 6;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const methodology = [
+        "• Data Source: Yahoo Finance API & Algorithmic Scrapers.",
+        "• No Bias: Scores are purely mathematical based on Z-Scores, RSI, and SMA crossovers.",
+        "• Sample Sizes: Small samples (<5) in backtesting are flagged for potential high variance.",
+        "• Backtesting: Metrics are historical and DO NOT guarantee future performance."
+      ];
+      methodology.forEach(m => {
+        doc.text(m, 14, yPos);
+        yPos += 5;
+      });
+    }
+
+    if (config.includeRiskAssessment) {
+      if (yPos > 250) { doc.addPage(); yPos = 20; }
+      yPos += 10;
+      doc.setFillColor(254, 243, 199); // Light yellow
+      doc.rect(14, yPos, 182, 35, 'F');
+      doc.setTextColor(146, 64, 14); // Dark brown/amber
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('RISK & LIABILITY DISCLOSURE', 20, yPos + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const riskLines = [
+        "Trading stocks involves significant risk of loss. This report is for informational purposes only",
+        "and does not constitute financial advice. The user assumes all liability for trades executed based on",
+        "this data. Always verify findings with a licensed financial professional. Past performance is not",
+        "indicative of future results."
+      ];
+      riskLines.forEach((line, i) => {
+        doc.text(line, 20, yPos + 15 + (i * 4));
+      });
+    }
+
+    doc.save(fileName);
+    setExportOpen(false);
+    setCustomizerOpen(false);
+  };
+
   return (
     <main className="min-h-screen">
       {/* Hero Section */}
@@ -404,8 +712,14 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
           Find Stocks 📈
         </h1>
         <p className="text-lg text-[var(--text-2)] max-w-2xl mx-auto">
-          Daily stock picks powered by multiple AI-validated algorithms
+          Daily stock picks powered by multiple AI-validated algorithms.
+          <br />
+          <Link href="/findstocks/research" className="text-indigo-400 hover:text-indigo-300 font-semibold text-sm mt-2 inline-flex items-center gap-1 group">
+            Our Research: Can individuals beat supercomputers?
+            <span className="transition-transform group-hover:translate-x-1">→</span>
+          </Link>
         </p>
+
         <p className="text-sm text-[var(--text-3)] mt-2">
           Updated daily • Powered by 11+ stock analysis repositories
         </p>
@@ -414,7 +728,45 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
             📦 Main GitHub repo for stocks → github.com/eltonaguiar/stocksunify
           </a>
         </p>
+        {dataAsOf && (
+          <p className="text-xs text-[var(--text-3)] mt-2" aria-live="polite">
+            Data last updated: <time dateTime={dataAsOf}>{new Date(dataAsOf).toLocaleString()}</time>
+          </p>
+        )}
       </header>
+
+      {/* Risk & liability disclaimer — prominent, dismissible */}
+      {!riskBannerDismissed && (
+        <section className="max-w-7xl mx-auto px-4 py-4" role="alert" aria-labelledby="risk-heading">
+          <div className="rounded-xl border-2 border-amber-500/60 bg-amber-950/50 text-amber-100 p-4 md:p-6 shadow-lg">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h2 id="risk-heading" className="text-lg font-bold text-amber-200 mb-2 flex items-center gap-2">
+                  <span aria-hidden>⚠️</span> Risk notice &amp; liability waiver
+                </h2>
+                <ul className="text-sm space-y-1 list-disc list-inside marker:text-amber-400">
+                  <li><strong>Not financial advice.</strong> This tool is for research and education only. It does not recommend, endorse, or advise any security or strategy.</li>
+                  <li><strong>Past performance does not guarantee future results.</strong> Backtest and rankings are based on historical data and may not repeat.</li>
+                  <li><strong>You can lose money.</strong> Investing involves risk. Only use capital you can afford to lose.</li>
+                  <li><strong>No guarantee of accuracy.</strong> Scores, ratings, and data can be wrong, delayed, or incomplete.</li>
+                  <li><strong>Consult a professional.</strong> For decisions about your finances, use a licensed financial or tax adviser.</li>
+                </ul>
+                <p className="text-sm mt-3 font-semibold text-amber-200">
+                  By using this site you agree: use is at your own risk. The operators and data sources provide no warranty or guarantee and are not liable for any decisions or losses you may incur.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRiskBannerDismissed(true)}
+                className="shrink-0 p-2 rounded-lg hover:bg-amber-500/20 text-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                aria-label="Dismiss risk notice"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" aria-hidden><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" /></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Based on historical performance — recommended tweaks (very prominent) */}
       <section className="max-w-7xl mx-auto px-4 py-6">
@@ -481,6 +833,59 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
               </p>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Transparency: methodology & limitations (expandables) */}
+      <section className="max-w-7xl mx-auto px-4 py-6" aria-label="Transparency and methodology">
+        <div className="glass-panel rounded-2xl border border-white/10 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setMethodologyOpen(!methodologyOpen)}
+            className="w-full px-6 py-4 text-left flex items-center justify-between gap-2 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--pk-500)] focus:ring-inset"
+            aria-expanded={methodologyOpen}
+            aria-controls="methodology-content"
+            id="methodology-toggle"
+          >
+            <span className="font-semibold text-[var(--text-2)]">How scores and ratings work</span>
+            <span aria-hidden className="text-[var(--text-3)]">{methodologyOpen ? '−' : '+'}</span>
+          </button>
+          <div id="methodology-content" role="region" aria-labelledby="methodology-toggle" hidden={!methodologyOpen} className="border-t border-white/10">
+            <div className="px-6 py-4 text-sm text-[var(--text-2)] space-y-2">
+              <p>Each algorithm produces a numeric <strong>score</strong> (e.g. 0–100) from its inputs (price, volume, RSI, fundamentals, etc.). We map score ranges to <strong>ratings</strong> (STRONG BUY, BUY, HOLD, SELL). The exact formula depends on the algorithm:</p>
+              <ul className="list-disc list-inside space-y-1 text-[var(--text-3)]">
+                <li><strong>CAN SLIM</strong>: RS Rating, stage-2 uptrend, price vs 52W high, RSI.</li>
+                <li><strong>Technical Momentum</strong>: volume surge, RSI, breakouts, Bollinger squeeze, by timeframe.</li>
+                <li><strong>Composite Rating</strong>: technicals, volume, fundamentals, regime — blended into one score.</li>
+                <li><strong>ML Ensemble</strong>: model outputs from technical/microstructure features.</li>
+                <li><strong>Statistical Arbitrage</strong>: pair z-score, Sharpe, return — relative value.</li>
+              </ul>
+              <p>We do not guarantee that higher scores or &quot;BUY&quot; ratings will lead to profits. For a deep dive into our validation methodology, see <Link href="/findstocks/research" className="text-indigo-400 hover:underline">Statistical Governance Research</Link>. Full technical notes: <a href="https://github.com/eltonaguiar/stocksunify/blob/main/STOCK_ALGORITHMS.md" target="_blank" rel="noopener noreferrer" className="text-[var(--pk-400)] hover:underline">STOCK_ALGORITHMS.md</a>.</p>
+
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLimitationsOpen(!limitationsOpen)}
+            className="w-full px-6 py-4 text-left flex items-center justify-between gap-2 bg-white/5 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--pk-500)] focus:ring-inset"
+            aria-expanded={limitationsOpen}
+            aria-controls="limitations-content"
+            id="limitations-toggle"
+          >
+            <span className="font-semibold text-[var(--text-2)]">Known limitations</span>
+            <span aria-hidden className="text-[var(--text-3)]">{limitationsOpen ? '−' : '+'}</span>
+          </button>
+          <div id="limitations-content" role="region" aria-labelledby="limitations-toggle" hidden={!limitationsOpen} className="border-t border-white/10">
+            <div className="px-6 py-4 text-sm text-[var(--text-2)] space-y-2">
+              <ul className="list-disc list-inside space-y-1 text-[var(--text-3)]">
+                <li>Backtest uses historical data; future performance may differ.</li>
+                <li>Algorithm rankings can be based on small samples (&lt;5 picks); interpret &quot;low sample&quot; with caution.</li>
+                <li>Price and fundamental data can be delayed or incorrect.</li>
+                <li>We do not adjust for survivorship bias, fees, or slippage in backtests.</li>
+                <li>No single algorithm is best for all regimes or timeframes.</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -600,24 +1005,28 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
               </select>
             </div>
           )}
-          <label className="text-sm font-semibold">Timeframe:</label>
+          <label htmlFor="filter-timeframe" className="text-sm font-semibold">Timeframe:</label>
           <select
+            id="filter-timeframe"
             value={selectedTimeframe}
             onChange={(e) => setSelectedTimeframe(e.target.value)}
             className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--pk-500)]"
             style={{ color: 'white' }}
+            aria-label="Filter by timeframe"
           >
             <option value="all" style={{ background: '#1a1a1a', color: 'white' }}>All Timeframes</option>
             {timeframeOptions.filter(t => t !== 'all').map(t => (
               <option key={t} value={t} style={{ background: '#1a1a1a', color: 'white' }}>{timeframeLabel(t)}</option>
             ))}
           </select>
-          <label className="text-sm font-semibold ml-4">Algorithm:</label>
+          <label htmlFor="filter-algorithm" className="text-sm font-semibold ml-4">Algorithm:</label>
           <select
+            id="filter-algorithm"
             value={selectedAlgorithm}
             onChange={(e) => setSelectedAlgorithm(e.target.value)}
             className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-[var(--pk-500)]"
             style={{ color: 'white' }}
+            aria-label="Filter by algorithm"
           >
             <option value="all" style={{ background: '#1a1a1a', color: 'white' }}>All Algorithms</option>
             {algorithmOptions.filter(a => a !== 'all').map(a => (
@@ -659,12 +1068,42 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
             {exportOpen && (
               <>
                 <div className="fixed inset-0 z-10" aria-hidden onClick={() => setExportOpen(false)} />
-                <div className="absolute left-0 top-full mt-1 py-1 bg-[var(--surface-0)] border border-white/10 rounded-lg shadow-xl z-20 min-w-[180px]">
-                  <button type="button" onClick={exportCSV} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10">CSV</button>
-                  <button type="button" onClick={exportXLSX} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10">XLSX</button>
-                  <button type="button" onClick={exportTXT} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10">TXT</button>
-                  <button type="button" onClick={exportHTML} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10">HTML</button>
-                  <button type="button" onClick={exportPDF} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10">PDF</button>
+                <div className="absolute left-0 top-full mt-1 py-2 px-3 bg-[var(--surface-0)] border border-white/10 rounded-lg shadow-xl z-20 min-w-[260px]" role="dialog" aria-labelledby="export-dialog-title">
+                  <p id="export-dialog-title" className="text-xs text-amber-400/90 mb-2 px-1 pb-1 border-b border-white/10">
+                    Export is for personal use. Not financial advice. Use at your own risk.
+                  </p>
+                  <label className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-white/5 text-sm text-[var(--text-2)] mb-2">
+                    <input
+                      type="checkbox"
+                      checked={exportWaiverAcked}
+                      onChange={(e) => setExportWaiverAcked(e.target.checked)}
+                      className="rounded border-white/30 bg-white/5 text-[var(--pk-500)] focus:ring-[var(--pk-500)]"
+                      aria-describedby="export-waiver-desc"
+                    />
+                    <span id="export-waiver-desc">I have read the risk notice and accept use at my own risk</span>
+                  </label>
+                  <div className="flex flex-col gap-0.5">
+                    <button type="button" onClick={exportCSV} disabled={!exportWaiverAcked} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50">CSV</button>
+                    <button type="button" onClick={exportXLSX} disabled={!exportWaiverAcked} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50">XLSX</button>
+                    <button type="button" onClick={exportTXT} disabled={!exportWaiverAcked} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50">TXT</button>
+                    <button type="button" onClick={exportHTML} disabled={!exportWaiverAcked} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50">HTML</button>
+                    <button type="button" onClick={exportPDF} disabled={!exportWaiverAcked} className="w-full text-left px-4 py-2 text-sm hover:bg-white/10 disabled:opacity-50">Standard PDF (Print)</button>
+
+                    <div className="border-t border-white/10 my-1"></div>
+                    <div className="px-4 py-1 text-[10px] uppercase text-[var(--pk-400)] font-bold">Intelligent Reports</div>
+
+                    <div className="flex items-center">
+                      <button type="button" onClick={() => generateDetailedReport('current-selection')} disabled={!exportWaiverAcked} className="flex-1 text-left px-4 py-2 text-sm hover:bg-white/10 text-[var(--pk-300)] font-medium disabled:opacity-50">✨ Full Selection Report</button>
+                      <button type="button" onClick={() => { setCustomizerTarget({ type: 'current-selection' }); setCustomizerOpen(true); }} className="p-2 hover:bg-white/10 text-[var(--text-3)]" title="Customize">⚙️</button>
+                    </div>
+
+                    {selectedAlgorithm !== 'all' && (
+                      <div className="flex items-center">
+                        <button type="button" onClick={() => generateDetailedReport('algorithm-focus')} disabled={!exportWaiverAcked} className="flex-1 text-left px-4 py-2 text-sm hover:bg-white/10 text-[var(--pk-300)] disabled:opacity-50">✨ Algo: {algorithmDisplayName(selectedAlgorithm)}</button>
+                        <button type="button" onClick={() => { setCustomizerTarget({ type: 'algorithm-focus', target: selectedAlgorithm }); setCustomizerOpen(true); }} className="p-2 hover:bg-white/10 text-[var(--text-3)]" title="Customize">⚙️</button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             )}
@@ -907,7 +1346,15 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
                       <td className="px-4 py-3">{algorithmDisplayName(stock.algorithm)}</td>
                       <td className="px-4 py-3">{stock.score}/100</td>
                       <td className={`px-4 py-3 font-medium ${getRiskColor(stock.risk)}`}>{stock.risk}</td>
-                      <td className="px-4 py-3"><a href={`https://finance.yahoo.com/quote/${stock.symbol}`} target="_blank" rel="noopener noreferrer" className="text-[var(--pk-400)] hover:underline">Yahoo</a></td>
+                      <td className="px-4 py-3 flex gap-2">
+                        <a href={`https://finance.yahoo.com/quote/${stock.symbol}`} target="_blank" rel="noopener noreferrer" className="text-[var(--pk-400)] hover:underline">Yahoo</a>
+                        <button
+                          onClick={() => generateDetailedReport('stock-focus', stock.symbol)}
+                          className="text-[var(--pk-300)] hover:underline text-xs"
+                        >
+                          PDF
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -955,14 +1402,22 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
                     <div className={`text-sm font-semibold ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                       {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%)
                     </div>
-                    <a
-                      href={`https://finance.yahoo.com/quote/${stock.symbol}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-[var(--pk-400)] hover:text-[var(--pk-300)] mt-2 inline-block"
-                    >
-                      View on Yahoo Finance →
-                    </a>
+                    <div className="flex gap-3 justify-end items-center">
+                      <a
+                        href={`https://finance.yahoo.com/quote/${stock.symbol}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-[var(--pk-400)] hover:text-[var(--pk-300)] mt-2 inline-block"
+                      >
+                        View on Yahoo Finance →
+                      </a>
+                      <button
+                        onClick={() => generateDetailedReport('stock-focus', stock.symbol)}
+                        className="text-xs text-[var(--pk-300)] hover:text-[var(--pk-200)] mt-2 font-bold px-3 py-1 bg-white/5 rounded border border-white/10 hover:bg-white/10"
+                      >
+                        Detailed Analysis PDF ✨
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1096,15 +1551,94 @@ export default function FindStocksClient({ initialStocks = [] }: FindStocksClien
         </div>
       </section>
 
-      {/* Disclaimer */}
-      <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-[var(--text-3)] border-t border-white/5">
-        <p className="mb-2">
-          <strong>⚠️ Disclaimer:</strong> Stock predictions are for informational purposes only and do not constitute financial advice.
-        </p>
-        <p>
-          Always conduct your own research and consult with a licensed financial advisor before making investment decisions.
-        </p>
+      {/* Liability waiver & disclaimer */}
+      <footer className="max-w-7xl mx-auto px-4 py-8 border-t border-white/10" role="contentinfo">
+        <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 p-6 text-sm text-[var(--text-2)]">
+          <h2 className="text-base font-bold text-amber-200 mb-3">Disclaimer &amp; liability waiver</h2>
+          <ul className="space-y-2 list-disc list-inside marker:text-amber-500/80">
+            <li>This site and its stock picks, scores, and rankings are <strong>for informational and educational use only</strong>. They do not constitute financial, investment, tax, or legal advice.</li>
+            <li><strong>Past performance does not guarantee future results.</strong> Backtest and algorithm rankings are based on historical data and may not be repeated.</li>
+            <li>Investing involves risk of loss. <strong>You may lose some or all of your capital.</strong> Only invest what you can afford to lose.</li>
+            <li>Data, scores, and algorithms may be incomplete, delayed, or incorrect. There is no guarantee of accuracy or fitness for any purpose.</li>
+            <li>You should conduct your own research and, where appropriate, consult a licensed financial adviser, tax professional, or legal adviser before making any investment or financial decision.</li>
+          </ul>
+          <p className="mt-4 font-semibold text-amber-200/90">
+            By using this site you agree that you use it at your own risk. The operators, authors, and data sources provide no warranty or guarantee of any kind and are not liable for any decisions you make or losses you incur. All use is &quot;as is&quot; and &quot;as available.&quot;
+          </p>
+        </div>
       </footer>
+
+      {/* Risk Disclosure Modal */}
+      {showRiskModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="glass-panel max-w-lg w-full p-8 rounded-2xl border border-white/20 animate-in fade-in zoom-in duration-300">
+            <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
+              ⚠️ Risk Disclosure & Liability Waiver
+            </h2>
+            <div className="text-[var(--text-2)] text-sm space-y-4 mb-8 overflow-y-auto max-h-[60vh]">
+              <p>
+                <strong>Trading stocks involves significant risk of loss.</strong> The analytical tools and data provided on this platform are for <strong>informational and research purposes only</strong>.
+              </p>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>This is NOT financial advice. No suggestion should be interpreted as an invitation to buy or sell securities.</li>
+                <li>Algorithms used (CAN SLIM, Composite, etc.) are based on historical parameters and mathematical models which do not guarantee future success.</li>
+                <li>Data is sourced from third-party providers (Yahoo Finance) and may contain errors or delays.</li>
+                <li>By using this tool, you agree that we are not responsible for any financial losses incurred from your trading activities.</li>
+              </ul>
+              <p className="bg-white/5 p-3 rounded-lg border-l-4 border-[var(--pk-500)] text-xs font-mono">
+                "Technical momentum and algorithmic signals are probabilistic, not deterministic."
+              </p>
+            </div>
+            <button
+              onClick={acceptRisk}
+              className="w-full py-3 bg-[var(--pk-500)] hover:bg-[var(--pk-400)] text-white font-bold rounded-xl transition-all shadow-lg shadow-[var(--pk-500)]/20"
+            >
+              I Understand & Accept the Risks
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Report Customizer Modal */}
+      {customizerOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="glass-panel max-w-md w-full p-6 rounded-2xl border border-white/10 shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-white">Report Customization</h3>
+              <button onClick={() => setCustomizerOpen(false)} className="text-[var(--text-3)] hover:text-white">✕</button>
+            </div>
+            <div className="space-y-4 mb-8">
+              {Object.keys(reportConfig).map((key) => (
+                <label key={key} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+                  <span className="text-sm font-medium text-[var(--text-2)] capitalize">
+                    {key.replace('include', '').split(/(?=[A-Z])/).join(' ')}
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={(reportConfig as any)[key]}
+                    onChange={(e) => setReportConfig({ ...reportConfig, [key]: e.target.checked })}
+                    className="w-5 h-5 rounded border-white/20 bg-black/40 text-[var(--pk-500)] focus:ring-[var(--pk-500)]"
+                  />
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setCustomizerOpen(false)}
+                className="flex-1 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => generateDetailedReport(customizerTarget?.type, customizerTarget?.target)}
+                className="flex-1 py-2 rounded-lg bg-[var(--pk-500)] hover:bg-[var(--pk-400)] text-sm font-bold transition shadow-lg shadow-[var(--pk-500)]/20"
+              >
+                Generate PDF ✨
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

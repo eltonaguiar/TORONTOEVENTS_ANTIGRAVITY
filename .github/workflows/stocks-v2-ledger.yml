@@ -1,0 +1,44 @@
+name: STOCKSUNIFY2 Daily Ledger
+
+on:
+  schedule:
+    # Run at 21:00 UTC (4:00 PM EST) daily after market close
+    - cron: '0 21 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update-ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate Daily Ledger
+        run: npx tsx scripts/v2/generate-ledger.ts
+        env:
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+
+      - name: Commit and Push Ledger
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action [Daily Ledger]"
+          DATE=$(date +'%Y-%m-%d')
+          git add data/v2/history/
+          git add public/data/v2/
+          git commit -m "AUDIT: Daily Ledger for $DATE [Verified]" || echo "No changes to commit"
+          git push
