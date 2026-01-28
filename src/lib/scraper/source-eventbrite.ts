@@ -17,6 +17,13 @@ export class EventbriteScraper implements ScraperSource {
         for (let i = 2; i <= 5; i++) {
             this.searchUrls.push(`/d/canada--toronto/events--today/?page=${i}`);
         }
+        
+        // CRITICAL: Add today's dating events specifically
+        // This ensures we capture dating events happening today
+        this.searchUrls.push('/d/canada--toronto/events--today/dating/');
+        for (let i = 2; i <= 3; i++) {
+            this.searchUrls.push(`/d/canada--toronto/events--today/dating/?page=${i}`);
+        }
 
         const baseCategories = [
             'events--this-week',
@@ -92,7 +99,9 @@ export class EventbriteScraper implements ScraperSource {
                 const scripts = $('script[type="application/ld+json"]');
                 console.log(`Found ${scripts.length} JSON-LD scripts.`);
 
-                scripts.each((_, script) => {
+                // Convert to array and use for loop to handle async operations
+                const scriptsArray = scripts.toArray();
+                for (const script of scriptsArray) {
                     try {
                         const jsonText = $(script).html() || '{}';
                         const data = JSON.parse(jsonText);
@@ -118,9 +127,65 @@ export class EventbriteScraper implements ScraperSource {
                                         }
 
                                         const eventId = generateEventId(url);
-                                        const date = normalizeDate(eventItem.startDate);
+                                        let date = normalizeDate(eventItem.startDate);
+                                        
+                                        // If JSON-LD doesn't have startDate, try fetching detail page (like AllEvents does)
+                                        // Eventbrite pages often load dates via JavaScript, so detail page may have it
                                         if (!date) {
-                                            // Log missing dates - likely due to JavaScript-rendered content
+                                            try {
+                                                console.log(`  📅 JSON-LD missing startDate, fetching detail page: ${url}`);
+                                                const detailResponse = await axios.get(url, {
+                                                    headers: {
+                                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                                                    },
+                                                    timeout: 10000
+                                                });
+                                                const $detail = cheerio.load(detailResponse.data);
+                                                
+                                                // Try JSON-LD from detail page first
+                                                const detailScripts = $detail('script[type="application/ld+json"]');
+                                                for (let i = 0; i < detailScripts.length; i++) {
+                                                    try {
+                                                        const jsonText = $detail(detailScripts[i]).html();
+                                                        if (!jsonText) continue;
+                                                        const detailData = JSON.parse(jsonText);
+                                                        const detailItems = Array.isArray(detailData) ? detailData : [detailData];
+                                                        
+                                                        for (const detailItem of detailItems) {
+                                                            const detailType = detailItem['@type'];
+                                                            if (detailType && typeof detailType === 'string' && detailType.includes('Event')) {
+                                                                if (detailItem.startDate) {
+                                                                    date = normalizeDate(detailItem.startDate);
+                                                                    if (date) {
+                                                                        console.log(`  ✅ Extracted date from detail page JSON-LD: ${date}`);
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        if (date) break;
+                                                    } catch { }
+                                                }
+                                                
+                                                // Fallback to HTML selectors
+                                                if (!date) {
+                                                    const htmlDate = $detail('time[datetime]').first().attr('datetime') ||
+                                                        $detail('[itemprop="startDate"]').attr('content') ||
+                                                        $detail('.event-date, .start-date').first().text().trim();
+                                                    if (htmlDate) {
+                                                        date = normalizeDate(htmlDate);
+                                                        if (date) {
+                                                            console.log(`  ✅ Extracted date from detail page HTML: ${date}`);
+                                                        }
+                                                    }
+                                                }
+                                            } catch (e: any) {
+                                                console.log(`  ⚠️ Failed to fetch detail page for date: ${e.message}`);
+                                            }
+                                        }
+                                        
+                                        if (!date) {
+                                            // Log missing dates - likely due to JavaScript-rendered content requiring Puppeteer
                                             console.log(`  ⚠️ Skipping event without valid date (may need Puppeteer): "${title}"`);
                                             continue; // REJECT events without valid dates - don't default to today
                                         }
@@ -268,9 +333,65 @@ export class EventbriteScraper implements ScraperSource {
                                 }
 
                                 const eventId = generateEventId(url);
-                                const date = item.startDate ? normalizeDate(item.startDate) : null;
+                                let date = item.startDate ? normalizeDate(item.startDate) : null;
+                                
+                                // If JSON-LD doesn't have startDate, try fetching detail page (like AllEvents does)
+                                // Eventbrite pages often load dates via JavaScript, so detail page may have it
                                 if (!date) {
-                                    // Log missing dates - likely due to JavaScript-rendered content
+                                    try {
+                                        console.log(`  📅 JSON-LD missing startDate, fetching detail page: ${url}`);
+                                        const detailResponse = await axios.get(url, {
+                                            headers: {
+                                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                                            },
+                                            timeout: 10000
+                                        });
+                                        const $detail = cheerio.load(detailResponse.data);
+                                        
+                                        // Try JSON-LD from detail page first
+                                        const detailScripts = $detail('script[type="application/ld+json"]');
+                                        for (let i = 0; i < detailScripts.length; i++) {
+                                            try {
+                                                const jsonText = $detail(detailScripts[i]).html();
+                                                if (!jsonText) continue;
+                                                const detailData = JSON.parse(jsonText);
+                                                const detailItems = Array.isArray(detailData) ? detailData : [detailData];
+                                                
+                                                for (const detailItem of detailItems) {
+                                                    const detailType = detailItem['@type'];
+                                                    if (detailType && typeof detailType === 'string' && detailType.includes('Event')) {
+                                                        if (detailItem.startDate) {
+                                                            date = normalizeDate(detailItem.startDate);
+                                                            if (date) {
+                                                                console.log(`  ✅ Extracted date from detail page JSON-LD: ${date}`);
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                if (date) break;
+                                            } catch { }
+                                        }
+                                        
+                                        // Fallback to HTML selectors
+                                        if (!date) {
+                                            const htmlDate = $detail('time[datetime]').first().attr('datetime') ||
+                                                $detail('[itemprop="startDate"]').attr('content') ||
+                                                $detail('.event-date, .start-date').first().text().trim();
+                                            if (htmlDate) {
+                                                date = normalizeDate(htmlDate);
+                                                if (date) {
+                                                    console.log(`  ✅ Extracted date from detail page HTML: ${date}`);
+                                                }
+                                            }
+                                        }
+                                    } catch (e: any) {
+                                        console.log(`  ⚠️ Failed to fetch detail page for date: ${e.message}`);
+                                    }
+                                }
+                                
+                                if (!date) {
+                                    // Log missing dates - likely due to JavaScript-rendered content requiring Puppeteer
                                     console.log(`  ⚠️ Skipping event without valid date (may need Puppeteer): "${title}"`);
                                     continue; // REJECT events without valid dates - don't default to today
                                 }
@@ -402,7 +523,7 @@ export class EventbriteScraper implements ScraperSource {
                     } catch (e) {
                         // ignore parse errors
                     }
-                });
+                }
 
             } catch (error: any) {
                 errors.push(`Error fetching ${path}: ${error.message}`);
@@ -581,24 +702,60 @@ export class EventbriteScraper implements ScraperSource {
                 }
             }
 
-            // Set sold-out status for filtering (even if we don't cancel the event)
+            // Set sold-out status for filtering
+            // CRITICAL: Only mark as sold out if COMPLETELY sold out (not gender-specific)
+            // Events with tickets for at least one gender should still show
             if (enrichment.isSoldOut !== undefined) {
                 event.isSoldOut = enrichment.isSoldOut;
                 if (enrichment.isSoldOut) {
-                    console.log(`  🚫 Sold out: ${event.title.substring(0, 40)}`);
+                    console.log(`  🚫 Completely sold out: ${event.title.substring(0, 40)}`);
                 }
             }
             
-            if (enrichment.salesEnded) {
+            // Set gender-specific sold out status (for frontend filtering)
+            if (enrichment.genderSoldOut !== undefined) {
+                event.genderSoldOut = enrichment.genderSoldOut;
+                if (enrichment.genderSoldOut !== 'none') {
+                    console.log(`  ⚠️ Gender-specific sold out (${enrichment.genderSoldOut}): ${event.title.substring(0, 40)}`);
+                }
+            }
+            
+            // Only cancel if completely sold out (both genders or no gender-specific info)
+            if (enrichment.salesEnded && (!enrichment.genderSoldOut || enrichment.genderSoldOut === 'both')) {
                 event.status = 'CANCELLED';
                 event.isSoldOut = true; // Also mark as sold out
                 console.log(`  ⚠ Sales ended: ${event.title.substring(0, 40)}`);
             }
 
+            // Mark as multi-day/recurring - these should SHOW under multi-day filter, not be hidden
             if (enrichment.isRecurring && !event.categories.includes('Multi-Day')) {
                 event.categories = [...new Set([...event.categories, 'Multi-Day'])];
-                if (!event.endDate) event.endDate = event.date;
+                if (!event.endDate && enrichment.endTime) {
+                    const normalizedEnd = normalizeDate(enrichment.endTime);
+                    if (normalizedEnd) {
+                        event.endDate = normalizedEnd;
+                    } else {
+                        event.endDate = event.date; // Fallback to same date
+                    }
+                }
                 console.log(`  ℹ Marked as Multi-Day: ${event.title.substring(0, 40)}`);
+            }
+            
+            // Also check if event has multiple dates from endTime (even if not marked recurring)
+            if (enrichment.endTime && !enrichment.isRecurring) {
+                const normalizedEnd = normalizeDate(enrichment.endTime);
+                if (normalizedEnd) {
+                    const startDate = new Date(event.date);
+                    const endDate = new Date(normalizedEnd);
+                    const diffDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                    
+                    // If event spans multiple days (but less than 30), mark as multi-day
+                    if (diffDays > 1 && diffDays <= 30) {
+                        event.categories = [...new Set([...event.categories, 'Multi-Day'])];
+                        event.endDate = normalizedEnd;
+                        console.log(`  ℹ Marked as Multi-Day (${diffDays} days): ${event.title.substring(0, 40)}`);
+                    }
+                }
             }
 
             // CRITICAL: Re-check expensive events after price enrichment

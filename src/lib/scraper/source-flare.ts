@@ -89,7 +89,7 @@ export class FlareEventsScraper implements ScraperSource {
                 'section > div', // Events might be in sections
             ];
 
-            let eventElements: cheerio.Cheerio<cheerio.Element> = $();
+            let eventElements: cheerio.Cheerio<any> = $();
             for (const selector of eventSelectors) {
                 const found = $(selector);
                 if (found.length > 0) {
@@ -367,7 +367,7 @@ export class FlareEventsScraper implements ScraperSource {
     /**
      * Parse an event from a structured HTML element
      */
-    private parseEventFromElement($el: cheerio.Cheerio<cheerio.Element>, eventDate: string, events: Event[], errors: string[]): void {
+    private parseEventFromElement($el: cheerio.Cheerio<any>, eventDate: string, events: Event[], errors: string[]): void {
         try {
             const text = $el.text();
             this.parseEventBlock(text, eventDate, events, errors);

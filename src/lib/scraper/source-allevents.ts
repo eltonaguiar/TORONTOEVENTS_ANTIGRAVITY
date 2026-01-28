@@ -16,10 +16,18 @@ function extractDateFromEventTimeLabel($: cheerio.CheerioAPI): string | null {
     if (!el.length) return null;
 
     const stime = el.attr('data-stime');
+    const tz = el.attr('data-tz') || '-05:00'; // Default to EST if not specified
     if (stime) {
+        // data-stime is Unix timestamp in seconds
+        // It represents the local time in the timezone specified by data-tz
         const startMs = parseInt(stime, 10) * 1000;
         if (!isNaN(startMs)) {
+            // Create date from Unix timestamp (this is UTC)
             const date = new Date(startMs);
+            
+            // CRITICAL: The timestamp is already in the correct local timezone
+            // We need to format it as-is, not convert it again
+            // formatTorontoDate will handle the timezone conversion correctly
             return formatTorontoDate(date);
         }
     }
@@ -150,7 +158,21 @@ export class AllEventsScraper implements ScraperSource {
      * Fetch event detail page for enhanced data extraction
      * Tries to follow Eventbrite links to get accurate prices from the original source
      */
-    private async fetchEventDetails(url: string): Promise<{ description?: string; price?: string; priceAmount?: number; minPrice?: number; maxPrice?: number; ticketTypes?: any[]; date?: string; location?: string }> {
+    private async fetchEventDetails(url: string): Promise<{ 
+        description?: string; 
+        price?: string; 
+        priceAmount?: number; 
+        minPrice?: number; 
+        maxPrice?: number; 
+        ticketTypes?: any[]; 
+        date?: string; 
+        location?: string;
+        isSoldOut?: boolean;
+        salesEnded?: boolean;
+        hasOnlyFindTickets?: boolean;
+        realTime?: string;
+        endTime?: string;
+    }> {
         try {
             const response = await axios.get(url, {
                 responseType: 'arraybuffer',
@@ -174,6 +196,31 @@ export class AllEventsScraper implements ScraperSource {
                     
                     const enrichment = await EventbriteDetailScraper.enrichEvent(eventbriteUrl);
                     
+                    // Check for sold out status - exclude these events
+                    if (enrichment.isSoldOut || enrichment.salesEnded) {
+                        console.log(`  🚫 Event is sold out on Eventbrite - excluding from results`);
+                        return {
+                            description: enrichment.fullDescription,
+                            price: 'Sold Out',
+                            priceAmount: undefined,
+                            isSoldOut: true,
+                            salesEnded: true
+                        };
+                    }
+                    
+                    // Check if event only has "Find tickets" (no direct ticket link)
+                    // These should be excluded or marked for sandbox
+                    const hasDirectTicketLink = eventbriteUrl.includes('/e/') && !eventbriteUrl.includes('/find/');
+                    if (!hasDirectTicketLink && enrichment.price === 'See tickets') {
+                        console.log(`  ⚠️ Event only has "Find tickets" - marking for exclusion`);
+                        return {
+                            description: enrichment.fullDescription,
+                            price: 'See tickets',
+                            priceAmount: undefined,
+                            hasOnlyFindTickets: true
+                        };
+                    }
+                    
                     // Use Eventbrite data if available
                     if (enrichment.priceAmount !== undefined || enrichment.minPrice !== undefined) {
                         const priceDisplay = enrichment.minPrice !== undefined 
@@ -186,7 +233,9 @@ export class AllEventsScraper implements ScraperSource {
                             priceAmount: enrichment.priceAmount,
                             minPrice: enrichment.minPrice,
                             maxPrice: enrichment.maxPrice,
-                            ticketTypes: enrichment.ticketTypes
+                            ticketTypes: enrichment.ticketTypes,
+                            realTime: enrichment.realTime, // Use actual time from Eventbrite
+                            endTime: enrichment.endTime
                         };
                     } else {
                         console.log(`  ⚠️ Eventbrite link found but no price extracted, falling back to AllEvents.in`);
@@ -586,7 +635,14 @@ export class AllEventsScraper implements ScraperSource {
                         const details = await this.fetchEventDetails(fullUrl);
                         
                         // Update date if detail page has more accurate date/time
-                        if (details.date && details.date !== date) {
+                        // Prefer realTime from Eventbrite if available (most accurate)
+                        if (details.realTime) {
+                            const normalized = normalizeDate(details.realTime);
+                            if (normalized) {
+                                date = normalized;
+                                console.log(`  ✅ Updated date from Eventbrite realTime: ${date}`);
+                            }
+                        } else if (details.date && details.date !== date) {
                             const detailDate = new Date(details.date);
                             const currentDate = new Date(date);
                             // Only update if the time component is different (more accurate)
@@ -594,6 +650,40 @@ export class AllEventsScraper implements ScraperSource {
                                 detailDate.getMinutes() !== currentDate.getMinutes()) {
                                 date = details.date;
                                 console.log(`  ✅ Updated date from detail page: ${date}`);
+                            }
+                        }
+                        
+                        // Check for sold out events - exclude them
+                        if (details.isSoldOut || details.salesEnded) {
+                            console.log(`  🚫 Event is sold out - skipping: "${title}"`);
+                            continue;
+                        }
+                        
+                        // Check for "Find tickets" only events - exclude them
+                        if (details.hasOnlyFindTickets) {
+                            console.log(`  ⚠️ Event only has "Find tickets" - skipping: "${title}"`);
+                            continue;
+                        }
+                        
+                        // Detect multi-day events - these should SHOW under multi-day filter, not be hidden
+                        // Only exclude extremely long events (>90 days) that are likely ongoing series
+                        let endDate: string | undefined;
+                        let isMultiDay = false;
+                        if (details.endTime) {
+                            const normalizedEnd = normalizeDate(details.endTime);
+                            if (normalizedEnd) {
+                                endDate = normalizedEnd;
+                                const startDate = new Date(date);
+                                const endDateObj = new Date(normalizedEnd);
+                                const diffDays = Math.ceil((endDateObj.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                                
+                                // Only exclude extremely long events (>90 days) - these are likely ongoing series
+                                // Regular multi-day events (2-90 days) should show under multi-day filter
+                                if (diffDays > 90) {
+                                    console.log(`  📅 Very long multi-day event (${diffDays} days) - excluding: "${title}"`);
+                                    continue; // Skip extremely long events
+                                }
+                                isMultiDay = diffDays > 1;
                             }
                         }
                         
@@ -637,6 +727,12 @@ export class AllEventsScraper implements ScraperSource {
                             if (t && !tags.includes(t)) tags.push(t);
                         });
 
+                        // Build categories - add Multi-Day if applicable
+                        let categories = categorizeEvent(title, description);
+                        if (isMultiDay) {
+                            categories = [...new Set([...categories, 'Multi-Day'])];
+                        }
+
                         // Also capture min/max prices and ticket types if available from Eventbrite
                         const eventData: any = {
                             id: generateEventId(fullUrl),
@@ -651,11 +747,16 @@ export class AllEventsScraper implements ScraperSource {
                             priceAmount,
                             isFree,
                             description,
-                            categories: categorizeEvent(title, description),
+                            categories,
                             tags,
                             status: 'UPCOMING',
                             lastUpdated: new Date().toISOString()
                         };
+                        
+                        // Add endDate if available
+                        if (endDate) {
+                            eventData.endDate = endDate;
+                        }
                         
                         // Add comprehensive data if extracted from Eventbrite
                         if (details.minPrice !== undefined) {

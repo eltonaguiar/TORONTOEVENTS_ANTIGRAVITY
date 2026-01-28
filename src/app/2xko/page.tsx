@@ -166,10 +166,11 @@ export default function TwoXKOPage() {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/B6Jntcnc6g8"
+                  src="https://www.youtube.com/embed/B6Jntcnc6g8?enablejsapi=0&modestbranding=1&rel=0&origin=https://findtorontoevents.ca"
                   title="2XKO Official Vi Gameplay Reveal Trailer"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  loading="lazy"
                 />
               </div>
               <div className="p-4">
@@ -183,10 +184,11 @@ export default function TwoXKOPage() {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/0x2Lhj8Ibwo"
+                  src="https://www.youtube.com/embed/0x2Lhj8Ibwo?enablejsapi=0&modestbranding=1&rel=0&origin=https://findtorontoevents.ca"
                   title="2XKO Official Ekko Gameplay Trailer"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  loading="lazy"
                 />
               </div>
               <div className="p-4">
@@ -200,10 +202,11 @@ export default function TwoXKOPage() {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/55yjz7uxbMo"
+                  src="https://www.youtube.com/embed/55yjz7uxbMo?enablejsapi=0&modestbranding=1&rel=0&origin=https://findtorontoevents.ca"
                   title="HOW COMBOS WORK - 2XKO Combo Theory Guide"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  loading="lazy"
                 />
               </div>
               <div className="p-4">
@@ -217,10 +220,11 @@ export default function TwoXKOPage() {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/qq0-ZeDWkKc"
+                  src="https://www.youtube.com/embed/qq0-ZeDWkKc?enablejsapi=0&modestbranding=1&rel=0&origin=https://findtorontoevents.ca"
                   title="Learn EVERY VI Combo in 2XKO (Full Tech Guide)"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  loading="lazy"
                 />
               </div>
               <div className="p-4">
@@ -234,10 +238,11 @@ export default function TwoXKOPage() {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/y5uo_W2I8tc"
+                  src="https://www.youtube.com/embed/y5uo_W2I8tc?enablejsapi=0&modestbranding=1&rel=0&origin=https://findtorontoevents.ca"
                   title="How to Play Guide / Tutorial Walkthrough | 2XKO Gameplay"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  loading="lazy"
                 />
               </div>
               <div className="p-4">
@@ -251,10 +256,11 @@ export default function TwoXKOPage() {
               <div className="aspect-video">
                 <iframe
                   className="w-full h-full"
-                  src="https://www.youtube.com/embed/quGZjIkigu4"
+                  src="https://www.youtube.com/embed/quGZjIkigu4?enablejsapi=0&modestbranding=1&rel=0&origin=https://findtorontoevents.ca"
                   title="Vi Gameplay Reveal Trailer | 2XKO"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
+                  loading="lazy"
                 />
               </div>
               <div className="p-4">

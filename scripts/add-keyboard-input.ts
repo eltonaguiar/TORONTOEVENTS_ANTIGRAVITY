@@ -155,6 +155,14 @@ function convertToKeyboardInput(input: string): string {
     return keyboardParts.join(' + ');
   }
   
+  // Handle standalone "1" or "2" as S1/S2 (common shorthand)
+  if (input === '1' || input === 'S1') {
+    return keyboardMapping['S1'];
+  }
+  if (input === '2' || input === 'S2') {
+    return keyboardMapping['S2'];
+  }
+  
   // Standard notation: "5L", "2M", "6S1", etc.
   const standardMatch = input.match(/^([0-9]?)([LMH]|S[12]|T)$/i);
   if (standardMatch) {
@@ -170,6 +178,16 @@ function convertToKeyboardInput(input: string): string {
       // For directional, show direction + button
       return `${dirKey} + ${buttonKey}`;
     }
+  }
+  
+  // Handle "6S1" format (direction + S1/S2)
+  const dirSpecialMatch = input.match(/^([0-9])(S[12])$/i);
+  if (dirSpecialMatch) {
+    const direction = dirSpecialMatch[1];
+    const special = dirSpecialMatch[2].toUpperCase();
+    const dirKey = keyboardMapping[direction] || '';
+    const specialKey = keyboardMapping[special] || special;
+    return `${dirKey} + ${specialKey}`;
   }
   
   // Handle moves like "6S1~L/M/H"

@@ -243,7 +243,7 @@ END:VCALENDAR`;
 
                         {/* External Links */}
                         <div className="space-y-1 pt-4 border-t border-white/5">
-                            <p className="px-4 py-2 text-[10px] font-black uppercase text-[var(--pk-300)] tracking-widest opacity-60">Other Tools</p>
+                            <p className="px-4 py-2 text-[10px] font-black uppercase text-[var(--pk-300)] tracking-widest opacity-60">NETWORK</p>
 
                             <a
                                 href="https://findtorontoevents.ca/"
@@ -304,6 +304,9 @@ END:VCALENDAR`;
                     <div className="p-4 border-t border-white/5 bg-black/20">
                         <p className="text-[10px] text-[var(--text-3)] text-center opacity-50">
                             Antigravity Systems v0.5.0
+                        </p>
+                        <p className="text-[8px] text-[var(--text-3)] text-center opacity-30 mt-1" style={{display: 'none'}} data-version="2026-01-27-mental-health-fix">
+                            Build: 2026-01-27-mental-health-fix
                         </p>
                     </div>
                 </div>

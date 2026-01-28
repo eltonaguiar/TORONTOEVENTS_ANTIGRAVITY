@@ -1,0 +1,44 @@
+# Auto-update STOCKSUNIFY README from data/daily-stocks.json
+# Runs daily and on manual trigger. Requires secret STOCKSUNIFY_PAT (PAT with push access to eltonaguiar/STOCKSUNIFY).
+name: Stocks README Sync
+
+on:
+  schedule:
+    # Daily at 07:00 UTC
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate daily stock picks
+        run: npm run stocks:generate
+
+      - name: Clone STOCKSUNIFY (for sync target)
+        env:
+          STOCKSUNIFY_PAT: ${{ secrets.STOCKSUNIFY_PAT }}
+        run: |
+          if [ -n "$STOCKSUNIFY_PAT" ]; then
+            git clone "https://x-access-token:${STOCKSUNIFY_PAT}@github.com/eltonaguiar/STOCKSUNIFY.git" stocksunify-repo
+          else
+            echo "STOCKSUNIFY_PAT not set — cloning via HTTPS (push will fail unless token is configured)"
+            git clone https://github.com/eltonaguiar/STOCKSUNIFY.git stocksunify-repo
+          fi
+
+      - name: Sync to STOCKSUNIFY (README + data)
+        env:
+          STOCKSUNIFY_DIR: ${{ github.workspace }}/stocksunify-repo
+        run: npm run stocks:sync

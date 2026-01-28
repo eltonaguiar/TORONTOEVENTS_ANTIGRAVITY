@@ -26,6 +26,7 @@ export interface EventEnrichment {
     endTime?: string; // End time (ISO 8601)
     salesEnded: boolean;
     isSoldOut?: boolean; // Explicit sold-out flag (for filtering)
+    genderSoldOut?: 'male' | 'female' | 'both' | 'none'; // Gender-specific sold out status
     isRecurring: boolean;
     fullDescription?: string;
     price?: string;
@@ -153,9 +154,32 @@ export class EventbriteDetailScraper {
                 $('button').text().toLowerCase().includes('register') ||
                 $('a[href*="checkout"]').length > 0;
 
-            result.salesEnded = directSalesEnded && !hasTicketButton;
+            // Check for gender-specific sold out (e.g., "Male tickets sold out" but female tickets available)
+            // Events should still show if ANY gender has tickets available
+            const genderSoldOutPatterns = {
+                male: /(?:male|men|gentlemen|men'?s)\s+(?:tickets?\s+)?sold\s+out/i,
+                female: /(?:female|women|ladies|women'?s)\s+(?:tickets?\s+)?sold\s+out/i
+            };
+            const maleSoldOut = genderSoldOutPatterns.male.test(statusText);
+            const femaleSoldOut = genderSoldOutPatterns.female.test(statusText);
+            
+            // Only mark as completely sold out if BOTH genders are sold out
+            const isCompletelySoldOut = (maleSoldOut && femaleSoldOut) || 
+                                       (directSalesEnded && !maleSoldOut && !femaleSoldOut);
+            
+            result.salesEnded = isCompletelySoldOut && !hasTicketButton;
             // Also set isSoldOut explicitly for frontend filtering
-            result.isSoldOut = statusText.includes('sold out') && !statusText.includes('not sold out');
+            // Only mark as sold out if completely sold out (not gender-specific)
+            result.isSoldOut = isCompletelySoldOut && !statusText.includes('not sold out');
+            
+            // Set gender-specific sold out status for frontend filtering
+            if (maleSoldOut && !femaleSoldOut) {
+                result.genderSoldOut = 'male';
+            } else if (femaleSoldOut && !maleSoldOut) {
+                result.genderSoldOut = 'female';
+            } else if (maleSoldOut && femaleSoldOut) {
+                result.genderSoldOut = 'both';
+            }
 
             // 3. Check Recurring Status
             // 3. Check Recurring Status

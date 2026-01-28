@@ -1,0 +1,144 @@
+(node:47124) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/zerou/Documents/TORONTOEVENTS_ANTIGRAVITY/scripts/deploy-simple.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Starting deployment of 2nd row event overlay fixes...
+Ô£à Connected to SFTP server
+­ƒôü Working in: /findtorontoevents.ca
+­ƒÜÇ Deploying main application index...
+Uploading index.html...
+Ô£à Uploaded: index.html
+Uploading index.html...
+Ô£à Uploaded: index3.html
+Uploading favicon.ico...
+Ô£à Uploaded: favicon.ico
+Uploading ads.txt...
+Ô£à Uploaded: ads.txt
+Uploading 404.html...
+Ô£à Uploaded: 404.html
+Ô£à Created/verified TORONTOEVENTS_ANTIGRAVITY directory
+Uploading events.json...
+Ô£à Uploaded: events.json
+Ô£à Uploaded events.json to remote root
+Uploading events.json...
+Ô£à Uploaded: TORONTOEVENTS_ANTIGRAVITY/events.json
+Ô£à Uploaded events.json to TORONTOEVENTS_ANTIGRAVITY/ (basePath)
+Uploading metadata.json...
+Ô£à Uploaded: metadata.json
+Ô£à Uploaded metadata.json to remote root
+Uploading metadata.json...
+Ô£à Uploaded: TORONTOEVENTS_ANTIGRAVITY/metadata.json
+Ô£à Uploaded metadata.json to TORONTOEVENTS_ANTIGRAVITY/ (basePath)
+­ƒôª Syncing public assets...
+ÔÜá´©Å Public assets sync failed, uploading critical files individually...
+Uploading 2xkoframedata.html...
+ÔØî Failed to upload C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\public\2xkoframedata.html: Error: Client is closed because Server sent FIN packet unexpectedly, closing connection.
+    at C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:228:29
+    at new Promise (<anonymous>)
+    at FTPContext.handle (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:210:16)
+    at FTPContext.request (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:188:21)
+    at Client.enterPassiveModeIPv6 [as prepareTransfer] (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\transfer.js:19:27)
+    at Client._uploadFromStream (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\Client.js:400:24)
+    at async Client._uploadLocalFile (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\Client.js:386:20)
+    at async uploadFile (file:///C:/Users/zerou/Documents/TORONTOEVENTS_ANTIGRAVITY/scripts/deploy-simple.ts:23:6)
+    at async main (file:///C:/Users/zerou/Documents/TORONTOEVENTS_ANTIGRAVITY/scripts/deploy-simple.ts:141:29)
+Closing reason: Error: Server sent FIN packet unexpectedly, closing connection.
+    at TLSSocket.<anonymous> (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:129:56)
+    at TLSSocket.emit (node:events:520:22)
+    at TLSSocket.emit (node:domain:489:12)
+    at endReadableNT (node:internal/streams/readable:1729:12)
+    at processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: '0'
+}
+ÔÜá´©Å Failed to upload 2xkoframedata.html, but continuing...
+­ƒôª Uploading application build chunks (_next)...
+Ô£à _next directory uploaded
+­ƒôª Uploading 2XKO page...
+Ô£à 2XKO page uploaded
+­ƒôª Uploading Find Stocks page...
+Ô£à Find Stocks page uploaded
+Uploading daily-stocks.json...
+ÔØî Failed to upload C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\public\data\daily-stocks.json: FTPError: 553 Can't open that file: No such file or directory
+    at FTPContext._onControlSocketData (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:283:39)
+    at TLSSocket.<anonymous> (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:127:44)
+    at TLSSocket.emit (node:events:508:20)
+    at TLSSocket.emit (node:domain:489:12)
+    at addChunk (node:internal/streams/readable:564:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:515:3)
+    at TLSSocket.Readable.push (node:internal/streams/readable:395:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  code: 553
+}
+ÔÜá´©Å  File missing, continuing deployment...
+Ô£à Daily stocks data uploaded
+­ƒôª Uploading Mental Health Resources page...
+Ô£à Mental Health Resources page uploaded
+­ƒôª Uploading WINDOWSFIXER page with VirusTotal badges...
+Ô£à WINDOWSFIXER page uploaded
+
+­ƒôª Building version with basePath for TORONTOEVENTS_ANTIGRAVITY...
+
+> toronto-events@0.5.0 build
+> next build
+
+Ôû▓ Next.js 16.1.4 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 1771.1ms
+  Running TypeScript ...
+  Collecting page data using 31 workers ...
+  Generating static pages using 31 workers (0/7) ...
+  Generating static pages using 31 workers (1/7) 
+  Generating static pages using 31 workers (3/7) 
+  Generating static pages using 31 workers (5/7) 
+Ô£ô Generating static pages using 31 workers (7/7) in 382.7ms
+  Finalizing page optimization ...
+
+Route (app)
+Ôöî Ôùï /
+Ôö£ Ôùï /_not-found
+Ôö£ Ôùï /2xko
+Ôö£ Ôùï /findstocks
+Ôöö Ôùï /mentalhealthresources
+
+
+Ôùï  (Static)  prerendered as static content
+
+Ô£à Built version with basePath
+Uploading index.html...
+Ô£à Uploaded: TORONTOEVENTS_ANTIGRAVITY/index.html
+Ô£à Uploaded index.html to TORONTOEVENTS_ANTIGRAVITY/
+­ƒôª Uploading _next to TORONTOEVENTS_ANTIGRAVITY...
+Ô£à _next directory uploaded to TORONTOEVENTS_ANTIGRAVITY/
+­ƒôª Uploading 2XKO page to TORONTOEVENTS_ANTIGRAVITY...
+Ô£à 2XKO page uploaded to TORONTOEVENTS_ANTIGRAVITY/
+­ƒôª Uploading Find Stocks page to TORONTOEVENTS_ANTIGRAVITY...
+Ô£à Find Stocks page uploaded to TORONTOEVENTS_ANTIGRAVITY/
+Uploading daily-stocks.json...
+ÔØî Failed to upload C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\public\data\daily-stocks.json: FTPError: 553 Can't open that file: No such file or directory
+    at FTPContext._onControlSocketData (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:283:39)
+    at TLSSocket.<anonymous> (C:\Users\zerou\Documents\TORONTOEVENTS_ANTIGRAVITY\node_modules\basic-ftp\dist\FtpContext.js:127:44)
+    at TLSSocket.emit (node:events:508:20)
+    at TLSSocket.emit (node:domain:489:12)
+    at addChunk (node:internal/streams/readable:564:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:515:3)
+    at TLSSocket.Readable.push (node:internal/streams/readable:395:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  code: 553
+}
+ÔÜá´©Å  File missing, continuing deployment...
+Ô£à Daily stocks data uploaded to TORONTOEVENTS_ANTIGRAVITY/data/
+­ƒôª Uploading Mental Health Resources to TORONTOEVENTS_ANTIGRAVITY...
+Ô£à Mental Health Resources uploaded to TORONTOEVENTS_ANTIGRAVITY/
+Uploading favicon.ico...
+Ô£à Uploaded: TORONTOEVENTS_ANTIGRAVITY/favicon.ico
+Uploading ads.txt...
+Ô£à Uploaded: TORONTOEVENTS_ANTIGRAVITY/ads.txt
+Uploading 404.html...
+Ô£à Uploaded: TORONTOEVENTS_ANTIGRAVITY/404.html
+
+­ƒÄë Deployment complete!
+­ƒôì Main page: /findtorontoevents.ca/index3.html
+­ƒôì WINDOWSFIXER page: /findtorontoevents.ca/WINDOWSFIXER/index.html
+­ƒôì Mental Health Resources: /findtorontoevents.ca/MENTALHEALTHRESOURCES/index.html

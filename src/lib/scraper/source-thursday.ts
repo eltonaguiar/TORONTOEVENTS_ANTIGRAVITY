@@ -1,5 +1,6 @@
 import { ScraperSource, ScraperResult, Event } from '../types';
-import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription } from './utils';
+import { generateEventId, cleanText, normalizeDate, categorizeEvent, cleanDescription, formatTorontoDate } from './utils';
+import { safeParseDate } from '../utils/dateHelpers';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -64,32 +65,9 @@ export class ThursdayScraper implements ScraperSource {
                     // Thursday pages usually have JSON-LD
                     const ldScript = $d('script[type="application/ld+json"]').html();
                     
-                    // Helper function to get next Thursday in Toronto timezone
-                    const getNextThursday = (): string => {
-                        const now = new Date();
-                        const dayOfWeek = now.getDay(); // 0 = Sunday, 4 = Thursday
-                        const daysUntilThursday = (4 - dayOfWeek + 7) % 7 || 7; // Next Thursday (or today if it's Thursday)
-                        
-                        // Get current date in Toronto timezone
-                        const torontoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
-                        const nextThursdayLocal = new Date(torontoNow);
-                        nextThursdayLocal.setDate(torontoNow.getDate() + daysUntilThursday);
-                        nextThursdayLocal.setHours(19, 0, 0, 0); // 7 PM Toronto time
-                        
-                        // Create date string with EST offset (UTC-5 for January)
-                        // This ensures the date displays correctly in Toronto timezone
-                        const year = nextThursdayLocal.getFullYear();
-                        const month = String(nextThursdayLocal.getMonth() + 1).padStart(2, '0');
-                        const day = String(nextThursdayLocal.getDate()).padStart(2, '0');
-                        
-                        // Use EST offset (UTC-5) - adjust to EDT (UTC-4) if needed for summer months
-                        const isDST = nextThursdayLocal.getMonth() >= 3 && nextThursdayLocal.getMonth() <= 10;
-                        const offset = isDST ? '-04:00' : '-05:00';
-                        const estDateString = `${year}-${month}-${day}T19:00:00${offset}`;
-                        return new Date(estDateString).toISOString();
-                    };
-                    
-                    let date = getNextThursday(); // Default to next Thursday for Thursday events
+                    // Extract date - prioritize JSON-LD, then HTML, then page text
+                    // DO NOT default to "next Thursday" - only use as absolute last resort
+                    let date: string | null = null;
                     let title = cleanText($d('h1').text() || $d('.event-title').text());
                     let description = cleanDescription($d('.event-description').text() || $d('.entry-content').text());
                     let image = $d('.event-image img').attr('src') || $d('.wp-post-image').attr('src');
@@ -97,39 +75,7 @@ export class ThursdayScraper implements ScraperSource {
                     let latitude: number | undefined;
                     let longitude: number | undefined;
 
-                    // Try to extract date from page text first
-                    const pageText = $d('body').text();
-                    const datePatterns = [
-                        // Match dates like "Thursday, January 30" or "Jan 30, 2026"
-                        /(?:Thursday|Friday|Saturday|Sunday|Monday|Tuesday|Wednesday)[,\s]+(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[,\s]+(\d{1,2})(?:[,\s]+(\d{4}))?/i,
-                        // Match dates like "January 30, 2026" or "Jan 30"
-                        /(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[,\s]+(\d{1,2})(?:[,\s]+(\d{4}))?/i,
-                        // Match ISO dates
-                        /\d{4}-\d{2}-\d{2}/,
-                        // Match dates like "1/30/2026" or "01/30/26"
-                        /\d{1,2}\/\d{1,2}\/\d{2,4}/
-                    ];
-                    
-                    for (const pattern of datePatterns) {
-                        const match = pageText.match(pattern);
-                        if (match) {
-                            const extractedDate = normalizeDate(match[0]);
-                            if (extractedDate) {
-                                const extractedDateObj = new Date(extractedDate);
-                                const today = new Date();
-                                const todayDayOfWeek = today.getDay(); // 0 = Sunday, 4 = Thursday
-                                const extractedDateStr = this.getTorontoDateParts(extractedDateObj);
-                                const todayStr = this.getTorontoDateParts(today);
-                                
-                                // Only use extracted date if it's in the future, or if it's today AND today is Thursday
-                                if (extractedDateObj > today || (todayDayOfWeek === 4 && extractedDateStr === todayStr)) {
-                                    date = extractedDate;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
+                    // FIRST: Try JSON-LD (most reliable)
                     if (ldScript) {
                         try {
                             const data = JSON.parse(ldScript);
@@ -138,16 +84,21 @@ export class ThursdayScraper implements ScraperSource {
 
                             if (eventData) {
                                 title = cleanText(eventData.name || title);
-                                // Only use JSON-LD date if it's valid and not today (unless today is Thursday)
-                                const jsonDate = normalizeDate(eventData.startDate);
-                                if (jsonDate) {
-                                    const parsedDate = new Date(jsonDate);
-                                    const today = new Date();
-                                    const todayDayOfWeek = today.getDay(); // 0 = Sunday, 4 = Thursday
-                                    // Only use if it's a valid future date, or if it's today AND today is Thursday
-                                    if (!isNaN(parsedDate.getTime()) && 
-                                        (parsedDate > today || (todayDayOfWeek === 4 && this.getTorontoDateParts(parsedDate) === this.getTorontoDateParts(today)))) {
-                                        date = jsonDate;
+                                // Use JSON-LD date if available and valid
+                                if (eventData.startDate) {
+                                    const jsonDate = normalizeDate(eventData.startDate);
+                                    if (jsonDate) {
+                                        const parsedDate = new Date(jsonDate);
+                                        // Only accept if it's a valid date (not in the past by more than 1 day)
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        const oneDayAgo = new Date(today);
+                                        oneDayAgo.setDate(today.getDate() - 1);
+                                        
+                                        if (!isNaN(parsedDate.getTime()) && parsedDate >= oneDayAgo) {
+                                            date = jsonDate;
+                                            console.log(`  ✅ Extracted date from JSON-LD: ${date}`);
+                                        }
                                     }
                                 }
                                 description = cleanDescription(eventData.description || description);
@@ -167,19 +118,100 @@ export class ThursdayScraper implements ScraperSource {
                         } catch (e) { }
                     }
                     
-                    // Final fallback: If title contains "Thursday" and date is still today (and today is NOT Thursday), use next Thursday
-                    if (title.toLowerCase().includes('thursday') || this.name === 'Thursday') {
-                        const currentDate = new Date(date);
-                        const today = new Date();
-                        const todayDayOfWeek = today.getDay(); // 0 = Sunday, 4 = Thursday
-                        const currentDateStr = this.getTorontoDateParts(currentDate);
-                        const todayStr = this.getTorontoDateParts(today);
-                        
-                        // If the date is today but today is NOT Thursday, use next Thursday
-                        // Also if the date is in the past, use next Thursday
-                        if ((currentDateStr === todayStr && todayDayOfWeek !== 4) || currentDate < today) {
-                            date = getNextThursday();
+                    // SECOND: Try HTML selectors (time[datetime], itemprop="startDate", etc.)
+                    if (!date) {
+                        const htmlDate = $d('time[datetime]').first().attr('datetime') ||
+                            $d('[itemprop="startDate"]').attr('content') ||
+                            $d('.event-date, .start-date, .date').first().text().trim();
+                        if (htmlDate) {
+                            const parsed = normalizeDate(htmlDate);
+                            if (parsed) {
+                                const parsedDate = new Date(parsed);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                const oneDayAgo = new Date(today);
+                                oneDayAgo.setDate(today.getDate() - 1);
+                                
+                                if (!isNaN(parsedDate.getTime()) && parsedDate >= oneDayAgo) {
+                                    date = parsed;
+                                    console.log(`  ✅ Extracted date from HTML: ${date}`);
+                                }
+                            }
                         }
+                    }
+                    
+                    // THIRD: Try parsing from page text (fragile, but better than defaulting)
+                    if (!date) {
+                        const pageText = $d('body').text();
+                        
+                        // Look for common date patterns in text
+                        const datePatterns = [
+                            // Match dates like "Thursday, January 30, 2026" or "Jan 30, 2026"
+                            /(?:Thursday|Friday|Saturday|Sunday|Monday|Tuesday|Wednesday)[,\s]+(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[,\s]+(\d{1,2})(?:[,\s]+(\d{4}))?/i,
+                            // Match dates like "January 30, 2026" or "Jan 30"
+                            /(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[,\s]+(\d{1,2})(?:[,\s]+(\d{4}))?/i,
+                            // Match ISO dates
+                            /\d{4}-\d{2}-\d{2}/,
+                            // Match dates like "1/30/2026" or "01/30/26"
+                            /\d{1,2}\/\d{1,2}\/\d{2,4}/
+                        ];
+                        
+                        for (const pattern of datePatterns) {
+                            const match = pageText.match(pattern);
+                            if (match) {
+                                const parsed = safeParseDate(match[0], generateEventId(link), title);
+                                if (parsed.isValid && parsed.date) {
+                                    const parsedDate = parsed.date;
+                                    const today = new Date();
+                                    today.setHours(0, 0, 0, 0);
+                                    const oneDayAgo = new Date(today);
+                                    oneDayAgo.setDate(today.getDate() - 1);
+                                    
+                                    // Only accept if it's a valid future date (or within last day)
+                                    if (parsedDate >= oneDayAgo) {
+                                        date = formatTorontoDate(parsedDate);
+                                        console.log(`  ✅ Extracted date from page text: ${date}`);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // FINAL FALLBACK: Only use "next Thursday" if we absolutely cannot find a date
+                    // AND the event is clearly a Thursday event (title contains "Thursday")
+                    if (!date && (title.toLowerCase().includes('thursday') || this.name === 'Thursday')) {
+                        console.log(`  ⚠️ No date found, using next Thursday as last resort for: "${title}"`);
+                        // Helper function to get next Thursday in Toronto timezone
+                        const getNextThursday = (): string => {
+                            const now = new Date();
+                            const dayOfWeek = now.getDay(); // 0 = Sunday, 4 = Thursday
+                            const daysUntilThursday = (4 - dayOfWeek + 7) % 7 || 7; // Next Thursday (or today if it's Thursday)
+                            
+                            // Get current date in Toronto timezone
+                            const torontoNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+                            const nextThursdayLocal = new Date(torontoNow);
+                            nextThursdayLocal.setDate(torontoNow.getDate() + daysUntilThursday);
+                            nextThursdayLocal.setHours(19, 0, 0, 0); // 7 PM Toronto time
+                            
+                            // Create date string with EST offset (UTC-5 for January)
+                            const year = nextThursdayLocal.getFullYear();
+                            const month = String(nextThursdayLocal.getMonth() + 1).padStart(2, '0');
+                            const day = String(nextThursdayLocal.getDate()).padStart(2, '0');
+                            
+                            // Use EST offset (UTC-5) - adjust to EDT (UTC-4) if needed for summer months
+                            const isDST = nextThursdayLocal.getMonth() >= 3 && nextThursdayLocal.getMonth() <= 10;
+                            const offset = isDST ? '-04:00' : '-05:00';
+                            const estDateString = `${year}-${month}-${day}T19:00:00${offset}`;
+                            return new Date(estDateString).toISOString();
+                        };
+                        date = getNextThursday();
+                    }
+                    
+                    // If still no date, skip this event (don't use invalid dates)
+                    if (!date) {
+                        console.log(`  ❌ Skipping event with unparseable date: "${title}"`);
+                        continue;
                     }
 
                     if (!title) continue;

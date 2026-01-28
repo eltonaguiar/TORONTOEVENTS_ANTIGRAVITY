@@ -116,15 +116,35 @@ export function shouldIncludeEvent(event: Event): boolean {
         // return true; // Let it through
     }
     
-    // CRITICAL FIX: Relax price filter - only reject if VERY expensive (> $200)
-    // The frontend has user-controlled price filters, so be more permissive here
+    // CRITICAL FIX: Filter expensive events (> $200)
+    // Events over $200 should be excluded (e.g., $314 matchmaking event)
     if (event.priceAmount !== undefined && event.priceAmount > 200) {
         console.log(`Rejecting very expensive event: "${event.title}" ($${event.priceAmount})`);
         return false;
     }
     
-    // Don't check description for prices - too aggressive and error-prone
-    // Let frontend handle price filtering with user controls
+    // Also check description for prices when priceAmount is missing
+    // Some events have prices in description but not in structured data
+    if (event.priceAmount === undefined && event.description) {
+        const descText = event.description.toLowerCase();
+        // Look for high prices in description (e.g., "Regular price for this service is $449")
+        const highPricePatterns = [
+            /(?:regular|normal|full|standard)\s+price\s+(?:for|is|of)?\s*(?:this|the)?\s*(?:service|event|ticket)?\s*(?:is)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/i,
+            /(?:price|cost|fee)\s+(?:is|of|for)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/i,
+            /(?:CA\$|CAD|C\$|\$)\s*(\d{3,}(?:\.\d{2})?)/g
+        ];
+        
+        for (const pattern of highPricePatterns) {
+            const matches = [...descText.matchAll(pattern)];
+            for (const match of matches) {
+                const price = parseFloat(match[1]);
+                if (!isNaN(price) && price > 200) {
+                    console.log(`Rejecting expensive event (price in description): "${event.title}" ($${price})`);
+                    return false;
+                }
+            }
+        }
+    }
 
     // Reject "garbage" topics (sales seminars, etc.) - keep this as it's spam filtering
     const spamKeywords = [
@@ -137,6 +157,22 @@ export function shouldIncludeEvent(event: Event): boolean {
     const text = (event.title + ' ' + (event.description || '')).toLowerCase();
     if (spamKeywords.some(k => text.includes(k))) {
         console.log(`Rejecting spam/low-value event: "${event.title}"`);
+        return false;
+    }
+    
+    // Filter out higher age range events by default (42+, 50+)
+    // These should be excluded unless user specifically wants them
+    const ageRangePatterns = [
+        /ages?\s+(?:4[2-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9]|90\+?)/i, // Ages 42-90+
+        /(?:4[2-9]|5[0-9]|6[0-9]|7[0-9]|8[0-9])\s*[-–]\s*(?:\d{2,3}|90\+?)/i, // 42-57, 50-65, etc.
+        /(?:senior|mature|older)\s+(?:singles|dating|events?)/i, // Senior/mature events
+        /(?:50\+|60\+|70\+|80\+)/i // Explicit age ranges
+    ];
+    
+    // Check title and description for higher age ranges
+    const fullText = (event.title + ' ' + (event.description || '')).toLowerCase();
+    if (ageRangePatterns.some(pattern => pattern.test(fullText))) {
+        console.log(`Rejecting higher age range event (filtered by default): "${event.title}"`);
         return false;
     }
 
