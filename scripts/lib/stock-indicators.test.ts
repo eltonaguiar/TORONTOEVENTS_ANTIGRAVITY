@@ -4,6 +4,8 @@ import {
   calculateYTDPerformance,
   calculateVWAP,
   PriceHistory,
+  calculateADX,
+  calculateAwesomeOscillator,
 } from "./stock-indicators";
 
 describe("stock-indicators", () => {
@@ -44,15 +46,36 @@ describe("stock-indicators", () => {
     ];
 
     it("should calculate VWAP correctly", () => {
-      // Typical Price * Volume for each day:
-      // Day 1: ((102+98+100)/3) * 100 = 100 * 100 = 10000
-      // Day 2: ((106+104+105)/3) * 200 = 105 * 200 = 21000
-      // Day 3: ((103+101+102)/3) * 150 = 102 * 150 = 15300
-      // Total PV = 10000 + 21000 + 15300 = 46300
-      // Total Volume = 100 + 200 + 150 = 450
-      // VWAP = 46300 / 450 = 102.888...
       const vwap = calculateVWAP(history);
       expect(vwap).toBeCloseTo(102.89, 2);
+    });
+  });
+
+  describe("calculateADX", () => {
+    const history: PriceHistory[] = Array.from({ length: 40 }, (_, i) => ({
+      date: "2026-01-01",
+      close: 100 + i,
+      high: 100 + i + 0.5,
+      low: 100 + i - 0.5,
+      volume: 1000,
+    }));
+    it("should return a number", () => {
+      const adx = calculateADX(history);
+      expect(typeof adx).toBe("number");
+    });
+  });
+
+  describe("calculateAwesomeOscillator", () => {
+    const history: PriceHistory[] = Array.from({ length: 40 }, (_, i) => ({
+      date: "2026-01-01",
+      close: 100 + Math.sin(i / 10) * 5,
+      high: 100 + Math.sin(i / 10) * 5 + 1,
+      low: 100 + Math.sin(i / 10) * 5 - 1,
+      volume: 1000,
+    }));
+    it("should return a number", () => {
+      const ao = calculateAwesomeOscillator(history);
+      expect(typeof ao).toBe("number");
     });
   });
 });
