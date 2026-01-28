@@ -38,10 +38,9 @@ async function main() {
             process.exit(1);
         }
 
-        const remoteMOVIESHOWS = `${base}/MOVIESHOWS`;
-        await client.ensureDir(remoteMOVIESHOWS);
-        console.log('Uploading MovieShows to', remoteMOVIESHOWS, '...');
-        await client.uploadFromDir(movieshowsOut, remoteMOVIESHOWS);
+        await client.ensureDir(`${base}/MOVIESHOWS`);
+        console.log('Uploading MovieShows to', base + '/MOVIESHOWS', '...');
+        await client.uploadFromDir(movieshowsOut);
         console.log('MovieShows upload complete.');
 
         const redirectsDir = path.join(process.cwd(), 'movieshows-redirects');

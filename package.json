@@ -31,7 +31,9 @@
     "stocks:v2:full": "npm run stocks:v2:generate && npm run stocks:v2:sync",
     "stocks:all": "npm run stocks:full && npm run stocks:v2:full",
     "stocks:verify": "tsx scripts/verify-picks.ts",
+    "stocks:portfolio": "tsx scripts/generate-portfolio.ts",
     "findstocks:verify": "tsx scripts/verify-findstocks.ts",
+    "kill-stale-node": "powershell -NoProfile -Command \"try { taskkill /F /IM node.exe 2>$null } catch {}; Write-Host 'Done (Node processes stopped if any).'\"",
     "test": "vitest"
   },
   "dependencies": {

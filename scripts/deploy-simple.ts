@@ -259,8 +259,9 @@ async function main() {
                     await client.cd(config.remotePath);
                     try { await client.removeDir('MOVIESHOWS'); } catch (_) { /* ignore if missing */ }
                     await client.ensureDir('MOVIESHOWS');
+                    await client.cd('MOVIESHOWS');
                     console.log('📦 Uploading MovieShows to /MOVIESHOWS...');
-                    await client.uploadFromDir(movieshowsOutDir, 'MOVIESHOWS');
+                    await client.uploadFromDir(movieshowsOutDir);
                     console.log('✅ MovieShows uploaded to /MOVIESHOWS');
                 } else {
                     console.log('⚠️  movieshows/out not found after build, skipping MovieShows upload');
