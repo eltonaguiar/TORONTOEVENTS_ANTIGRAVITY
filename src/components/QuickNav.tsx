@@ -25,6 +25,13 @@ export default function QuickNav() {
         }
     };
 
+    const scrollToFooter = () => {
+        const footerElement = document.getElementById('global-footer');
+        if (footerElement) {
+            footerElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
     const handleFeedClick = () => {
         updateSettings({ viewMode: 'feed' });
         setIsOpen(false);
@@ -191,7 +198,17 @@ END:VCALENDAR`;
                             >
                                 <span className="text-lg">♥</span>
                                 <span className="flex-1 truncate">My Collection</span>
-                                <span className="bg-black/30 px-2 py-0.5 rounded textxs font-mono">{settings.savedEvents.length}</span>
+                                <span className="bg-black/30 px-2 py-0.5 rounded text-[10px] font-mono">{settings.savedEvents.length}</span>
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    scrollToFooter();
+                                    setIsOpen(false);
+                                }}
+                                className="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 bg-[var(--pk-500)]/20 text-white font-bold hover:bg-[var(--pk-500)] transition-all border border-[var(--pk-500)]/30 mt-2 shadow-lg animate-pulse"
+                            >
+                                <span className="text-lg">📧</span> Contact Support
                             </button>
                         </div>
 
@@ -321,8 +338,8 @@ END:VCALENDAR`;
                             Build: 2026-01-27-mental-health-fix
                         </p>
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
         </>
     );
 }

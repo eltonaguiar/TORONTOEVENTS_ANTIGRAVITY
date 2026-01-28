@@ -2,7 +2,7 @@
 
 export default function GlobalFooter() {
     return (
-        <footer className="mt-20 py-20 border-t border-white/5 text-center bg-black/20 backdrop-blur-sm">
+        <footer id="global-footer" className="mt-20 py-20 border-t border-white/5 text-center bg-black/20 backdrop-blur-sm">
             <div className="max-w-xl mx-auto space-y-8 px-6">
                 {/* Contact Section */}
                 <div className="space-y-4">
