@@ -21,14 +21,28 @@ import {
 } from "./lib/stock-scorers";
 import { STOCK_UNIVERSE } from "./lib/stock-universe";
 
-const ALGORITHM_THRESHOLDS = {
+const CONFIG_PATH = path.join(process.cwd(), "data", "engine-config.json");
+
+// Default thresholds (fallback)
+let ALGORITHM_THRESHOLDS: Record<string, number> = {
   "CAN SLIM": 40,
   "Technical Momentum": 45,
   "Composite Rating": 50,
-  "Penny Sniper": 60, // Stricter
+  "Penny Sniper": 60,
   "Value Sleeper": 50,
-  "Alpha Predator": 60 // Minimum for consideration
+  "Alpha Predator": 60
 };
+
+// Try loading dynamic config
+if (fs.existsSync(CONFIG_PATH)) {
+  try {
+    const config = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf-8"));
+    ALGORITHM_THRESHOLDS = { ...ALGORITHM_THRESHOLDS, ...config.thresholds };
+    console.log("⚙️ Loaded dynamic thresholds from validation engine.");
+  } catch (e) {
+    console.warn("⚠️ Failed to load engine config, using defaults.");
+  }
+}
 
 /**
  * Takes a raw array of picks, de-duplicates by symbol, merges algo tags, and returns top 30.

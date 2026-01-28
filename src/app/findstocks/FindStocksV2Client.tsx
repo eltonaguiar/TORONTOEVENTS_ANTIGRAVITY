@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import PerformanceDashboard from "./components/PerformanceDashboard";
+import SectorRotationWidget from "./components/SectorRotationWidget";
 
 interface V2Pick {
   symbol: string;
@@ -237,11 +238,10 @@ export default function FindStocksV2Client() {
                       <div className="space-y-4">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${
-                              pick.rating === "STRONG BUY"
-                                ? "bg-emerald-500/10 text-emerald-400"
-                                : "bg-indigo-500/10 text-indigo-400"
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${pick.rating === "STRONG BUY"
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-indigo-500/10 text-indigo-400"
+                              }`}
                           >
                             {pick.rating}
                           </span>
@@ -288,6 +288,19 @@ export default function FindStocksV2Client() {
                   </div>
                 ))}
               </div>
+            </section>
+
+            {/* Macro Sector Rotation */}
+            <section>
+              <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-6">
+                <h3 className="text-xs font-mono uppercase tracking-[0.4em] text-neutral-500">
+                  Macro-Economic Context
+                </h3>
+                <div className="text-[10px] font-mono text-neutral-600 uppercase">
+                  Sector Rotation Matrix
+                </div>
+              </div>
+              <SectorRotationWidget />
             </section>
 
             {/* V2 Scientific Strategies Section */}
