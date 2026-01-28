@@ -1,0 +1,342 @@
+{
+  "version": "2.0.0-alpha",
+  "date": "2026-01-28",
+  "timestamp": "2026-01-28T01:55:10.652Z",
+  "regime": {
+    "symbol": "SPY",
+    "price": 695.49,
+    "sma200": 638.6772497558594,
+    "status": "BULLISH"
+  },
+  "metadata": {
+    "engine": "STOCKSUNIFY2-Scientific",
+    "system": "win32",
+    "checksPerformed": [
+      "Purging",
+      "Slippage-Stress",
+      "Regime-Detection"
+    ]
+  },
+  "picks": [
+    {
+      "symbol": "LRCX",
+      "name": "Lam Research Corporation",
+      "score": 100,
+      "rating": "STRONG BUY",
+      "algorithm": "Volatility-Adjusted Momentum (V2)",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 5.408472751289271,
+        "totalReturn": 48.10260737564078,
+        "martinRatio": 8.893935420895684
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "audit_id": "v2-LRCX-1769565310652"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "score": 100,
+      "rating": "STRONG BUY",
+      "algorithm": "Volatility-Adjusted Momentum (V2)",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.063059982420134,
+        "totalReturn": 18.719913449857582,
+        "martinRatio": 9.073858060053896
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "audit_id": "v2-JNJ-1769565310652"
+    },
+    {
+      "symbol": "XOM",
+      "name": "Exxon Mobil Corporation",
+      "score": 100,
+      "rating": "STRONG BUY",
+      "algorithm": "Volatility-Adjusted Momentum (V2)",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 1.902309703258902,
+        "totalReturn": 19.304208812712183,
+        "martinRatio": 10.147773929577072
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "audit_id": "v2-XOM-1769565310652"
+    },
+    {
+      "symbol": "JPM",
+      "name": "JPMorgan Chase & Co.",
+      "score": 98,
+      "rating": "STRONG BUY",
+      "algorithm": "Regime-Aware Reversion (V2)",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 20.8927679816356,
+        "sma200": 292.1463500213623,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "audit_id": "v2-JPM-1769565310652"
+    },
+    {
+      "symbol": "AFRM",
+      "name": "Affirm Holdings, Inc.",
+      "score": 95,
+      "rating": "STRONG BUY",
+      "algorithm": "Regime-Aware Reversion (V2)",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 22.738271850354806,
+        "sma200": 68.42405012130737,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "audit_id": "v2-AFRM-1769565310652"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet Inc.",
+      "score": 91,
+      "rating": "STRONG BUY",
+      "algorithm": "Volatility-Adjusted Momentum (V2)",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.723409132922097,
+        "totalReturn": 18.853910381668122,
+        "martinRatio": 6.922907819376633
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "audit_id": "v2-GOOGL-1769565310652"
+    },
+    {
+      "symbol": "PLTR",
+      "name": "Palantir Technologies Inc.",
+      "score": 84,
+      "rating": "STRONG BUY",
+      "algorithm": "Regime-Aware Reversion (V2)",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 27.825243131129,
+        "sma200": 157.99037517547606,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "audit_id": "v2-PLTR-1769565310652"
+    },
+    {
+      "symbol": "LLY",
+      "name": "Eli Lilly and Company",
+      "score": 81,
+      "rating": "BUY",
+      "algorithm": "Volatility-Adjusted Momentum (V2)",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 4.577779610811058,
+        "totalReturn": 23.091770278271166,
+        "martinRatio": 5.044316730263022
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "audit_id": "v2-LLY-1769565310652"
+    },
+    {
+      "symbol": "LRCX",
+      "name": "Lam Research Corporation",
+      "score": 79,
+      "rating": "BUY",
+      "algorithm": "Adversarial Trend (V2)",
+      "timeframe": "1m",
+      "risk": "Medium",
+      "metrics": {
+        "trendStrength": 0.3334541188829201,
+        "avgVolatilty": 0.03243818338417716,
+        "signalDensity": 39.28703967654358
+      },
+      "v2_hash": "at-v2.0.0-alpha",
+      "audit_id": "v2-LRCX-1769565310652"
+    },
+    {
+      "symbol": "GE",
+      "name": "GE Aerospace",
+      "score": 74,
+      "rating": "BUY",
+      "algorithm": "Regime-Aware Reversion (V2)",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 32.84654937335401,
+        "sma200": 272.2385003662109,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "audit_id": "v2-GE-1769565310652"
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 0.4615085818411783,
+        "sma200": 166.52680053710938,
+        "adjustedReturn": 44.65085818411783
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-NVDA-1769565310652"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 0.7130056055930454,
+        "sma200": 231.72895011901855,
+        "adjustedReturn": 69.80056055930454
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-GOOGL-1769565310652"
+    },
+    {
+      "symbol": "AVGO",
+      "name": "Broadcom Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 0.6048900415724,
+        "sma200": 303.04910018920896,
+        "adjustedReturn": 58.989004157240004
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-AVGO-1769565310652"
+    },
+    {
+      "symbol": "AMD",
+      "name": "Advanced Micro Devices, Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 1.2074976267149766,
+        "sma200": 173.47724975585936,
+        "adjustedReturn": 119.24976267149766
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-AMD-1769565310652"
+    },
+    {
+      "symbol": "LRCX",
+      "name": "Lam Research Corporation",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 2.20037569672876,
+        "sma200": 124.13769973754883,
+        "adjustedReturn": 218.53756967287603
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-LRCX-1769565310652"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 0.4924856544252719,
+        "sma200": 178.56369995117188,
+        "adjustedReturn": 47.748565442527195
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-JNJ-1769565310652"
+    },
+    {
+      "symbol": "CAT",
+      "name": "Caterpillar Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 0.6370134669395777,
+        "sma200": 460.6359492492676,
+        "adjustedReturn": 62.201346693957774
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-CAT-1769565310652"
+    },
+    {
+      "symbol": "GE",
+      "name": "GE Aerospace",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 0.5299594260441164,
+        "sma200": 272.2385003662109,
+        "adjustedReturn": 51.49594260441164
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-GE-1769565310652"
+    },
+    {
+      "symbol": "PLTR",
+      "name": "Palantir Technologies Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 1.0653121409308772,
+        "sma200": 157.99037517547606,
+        "adjustedReturn": 105.03121409308773
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-PLTR-1769565310652"
+    },
+    {
+      "symbol": "SOFI",
+      "name": "SoFi Technologies, Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Scientific CAN SLIM (V2)",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 0.5745207099488933,
+        "sma200": 22.488399987220763,
+        "adjustedReturn": 55.952070994889326
+      },
+      "v2_hash": "scs-v2.0.0-alpha",
+      "audit_id": "v2-SOFI-1769565310652"
+    }
+  ]
+}

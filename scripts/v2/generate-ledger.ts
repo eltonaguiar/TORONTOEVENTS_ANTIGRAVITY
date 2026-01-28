@@ -24,11 +24,13 @@ async function main() {
 
     try {
         // 1. Generate Picks using the V2 Engine
-        const picks = await generateScientificPicks();
+        const { picks, regime } = await generateScientificPicks();
 
         const auditObject = {
             version: '2.0.0-alpha',
+            date: datePortion,
             timestamp: dateStr,
+            regime,
             metadata: {
                 engine: 'STOCKSUNIFY2-Scientific',
                 system: process.platform,

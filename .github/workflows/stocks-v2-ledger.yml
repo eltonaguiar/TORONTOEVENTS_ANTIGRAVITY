@@ -28,10 +28,10 @@ jobs:
         run: npm install
 
       - name: Generate Daily Ledger
-        run: npx tsx scripts/v2/generate-ledger.ts
         env:
-          FINNHUB_API_KEY: "${{ secrets.FINNHUB_API_KEY }}"
-          ALPHA_VANTAGE_API_KEY: "${{ secrets.ALPHA_VANTAGE_API_KEY }}"
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+        run: npx tsx scripts/v2/generate-ledger.ts
 
       - name: Commit and Push Ledger
         run: |
