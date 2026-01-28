@@ -187,6 +187,13 @@ async function generateStockPicks(): Promise<StockPick[]> {
   const momentumTimeframes: Array<"24h" | "3d" | "7d"> = ["24h", "3d", "7d"];
 
   for (const data of stockData) {
+    const daysToEarnings = resolveDaysToEarnings(data);
+    const earningsDiagnostic = assessEarningsRiskForDiagnostics(daysToEarnings);
+    if (earningsDiagnostic.status !== "ok") {
+      const statusLabel = earningsDiagnostic.status === "disqualified" ? "DISQUALIFIED" : "PENALIZED";
+      const earningsDate = data.earningsDate ? `, earningsDate=${data.earningsDate}` : "";
+      console.log(`⚠️ Earnings filter: ${data.symbol} ${statusLabel} (${earningsDiagnostic.reason}) - daysToEarnings=${daysToEarnings}${earningsDate}`);
+    }
     // 1. CAN SLIM
     const canslimScore = scoreCANSLIM(data, regime);
     if (

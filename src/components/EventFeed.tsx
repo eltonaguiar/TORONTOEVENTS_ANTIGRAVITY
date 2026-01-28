@@ -46,7 +46,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         // This effect is mainly for setting the current time
         // CRITICAL: Set now immediately to prevent filtering out all events
         setNow(new Date());
-        
+
         // Update liveEvents if initialEvents prop changes
         if (initialEvents) {
             console.log(`📦 [EventFeed] Received ${initialEvents.length} events from props`);
@@ -141,9 +141,9 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     // Only update if coordinates actually changed
                     if (!userCoords || userCoords.lat !== coords.lat || userCoords.lng !== coords.lng) {
                         setUserCoords(coords);
-                        updateSettings({ 
-                            userLatitude: coords.lat, 
-                            userLongitude: coords.lng 
+                        updateSettings({
+                            userLatitude: coords.lat,
+                            userLongitude: coords.lng
                         });
                     }
                 } else {
@@ -268,16 +268,16 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         const todayStr = getTorontoDateParts(today);
         const [y, m, d] = todayStr.split('-').map(Number);
         const startOfToday = new Date(y, m - 1, d);
-        
+
         // Get the start of the week (Sunday) and end of the week (Saturday)
         const dayOfWeek = startOfToday.getDay(); // 0 = Sunday, 6 = Saturday
         const startOfWeek = new Date(startOfToday);
         startOfWeek.setDate(startOfToday.getDate() - dayOfWeek); // Go back to Sunday
-        
+
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday (6 days after Sunday)
         endOfWeek.setHours(23, 59, 59, 999); // End of Saturday
-        
+
         return eventDate >= startOfWeek && eventDate <= endOfWeek;
     };
 
@@ -293,7 +293,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
     const validEvents = useMemo(() => {
         console.log(`🔍 [validEvents] Computing with now=${now?.toISOString()}, sourceEvents=${sourceEvents.length}, dateFilter=${dateFilter}, showStarted=${showStarted}`);
-        
+
         // CRITICAL FIX: If 'now' is not set, return events without date filtering
         // This prevents empty page on initial load
         if (!now) {
@@ -303,23 +303,23 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 if (settings.viewMode === 'saved' && !settings.savedEvents?.some((saved: Event) => saved.id === e.id)) {
                     return false;
                 }
-                
+
                 const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
                 if (settings.viewMode !== 'saved' && isHidden) return false;
-                
+
                 if (selectedCategory && !e.categories.includes(selectedCategory)) return false;
                 if (selectedSource && e.source !== selectedSource) return false;
                 if (selectedHost && e.host !== selectedHost) return false;
-                
+
                 // Price filter
                 if (!showExpensive && e.priceAmount !== undefined && e.priceAmount > maxPrice) {
                     return false;
                 }
-                
+
                 // Sold out filter
                 const { isSoldOut: inferredSoldOut } = inferSoldOutStatus(e.title + ' ' + (e.description || ''));
                 if (settings.hideSoldOut && (e.isSoldOut === true || inferredSoldOut)) return false;
-                
+
                 // Search filter
                 if (searchQuery) {
                     const terms = searchQuery.trim().split(/\s+/).filter(t => t.length > 0);
@@ -335,13 +335,13 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         if (!matchesSearch) return false;
                     }
                 }
-                
+
                 return true;
             });
             console.log(`✅ [validEvents] No 'now' - returning ${filtered.length} events`);
             return filtered;
         }
-        
+
         console.log(`🔄 [validEvents] 'now' is set, applying full filters...`);
         const filtered = sourceEvents
             .filter((e: Event) => {
@@ -356,7 +356,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         status: e.status
                     });
                 }
-                
+
                 if (searchQuery) {
                     const fullText = `${e.title} ${e.description} ${e.host} ${e.source} ${e.tags?.join(' ') || ''}`.toLowerCase();
 
@@ -396,7 +396,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     if (e.priceAmount !== undefined && e.priceAmount > maxPrice) {
                         return false;
                     }
-                    
+
                     // Fallback: Check description for high prices if priceAmount is missing
                     // This prevents expensive events from slipping through when price extraction fails
                     if (e.priceAmount === undefined && e.description) {
@@ -409,7 +409,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                             // Match patterns like "Regular price for this service is $449"
                             /(?:regular|normal|full|standard)\s+price\s+(?:for|is|of)?\s*(?:this|the)?\s*(?:service|event|ticket)?\s*(?:is)?\s*(?:CA\$|CAD|C\$|\$)?\s*(\d{3,}(?:\.\d{2})?)/gi
                         ];
-                        
+
                         for (const pattern of highPricePatterns) {
                             const matches = [...descText.matchAll(pattern)];
                             for (const match of matches) {
@@ -421,10 +421,10 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                             }
                         }
                     }
-                    
+
                     // Additional safety: If price is "See tickets" and description is very short,
                     // be more cautious - these might be expensive events with missing data
-                    if ((e.price === 'See tickets' || !e.priceAmount) && 
+                    if ((e.price === 'See tickets' || !e.priceAmount) &&
                         (!e.description || e.description.length < 100)) {
                         // Don't filter, but this will be flagged visually with warning icon
                     }
@@ -475,7 +475,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                                 // Standard Feed: Hide things that are over (with 1 hour grace period for timezone issues)
                                 const gracePeriod = 60 * 60 * 1000; // 1 hour
                                 const graceTime = new Date(now.getTime() - gracePeriod);
-                                
+
                                 // Only filter if event ENDED (not just started)
                                 if (!isNaN(eventEndDate.getTime()) && eventEndDate < graceTime) {
                                     const eventIndex = sourceEvents.indexOf(e);
@@ -486,7 +486,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                                 }
                                 // DON'T filter events that just started - only filter if they ENDED
                                 // This is the key fix: we were filtering started events, now we only filter ended events
-                                
+
                                 // CRITICAL: Don't filter events that started but haven't ended yet
                                 // The old code was: if (eventStartDate < now) return false; - this was wrong!
                             } else {
@@ -508,7 +508,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 // Date Filtering
                 const eventStartDate = new Date(e.date); // Need local var for date filter block
                 const eEndDate = e.endDate ? new Date(e.endDate) : eventStartDate;
-                
+
                 // SURGICAL FIX: Invalid/unknown dates → INCLUDE in all views, never exclude.
                 // Previously we returned false when dateFilter !== 'all', which made "Today" show 0 events.
                 // Correct behavior: treat invalid date as "date unavailable — show anyway".
@@ -563,11 +563,11 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         const dayOfWeek = todayStart.getDay(); // 0 = Sunday, 6 = Saturday
                         const startOfWeek = new Date(todayStart);
                         startOfWeek.setDate(todayStart.getDate() - dayOfWeek); // Go back to Sunday
-                        
+
                         const endOfWeek = new Date(startOfWeek);
                         endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
                         endOfWeek.setHours(23, 59, 59, 999); // End of Saturday
-                        
+
                         if (isMultiDay(e)) {
                             // For multi-day events, include if they overlap with this week
                             if (!isNaN(eEndDate.getTime()) && (eEndDate < startOfWeek || eventStartDate > endOfWeek)) return false;
@@ -588,14 +588,14 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         // For Nearby we filter by distance from user location
                         if (!e.latitude || !e.longitude) return false;
                         if (!userCoords) return false;
-                        
+
                         const distance = calculateDistance(
                             userCoords.lat,
                             userCoords.lng,
                             e.latitude,
                             e.longitude
                         );
-                        
+
                         // Only show events within maxDistanceKm
                         if (distance > settings.maxDistanceKm) return false;
                     }
@@ -603,7 +603,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
                 return true;
             });
-        
+
         // DEBUG: Log filtering results
         console.log(`📊 [Filter Results] Input: ${sourceEvents.length}, Output: ${filtered.length}, Filtered out: ${sourceEvents.length - filtered.length}`);
         if (filtered.length === 0 && sourceEvents.length > 0) {
@@ -615,7 +615,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
             console.error(`   Show expensive: ${showExpensive}`);
             console.error(`   Now: ${now?.toISOString()}`);
             console.error(`   View mode: ${settings.viewMode}`);
-            
+
             // Sample first few events to see why they're filtered
             const sampleEvents = sourceEvents.slice(0, 10);
             sampleEvents.forEach((e, idx) => {
@@ -632,7 +632,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 console.error(`     - priceAmount: ${e.priceAmount}, maxPrice: ${maxPrice}, showExpensive: ${showExpensive}`);
                 console.error(`     - location: ${e.location}`);
             });
-            
+
             // EMERGENCY FALLBACK: If all events filtered, return at least invalid date events
             console.warn(`⚠️ [Filter] EMERGENCY: Returning invalid date events to prevent empty feed`);
             const invalidDateEvents = sourceEvents.filter(e => isNaN(new Date(e.date).getTime())).slice(0, 50);
@@ -654,29 +654,29 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 });
             }
         }
-        
+
         return filtered.sort((a: Event, b: Event) => {
-                const { key, direction } = sortConfig;
-                let valA: any = a[key as keyof Event];
-                let valB: any = b[key as keyof Event];
+            const { key, direction } = sortConfig;
+            let valA: any = a[key as keyof Event];
+            let valB: any = b[key as keyof Event];
 
-                if (key === 'date') {
-                    const dateA = new Date(valA as string);
-                    const dateB = new Date(valB as string);
-                    // CRITICAL: Handle invalid dates - put them at the end
-                    if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-                    if (isNaN(dateA.getTime())) return 1; // Invalid dates go to end
-                    if (isNaN(dateB.getTime())) return -1; // Valid dates come first
-                    valA = dateA.getTime();
-                    valB = dateB.getTime();
-                }
+            if (key === 'date') {
+                const dateA = new Date(valA as string);
+                const dateB = new Date(valB as string);
+                // CRITICAL: Handle invalid dates - put them at the end
+                if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+                if (isNaN(dateA.getTime())) return 1; // Invalid dates go to end
+                if (isNaN(dateB.getTime())) return -1; // Valid dates come first
+                valA = dateA.getTime();
+                valB = dateB.getTime();
+            }
 
-                if (direction === 'asc') {
-                    return valA > valB ? 1 : -1;
-                } else {
-                    return valA < valB ? 1 : -1;
-                }
-            });
+            if (direction === 'asc') {
+                return valA > valB ? 1 : -1;
+            } else {
+                return valA < valB ? 1 : -1;
+            }
+        });
     }, [sourceEvents, settings.viewMode, searchQuery, selectedCategory, selectedSource, selectedHost, dateFilter, maxPrice, showExpensive, showStarted, settings.hideSoldOut, settings.gender, settings.hideGenderSoldOut, settings.excludedKeywords, settings.maxDistanceKm, now, userCoords, sortConfig]);
 
     const activeFilters = useMemo(() => {
@@ -717,7 +717,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         // This prevents the "no events" issue on initial load
         if (!now) {
             // Return events without date filtering until 'now' is set
-            const events = dateFilter !== 'all' 
+            const events = dateFilter !== 'all'
                 ? liveEvents.filter(e => !isMultiDay(e))
                 : liveEvents.filter(e => !isMultiDay(e));
             console.log(`📋 [EventFeed] Display events (now not set): ${events.length} events`);
@@ -737,7 +737,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         }
 
         console.log(`📋 [EventFeed] Display events: ${events.length} (validEvents: ${safeValidEvents.length}, liveEvents: ${liveEvents.length})`);
-        
+
         // Apply pagination/infinite scroll limit
         return events.slice(0, visibleCount);
     }, [validEvents, dateFilter, visibleCount, now, liveEvents]);
@@ -1084,13 +1084,18 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         <div className="absolute inset-0 bg-gradient-to-r from-[var(--pk-500)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="flex flex-col">
                             <span className="text-[4rem] font-black leading-none tracking-tighter text-white tabular-nums glow-text">
-                                {displayEvents.length === liveEvents.length ? displayEvents.length : `${displayEvents.length}/${liveEvents.length}`}
+                                {validEvents?.length || 0}
                             </span>
                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--pk-300)] mt-[-0.5rem] ml-1">
-                                Events {settings.viewMode === 'saved' ? 'Saved' : 'Detected'}
+                                {settings.viewMode === 'saved' ? 'Saved Collections' : (validEvents?.length === liveEvents.length ? 'Total Discovery' : `Events Found (${liveEvents.length} node total)`)}
                             </span>
+                            {displayEvents.length < (validEvents?.length || 0) && (
+                                <span className="text-[9px] font-bold text-white/40 mt-1 ml-1 animate-pulse">
+                                    Displaying first {displayEvents.length} — Scroll down to sync more
+                                </span>
+                            )}
                             {settings.viewMode !== 'saved' && (() => {
-                                const invalidDateCount = displayEvents.filter(e => isNaN(new Date(e.date).getTime())).length;
+                                const invalidDateCount = (validEvents || []).filter(e => isNaN(new Date(e.date).getTime())).length;
                                 return invalidDateCount > 0 ? (
                                     <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400/90 mt-1 ml-1" title="These events have non-parseable date fields (e.g. &quot;TBD&quot;, &quot;Ongoing&quot;) and are shown anyway.">
                                         {invalidDateCount} with date unavailable — showing anyway
@@ -1122,7 +1127,17 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         hasMore={hasMoreEvents}
                         loadMore={loadMoreEvents}
                         loader={<EventFeedSkeleton count={4} />}
-                        endMessage={displayEvents.length > 0 ? "You've reached the end of the event list." : null}
+                        endMessage={displayEvents.length > 0 ? (
+                            <div className="space-y-4">
+                                <p>You've reached the end of the event discovery stream.</p>
+                                <button
+                                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                    className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--pk-400)] hover:text-white transition-colors"
+                                >
+                                    ↑ Return to Node Zero
+                                </button>
+                            </div>
+                        ) : null}
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {displayEvents.map(event => {
@@ -1130,15 +1145,15 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                                 const isEnded = now && endDate < now;
 
                                 return (
-                                    <div 
-                                        key={event.id} 
+                                    <div
+                                        key={event.id}
                                         className={`relative group h-[400px] ${isEnded ? 'opacity-60 grayscale-[0.5]' : ''}`}
                                         role="article"
                                         aria-label={`Event: ${event.title}`}
                                     >
                                         {/* Visual Indicator for Past Events in Saved View OR Today View */}
                                         {((settings.viewMode === 'saved' && now && new Date(event.date) < now) || (isEnded && dateFilter === 'today')) && (
-                                            <div 
+                                            <div
                                                 className="absolute -top-3 -right-3 z-30 bg-gray-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg border border-white/20"
                                                 role="status"
                                                 aria-label="Past event"
@@ -1154,98 +1169,104 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     </InfiniteScroll>
                 ) : (
                     /* Table View */
-                    <div className="glass-panel overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-white/5 border-b border-white/10">
-                                    {[
-                                        { label: 'Event Title', key: 'title' },
-                                        { label: 'Date & Time', key: 'date' },
-                                        { label: 'Location', key: 'location' },
-                                        { label: 'Host', key: 'host' },
-                                        { label: 'Price', key: 'priceAmount' },
-                                        { label: 'Source', key: 'source' },
-                                    ].map(col => (
-                                        <th
-                                            key={col.key}
-                                            onClick={() => setSortConfig({
-                                                key: col.key as any,
-                                                direction: sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
-                                            })}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    setSortConfig({
-                                                        key: col.key as any,
-                                                        direction: sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
-                                                    });
-                                                }
-                                            }}
-                                            tabIndex={0}
-                                            role="columnheader"
-                                            aria-sort={sortConfig.key === col.key ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-                                            className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] cursor-pointer hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--pk-500)]"
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                {col.label}
-                                                {sortConfig.key === col.key && (
-                                                    <span className="text-[var(--pk-500)]">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
-                                                )}
-                                            </div>
-                                        </th>
-                                    ))}
-                                    <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {displayEvents.map(event => (
-                                    <tr key={event.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-col max-w-xs md:max-w-md">
-                                                <span className="font-bold text-sm text-white group-hover:text-[var(--pk-300)] transition-colors line-clamp-1">{event.title}</span>
-                                                <span className="text-[10px] opacity-40 uppercase font-black tracking-tighter truncate">{event.id}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-xs font-bold text-[var(--text-2)] whitespace-nowrap">
-                                                {(() => {
-                                                    const dateResult = safeParseDate(event.date, event.id, event.title);
-                                                    if (dateResult.isValid && dateResult.date) {
-                                                        return formatDateForDisplay(dateResult.date, { includeTime: true });
+                    <InfiniteScroll
+                        hasMore={hasMoreEvents}
+                        loadMore={loadMoreEvents}
+                        loader={<div className="p-4 text-center text-xs animate-pulse opacity-50">Syncing more table rows...</div>}
+                    >
+                        <div className="glass-panel overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-white/5 border-b border-white/10">
+                                        {[
+                                            { label: 'Event Title', key: 'title' },
+                                            { label: 'Date & Time', key: 'date' },
+                                            { label: 'Location', key: 'location' },
+                                            { label: 'Host', key: 'host' },
+                                            { label: 'Price', key: 'priceAmount' },
+                                            { label: 'Source', key: 'source' },
+                                        ].map(col => (
+                                            <th
+                                                key={col.key}
+                                                onClick={() => setSortConfig({
+                                                    key: col.key as any,
+                                                    direction: sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                                                })}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                        e.preventDefault();
+                                                        setSortConfig({
+                                                            key: col.key as any,
+                                                            direction: sortConfig.key === col.key && sortConfig.direction === 'asc' ? 'desc' : 'asc'
+                                                        });
                                                     }
-                                                    return 'Date TBD';
-                                                })()}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-xs font-bold text-[var(--text-3)] line-clamp-1" title={formatLocation(event)}>
-                                                {formatLocation(event)}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-xs font-bold text-[var(--pk-300)] whitespace-nowrap">{event.host}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${event.price === 'Free' ? 'bg-green-500/20 text-green-300' : 'bg-white/10 text-white'}`}>
-                                                {event.price}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-xs font-bold text-[var(--text-3)]">{event.source}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <button
-                                                onClick={() => handlePreview(event)}
-                                                className="p-2 bg-[var(--pk-500)] text-white rounded-lg shadow-lg hover:bg-[var(--pk-600)] transition-all transform hover:scale-110"
+                                                }}
+                                                tabIndex={0}
+                                                role="columnheader"
+                                                aria-sort={sortConfig.key === col.key ? (sortConfig.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                                                className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)] cursor-pointer hover:bg-white/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--pk-500)]"
                                             >
-                                                👁
-                                            </button>
-                                        </td>
+                                                <div className="flex items-center gap-2">
+                                                    {col.label}
+                                                    {sortConfig.key === col.key && (
+                                                        <span className="text-[var(--pk-500)]">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                                    )}
+                                                </div>
+                                            </th>
+                                        ))}
+                                        <th className="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-[var(--text-3)]">Action</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {displayEvents.map(event => (
+                                        <tr key={event.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col max-w-xs md:max-w-md">
+                                                    <span className="font-bold text-sm text-white group-hover:text-[var(--pk-300)] transition-colors line-clamp-1">{event.title}</span>
+                                                    <span className="text-[10px] opacity-40 uppercase font-black tracking-tighter truncate">{event.id}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-xs font-bold text-[var(--text-2)] whitespace-nowrap">
+                                                    {(() => {
+                                                        const dateResult = safeParseDate(event.date, event.id, event.title);
+                                                        if (dateResult.isValid && dateResult.date) {
+                                                            return formatDateForDisplay(dateResult.date, { includeTime: true });
+                                                        }
+                                                        return 'Date TBD';
+                                                    })()}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-xs font-bold text-[var(--text-3)] line-clamp-1" title={formatLocation(event)}>
+                                                    {formatLocation(event)}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-xs font-bold text-[var(--pk-300)] whitespace-nowrap">{event.host}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase ${event.price === 'Free' ? 'bg-green-500/20 text-green-300' : 'bg-white/10 text-white'}`}>
+                                                    {event.price}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="text-xs font-bold text-[var(--text-3)]">{event.source}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <button
+                                                    onClick={() => handlePreview(event)}
+                                                    className="p-2 bg-[var(--pk-500)] text-white rounded-lg shadow-lg hover:bg-[var(--pk-600)] transition-all transform hover:scale-110"
+                                                >
+                                                    👁
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </InfiniteScroll>
                 )}
 
                 {displayEvents.length === 0 && (
