@@ -156,4 +156,35 @@ Based on `STOCK_RESEARCH_ANALYSIS.md`:
 | Create backup branch | ✅ |
 | Push to main | ✅ |
 
-## Session End: Jan 27, 2026, ~11:20 PM EST
+---
+
+## NPM Scripts Added
+
+| Script | Command | Description |
+|--------|---------|-------------|
+| `stocks:v2:generate` | `npm run stocks:v2:generate` | Generate V2 scientific ledger |
+| `stocks:v2:verify` | `npm run stocks:v2:verify` | Run weekly performance verification |
+| `stocks:v2:sync` | `npm run stocks:v2:sync` | Sync to STOCKSUNIFY2 repository |
+| `stocks:v2:full` | `npm run stocks:v2:full` | Generate + Sync V2 |
+| `stocks:all` | `npm run stocks:all` | Run both V1 and V2 full pipelines |
+
+---
+
+## GitHub Repositories Updated
+
+### TORONTOEVENTS_ANTIGRAVITY (Source)
+- **URL**: https://github.com/eltonaguiar/TORONTOEVENTS_ANTIGRAVITY
+- **Branch**: main
+- **Backup**: CLAUDE_ZED_Jan272026_1100PMEST
+
+### STOCKSUNIFY (V1 Classic)
+- **URL**: https://github.com/eltonaguiar/stocksunify
+- **Content**: 30 daily picks, CAN SLIM + Technical Momentum + Composite
+
+### STOCKSUNIFY2 (V2 Scientific)
+- **URL**: https://github.com/eltonaguiar/stocksunify2
+- **Content**: 22 scientific picks, RAR + VAM + LSP + SCS + AT strategies
+
+---
+
+## Session End: Jan 27, 2026, ~11:30 PM EST
