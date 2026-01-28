@@ -307,7 +307,14 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
                 if (settings.viewMode !== 'saved' && isHidden) return false;
 
-                if (selectedCategory && !e.categories.includes(selectedCategory)) return false;
+                if (selectedCategory) {
+                    if (selectedCategory === 'Dating') {
+                        const fullText = (e.title + ' ' + (e.description || '') + ' ' + (e.categories || []).join(' ')).toLowerCase();
+                        if (!fullText.includes('dating') && !fullText.includes('singles')) return false;
+                    } else if (!e.categories.includes(selectedCategory)) {
+                        return false;
+                    }
+                }
                 if (selectedSource && e.source !== selectedSource) return false;
                 if (selectedHost && e.host !== selectedHost) return false;
 
@@ -386,7 +393,14 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 const isHidden = e.status === 'CANCELLED' || e.status === 'MOVED';
                 if (settings.viewMode !== 'saved' && isHidden) return false;
 
-                if (selectedCategory && !e.categories.includes(selectedCategory)) return false;
+                if (selectedCategory) {
+                    if (selectedCategory === 'Dating') {
+                        const fullText = (e.title + ' ' + (e.description || '') + ' ' + (e.categories || []).join(' ')).toLowerCase();
+                        if (!fullText.includes('dating') && !fullText.includes('singles')) return false;
+                    } else if (!e.categories.includes(selectedCategory)) {
+                        return false;
+                    }
+                }
                 if (selectedSource && e.source !== selectedSource) return false;
                 if (selectedHost && e.host !== selectedHost) return false;
 
@@ -1019,7 +1033,16 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
                 <div className="flex flex-wrap gap-2 justify-center mt-4 border-t border-white/5 pt-4">
                     <button onClick={() => setSelectedCategory(null)} className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${selectedCategory === null ? 'bg-[var(--pk-500)] text-white' : 'bg-white/5 text-[var(--text-3)] hover:bg-white/10'}`}>All Categories</button>
-                    {allCategories.map(cat => (
+
+                    <button
+                        onClick={() => setSelectedCategory('Dating')}
+                        className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${selectedCategory === 'Dating' ? 'bg-pink-500 text-white border-transparent shadow-[0_0_15px_rgba(236,72,153,0.4)]' : 'bg-white/5 text-pink-300/70 border border-pink-500/20 hover:bg-pink-500/10'} flex items-center gap-2`}
+                    >
+                        <span>💘</span>
+                        Dating
+                    </button>
+
+                    {allCategories.filter(cat => cat !== 'Dating').map(cat => (
                         <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-[var(--pk-500)] text-white border-transparent' : 'bg-white/5 text-[var(--text-3)] border border-white/5 hover:border-white/10'}`}>{cat}</button>
                     ))}
                 </div>
@@ -1326,6 +1349,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                     />
                 )
             }
+
         </div >
     );
 }

@@ -13,6 +13,7 @@ import { SettingsProvider } from '../context/SettingsContext';
 import SettingsManager from '../components/SettingsManager';
 import QuickNav from '../components/QuickNav';
 import AppShell from '../components/AppShell';
+import GlobalFooter from '../components/GlobalFooter';
 
 export default function RootLayout({
   children,
@@ -56,6 +57,7 @@ export default function RootLayout({
             settingsModal={<SettingsManager />}
           >
             {children}
+            <GlobalFooter />
           </AppShell>
         </SettingsProvider>
       </body>

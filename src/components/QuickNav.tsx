@@ -298,6 +298,18 @@ END:VCALENDAR`;
                                 <span className="text-lg">⚙️</span> System Settings
                             </button>
                         </div>
+
+                        {/* Contact Support Section */}
+                        <div className="space-y-1 pt-4 border-t border-white/5">
+                            <p className="px-4 py-2 text-[10px] font-black uppercase text-[var(--pk-300)] tracking-widest opacity-60">Support</p>
+                            <div className="px-4 py-4 m-2 bg-white/5 rounded-xl border border-white/5 space-y-2">
+                                <p className="text-[9px] font-bold text-[var(--text-3)] uppercase leading-tight">Manual Uplink:</p>
+                                <div className="text-[11px] font-mono text-white select-all break-all">
+                                    support<span className="text-[var(--pk-500)]">@</span>findtorontoevents.ca
+                                </div>
+                                <p className="text-[8px] text-[var(--text-3)] opacity-40 italic">Response: 24-48h</p>
+                            </div>
+                        </div>
                     </nav>
 
                     {/* Footer */}
@@ -305,7 +317,7 @@ END:VCALENDAR`;
                         <p className="text-[10px] text-[var(--text-3)] text-center opacity-50">
                             Antigravity Systems v0.5.0
                         </p>
-                        <p className="text-[8px] text-[var(--text-3)] text-center opacity-30 mt-1" style={{display: 'none'}} data-version="2026-01-27-mental-health-fix">
+                        <p className="text-[8px] text-[var(--text-3)] text-center opacity-30 mt-1" style={{ display: 'none' }} data-version="2026-01-27-mental-health-fix">
                             Build: 2026-01-27-mental-health-fix
                         </p>
                     </div>
