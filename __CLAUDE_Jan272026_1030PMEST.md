@@ -187,4 +187,60 @@ Based on `STOCK_RESEARCH_ANALYSIS.md`:
 
 ---
 
-## Session End: Jan 27, 2026, ~11:30 PM EST
+---
+
+## Additional Work - Session 2 (Continued)
+
+### Performance Truth Dashboard Created
+- **File**: `src/app/findstocks/components/PerformanceDashboard.tsx`
+- **Features**:
+  - Summary statistics (total picks, verified, win rate, avg return)
+  - Algorithm breakdown chart
+  - Recent audit entries
+  - Handles pending state (picks < 7 days old)
+- **Integrated into**: `FindStocksV2Client.tsx`
+
+### Institutional Footprint Strategy Added
+- **File**: `scripts/v2/lib/strategies.ts`
+- **New Functions**:
+  - `calculateZScore()` - Statistical significance measurement
+  - `calculateVolumeZScore()` - Volume anomaly detection
+  - `calculateRSIZScore()` - RSI deviation measurement
+  - `calculateATR()` - Average True Range calculation
+  - `checkBreakout()` - Price breakout detection
+  - `scoreInstitutionalFootprint()` - New strategy implementation
+- **Logic**: Volume Z-Score > 2.0 indicates institutional accumulation
+
+### V2 Universe Expanded
+- **File**: `scripts/v2/lib/v2-engine.ts`
+- **Before**: ~35 stocks
+- **After**: ~85 stocks
+- **New Categories Added**:
+  - Additional Large-Cap Tech (CRM, UBER, ABNB, SHOP, SQ, etc.)
+  - Financials (JPM, BAC, GS, MS, V, MA, etc.)
+  - Healthcare (JNJ, UNH, PFE, ABBV, MRK, etc.)
+  - Consumer & Industrial (WMT, COST, HD, NKE, etc.)
+  - Energy & Materials (XOM, CVX, COP, etc.)
+  - High Beta/Speculative (MSTR, COIN, HOOD, etc.)
+  - EV & Clean Energy (RIVN, LCID, NIO, ENPH, etc.)
+  - Penny/Micro-cap for LSP strategy (SNDL, TLRY, etc.)
+
+### V2 Ledger Regenerated
+- **New Result**: 67 scientific picks (up from 22)
+- **Output**: `data/v2/history/2026/01/28.json`
+
+### GitHub Actions Workflow Enhanced
+- **File**: `.github/workflows/stocks-v2-ledger.yml`
+- **New Features**:
+  - Generates both V1 and V2 daily picks
+  - Commits to main repo
+  - Clones and syncs to STOCKSUNIFY (V1)
+  - Clones and syncs to STOCKSUNIFY2 (V2)
+  - Weekly performance verification job (Sundays)
+
+### Latest Commits
+- `CLAUDE_ZED: Enhanced GitHub Actions workflow for daily V1+V2 generation and sync`
+
+---
+
+## Session End: Jan 27, 2026, ~11:45 PM EST

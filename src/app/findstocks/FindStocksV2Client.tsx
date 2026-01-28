@@ -290,6 +290,103 @@ export default function FindStocksV2Client() {
               </div>
             </section>
 
+            {/* V2 Scientific Strategies Section */}
+            <section>
+              <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-6">
+                <h3 className="text-xs font-mono uppercase tracking-[0.4em] text-neutral-500">
+                  V2 Scientific Strategies
+                </h3>
+                <div className="text-[10px] font-mono text-neutral-600 uppercase">
+                  Research-Backed Methodologies
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[
+                  {
+                    abbr: "RAR",
+                    name: "Regime-Aware Reversion",
+                    desc: "Buy quality stocks in an uptrend with RSI dips, but only when market regime is BULLISH (SPY > 200 SMA).",
+                    timeframe: "7 days",
+                    color: "emerald",
+                    metrics: ["RSI < 40", "Stage 2 Uptrend", "Bullish Regime"],
+                  },
+                  {
+                    abbr: "VAM",
+                    name: "Volatility-Adjusted Momentum",
+                    desc: "Ranks stocks by Martin Ratio (Return / Ulcer Index) to find momentum with controlled drawdowns.",
+                    timeframe: "1 month",
+                    color: "blue",
+                    metrics: ["Martin Ratio", "Ulcer Index", "Return/Risk"],
+                  },
+                  {
+                    abbr: "LSP",
+                    name: "Liquidity-Shielded Penny",
+                    desc: "Penny stocks that pass a slippage torture test. Only picks with sufficient liquidity to prevent execution collapse.",
+                    timeframe: "24 hours",
+                    color: "amber",
+                    metrics: ["3x Slippage Test", "Volume Cap", "Low Float"],
+                  },
+                  {
+                    abbr: "SCS",
+                    name: "Scientific CAN SLIM",
+                    desc: "Traditional O'Neil methodology enhanced with regime guards and slippage penalties.",
+                    timeframe: "1 year",
+                    color: "purple",
+                    metrics: ["RS Rating", "Stage 2", "Regime Filter"],
+                  },
+                  {
+                    abbr: "AT",
+                    name: "Adversarial Trend",
+                    desc: "Volatility-normalized trend following. Finds consistent moves that survive parameter perturbation.",
+                    timeframe: "1 month",
+                    color: "rose",
+                    metrics: ["ATR Normalized", "Trend Strength", "Stability"],
+                  },
+                  {
+                    abbr: "IF",
+                    name: "Institutional Footprint",
+                    desc: "Detects institutional accumulation via Volume Z-Score > 2.0 combined with trend confirmation and breakout detection.",
+                    timeframe: "7 days",
+                    color: "indigo",
+                    metrics: ["Vol Z-Score > 2", "Breakout", "Trend Confirm"],
+                  },
+                ].map((strategy, i) => (
+                  <div
+                    key={i}
+                    className={`glass-panel p-8 rounded-[2rem] border border-white/5 bg-gradient-to-br from-${strategy.color}-500/10 to-transparent hover:border-${strategy.color}-500/30 transition-all`}
+                  >
+                    <div className="flex items-start justify-between mb-6">
+                      <div
+                        className={`px-3 py-1 rounded-lg bg-${strategy.color}-500/20 text-${strategy.color}-400 text-xs font-black tracking-wider`}
+                      >
+                        {strategy.abbr}
+                      </div>
+                      <div className="text-[10px] font-mono text-neutral-500">
+                        {strategy.timeframe}
+                      </div>
+                    </div>
+                    <h4 className="text-lg font-bold text-white mb-3">
+                      {strategy.name}
+                    </h4>
+                    <p className="text-sm text-neutral-400 leading-relaxed mb-6">
+                      {strategy.desc}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {strategy.metrics.map((m, j) => (
+                        <span
+                          key={j}
+                          className="text-[9px] font-mono text-neutral-500 bg-white/5 px-2 py-1 rounded"
+                        >
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
             {/* Research Paper Embed Highlights */}
             <section className="bg-white/5 rounded-[4rem] p-12 md:p-20 border border-white/5 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
