@@ -1,11 +1,11 @@
 {
-  "lastUpdated": "2026-01-28T21:25:32.440Z",
+  "lastUpdated": "2026-01-29T21:23:07.660Z",
   "totalPicks": 30,
   "stocks": [
     {
       "symbol": "INTC",
       "name": "Intel Corporation",
-      "price": 48.78,
+      "price": 48.66,
       "change": 0,
       "changePercent": 0,
       "rating": "STRONG BUY",
@@ -13,22 +13,50 @@
       "algorithm": "CAN SLIM",
       "score": 100,
       "risk": "Medium",
-      "stopLoss": 42.68,
+      "stopLoss": 42.58,
       "indicators": {
-        "rsRating": 96,
-        "rsi": 57.814483539845654,
+        "rsRating": 97,
+        "rsi": 59.947299872350854,
         "stage2": true,
-        "volZ": 1.0111116694677487,
-        "atr": 3.049285343715123
+        "volZ": -0.3808900713515653,
+        "atr": 3.0378565107073103
       },
       "allAlgorithms": [
         "CAN SLIM"
       ],
       "slippageSimulated": true,
-      "entryPrice": 48.78,
-      "simulatedEntryPrice": 49.0239,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "cdb8d1731bd8db671809960f6fff0015fa7778e69d42292199b4ac7df774c033"
+      "entryPrice": 48.66,
+      "simulatedEntryPrice": 48.903299999999994,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "6b8ac62922f8f1dec6be1c44049dd2da59c650451d4afe900ffe5164c8642d64"
+    },
+    {
+      "symbol": "RCL",
+      "name": "Royal Caribbean Cruises Ltd.",
+      "price": 345.98,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3d",
+      "algorithm": "Technical Momentum + 1",
+      "score": 100,
+      "risk": "High",
+      "stopLoss": 328.83,
+      "indicators": {
+        "rsi": 66.04762970850626,
+        "volZ": 3.800809882305036,
+        "breakout": true,
+        "atr": 11.432141985212054
+      },
+      "allAlgorithms": [
+        "CAN SLIM",
+        "Technical Momentum"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 345.98,
+      "simulatedEntryPrice": 347.7099,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "6f5a763662f48a0e8d5acb1a4423223fb2ae8f512e62b8a2b423c9959347c2fe"
     },
     {
       "symbol": "BBIG",
@@ -44,10 +72,10 @@
       "stopLoss": 0,
       "indicators": {
         "rsRating": 99,
-        "rsi": 65.03496505773688,
+        "rsi": 58.33333300995743,
         "stage2": true,
-        "volZ": -0.5051293532581685,
-        "atr": 0.001328571396048314
+        "volZ": -0.46966176893594874,
+        "atr": 0.0011571428247927023
       },
       "allAlgorithms": [
         "CAN SLIM"
@@ -55,100 +83,69 @@
       "slippageSimulated": true,
       "entryPrice": 0.005,
       "simulatedEntryPrice": 0.00515,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "5e5df2aacced582ddc1e14d5c0a3d7eab05dc8ef4e73ad54fb8d836c7bbb2474"
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "25b9a4ac7d4f32b26697d43f1156e68ecaa09c173eff35bfeb4f12d48ee5653f"
     },
     {
       "symbol": "HUT",
       "name": "Hut 8 Corp.",
-      "price": 64.6,
+      "price": 61.53,
       "change": 0,
       "changePercent": 0,
       "rating": "STRONG BUY",
       "timeframe": "3m",
-      "algorithm": "CAN SLIM + 1",
+      "algorithm": "CAN SLIM",
       "score": 100,
       "risk": "Medium",
-      "stopLoss": 57.78,
+      "stopLoss": 54.11,
       "indicators": {
         "rsRating": 99,
-        "rsi": 61.530536491162245,
+        "rsi": 55.569380304033956,
         "stage2": true,
-        "volZ": 0.5517718474823943,
-        "atr": 3.410714558192662
+        "volZ": -0.004210014188633071,
+        "atr": 3.707857131958008
       },
       "allAlgorithms": [
-        "CAN SLIM",
-        "Technical Momentum"
+        "CAN SLIM"
       ],
       "slippageSimulated": true,
-      "entryPrice": 64.6,
-      "simulatedEntryPrice": 64.92299999999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "780a7d2da17a9b676c9a84f7691c715ab2d864ffc3a6743a11bfff1dfc777431"
-    },
-    {
-      "symbol": "STX",
-      "name": "Seagate Technology Holdings plc",
-      "price": 442.93,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "STRONG BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM + 1",
-      "score": 95,
-      "risk": "Medium",
-      "stopLoss": 406.1,
-      "indicators": {
-        "rsRating": 99,
-        "rsi": 83.33579601166977,
-        "stage2": true,
-        "volZ": 3.7617232893914645,
-        "atr": 18.416434151785715
-      },
-      "allAlgorithms": [
-        "CAN SLIM",
-        "Technical Momentum"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 442.93,
-      "simulatedEntryPrice": 445.14464999999996,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "a6f696877827cb55f4528fdf7c7da253857d03a706fb306fce02a48f4b124682"
-    },
-    {
-      "symbol": "WDC",
-      "name": "Western Digital Corporation",
-      "price": 279.7,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "STRONG BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM + 1",
-      "score": 95,
-      "risk": "Medium",
-      "stopLoss": 255.65,
-      "indicators": {
-        "rsRating": 99,
-        "rsi": 83.48153469568328,
-        "stage2": true,
-        "volZ": 1.9878005645933738,
-        "atr": 12.024286542619977
-      },
-      "allAlgorithms": [
-        "CAN SLIM",
-        "Technical Momentum"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 279.7,
-      "simulatedEntryPrice": 281.09849999999994,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "40f809c38d197a18a46b399c197bc559697d694b0d4824d8951b4b152f58343d"
+      "entryPrice": 61.53,
+      "simulatedEntryPrice": 61.83765,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "6e13e77bef1dd169c5e988fa300f85c124537757737d8ba7786b0678b577fe8c"
     },
     {
       "symbol": "GDX",
       "name": "VanEck Gold Miners ETF",
-      "price": 112.16,
+      "price": 107.855,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM",
+      "score": 95,
+      "risk": "Medium",
+      "stopLoss": 101.87,
+      "indicators": {
+        "rsRating": 99,
+        "rsi": 79.23311799875546,
+        "stage2": true,
+        "volZ": 3.4760425390790486,
+        "atr": 2.9928359985351562
+      },
+      "allAlgorithms": [
+        "CAN SLIM"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 107.855,
+      "simulatedEntryPrice": 108.394275,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "1f7f5a74b3cbcc86f67549a689137f2e9a23c057868680ce64f6fa0e71f96f89"
+    },
+    {
+      "symbol": "STX",
+      "name": "Seagate Technology Holdings plc",
+      "price": 446.57,
       "change": 0,
       "changePercent": 0,
       "rating": "STRONG BUY",
@@ -156,27 +153,55 @@
       "algorithm": "CAN SLIM",
       "score": 90,
       "risk": "Medium",
-      "stopLoss": 106.85,
+      "stopLoss": 412.24,
       "indicators": {
         "rsRating": 99,
-        "rsi": 93.8123017007085,
+        "rsi": 94.57213895697517,
         "stage2": true,
-        "volZ": 0.5606056699007803,
-        "atr": 2.652857099260603
+        "volZ": 1.4545421546621053,
+        "atr": 17.163569859095983
       },
       "allAlgorithms": [
         "CAN SLIM"
       ],
       "slippageSimulated": true,
-      "entryPrice": 112.16,
-      "simulatedEntryPrice": 112.72079999999998,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "bcb45f4ec7767945b7e38ca9040ac87358d240b16ddcba465fdeb0665cafd0d8"
+      "entryPrice": 446.57,
+      "simulatedEntryPrice": 448.8028499999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "84c2c1586a761f8235264c2b5c77e663e0dafe7c402dc549488afba1f7b31ffe"
+    },
+    {
+      "symbol": "WDC",
+      "name": "Western Digital Corporation",
+      "price": 278.41,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM",
+      "score": 90,
+      "risk": "Medium",
+      "stopLoss": 255.48,
+      "indicators": {
+        "rsRating": 99,
+        "rsi": 91.89213143323504,
+        "stage2": true,
+        "volZ": 1.2485495889570917,
+        "atr": 11.465000697544642
+      },
+      "allAlgorithms": [
+        "CAN SLIM"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 278.41,
+      "simulatedEntryPrice": 279.80205,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "5b22499e629b2f65549b4efc8eb4480c98e8be07b3cec9b3fbe7a4e6e24ccb4f"
     },
     {
       "symbol": "SOXL",
       "name": "Direxion Daily Semiconductor Bull 3X Shares",
-      "price": 70.09,
+      "price": 70.47,
       "change": 0,
       "changePercent": 0,
       "rating": "STRONG BUY",
@@ -184,27 +209,27 @@
       "algorithm": "CAN SLIM",
       "score": 90,
       "risk": "Medium",
-      "stopLoss": 63.61,
+      "stopLoss": 63.47,
       "indicators": {
         "rsRating": 99,
-        "rsi": 74.64008558779297,
+        "rsi": 80.74423998749013,
         "stage2": true,
-        "volZ": -0.0579649800256688,
-        "atr": 3.2378567286900113
+        "volZ": 0.035531647732538134,
+        "atr": 3.499142510550363
       },
       "allAlgorithms": [
         "CAN SLIM"
       ],
       "slippageSimulated": true,
-      "entryPrice": 70.09,
-      "simulatedEntryPrice": 70.44045,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "b093a005d0ba606bf997aec32bcdc495af5885015ff9096168196ade42303e18"
+      "entryPrice": 70.47,
+      "simulatedEntryPrice": 70.82234999999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "93ab7c6efe1a3f52afc3f9109c025f90cdec32d6ddc9e3bb404fc59655a5a667"
     },
     {
       "symbol": "LABU",
       "name": "Direxion Daily S&P Biotech Bull 3X Shares",
-      "price": 170.76,
+      "price": 174.42,
       "change": 0,
       "changePercent": 0,
       "rating": "STRONG BUY",
@@ -212,27 +237,140 @@
       "algorithm": "CAN SLIM",
       "score": 90,
       "risk": "Medium",
-      "stopLoss": 149.12,
+      "stopLoss": 154.39,
       "indicators": {
-        "rsRating": 94,
-        "rsi": 47.49925610204119,
+        "rsRating": 98,
+        "rsi": 55.35657043349517,
         "stage2": true,
-        "volZ": -0.24783511842936032,
-        "atr": 10.818858555385045
+        "volZ": -0.9560825512184814,
+        "atr": 10.01600102015904
       },
       "allAlgorithms": [
         "CAN SLIM"
       ],
       "slippageSimulated": true,
-      "entryPrice": 170.76,
-      "simulatedEntryPrice": 171.61379999999997,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "dc18ec2522d24d657c71ec68fc5428986f8d1a746619f8ff3e31f3481e15caba"
+      "entryPrice": 174.42,
+      "simulatedEntryPrice": 175.29209999999998,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "7c295a52ea35c9251b0f3e185cc3d54f06dbd7aa4c01d44afcc1cd3f2864cef2"
+    },
+    {
+      "symbol": "GOOGL",
+      "name": "Alphabet Inc.",
+      "price": 338.25,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3d",
+      "algorithm": "Technical Momentum + 1",
+      "score": 85,
+      "risk": "High",
+      "stopLoss": 330.01,
+      "indicators": {
+        "rsi": 63.93298750751819,
+        "volZ": 1.581354106521779,
+        "breakout": true,
+        "atr": 5.496427263532366
+      },
+      "allAlgorithms": [
+        "CAN SLIM",
+        "Technical Momentum"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 338.25,
+      "simulatedEntryPrice": 339.94124999999997,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "ce8c32710f014d1c1c961b99880d860efdca0bd0ef46086706c7ecd7a3020974"
+    },
+    {
+      "symbol": "EOG",
+      "name": "EOG Resources, Inc.",
+      "price": 112.08,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3d",
+      "algorithm": "Technical Momentum",
+      "score": 85,
+      "risk": "High",
+      "stopLoss": 108.94,
+      "indicators": {
+        "rsi": 63.80992364460186,
+        "volZ": 2.138154004628323,
+        "breakout": true,
+        "atr": 2.095715659005301
+      },
+      "allAlgorithms": [
+        "Technical Momentum"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 112.08,
+      "simulatedEntryPrice": 112.64039999999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "44cd682823d726baee8e2d771dac5f7a64861b7bbf78f4c07e1711a581b57b70"
+    },
+    {
+      "symbol": "LUV",
+      "name": "Southwest Airlines Co.",
+      "price": 48.5,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3d",
+      "algorithm": "Technical Momentum + 1",
+      "score": 85,
+      "risk": "High",
+      "stopLoss": 46.47,
+      "indicators": {
+        "rsi": 68.42802136030062,
+        "volZ": 4.107143932758389,
+        "breakout": true,
+        "atr": 1.3507137298583984
+      },
+      "allAlgorithms": [
+        "CAN SLIM",
+        "Technical Momentum"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 48.5,
+      "simulatedEntryPrice": 48.74249999999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "63fbc2b906744dbd54596a00ae76a9f11c77ba37830e011d86d5eea75c021119"
+    },
+    {
+      "symbol": "XLK",
+      "name": "State Street Technology Select Sector SPDR ETF",
+      "price": 146.84,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM + 2",
+      "score": 85,
+      "risk": "Medium",
+      "stopLoss": 142.84,
+      "indicators": {
+        "rsRating": 55,
+        "rsi": 56.79914640073357,
+        "stage2": true,
+        "volZ": 1.9699902854440037,
+        "atr": 1.9999967302594865
+      },
+      "allAlgorithms": [
+        "CAN SLIM",
+        "Technical Momentum",
+        "Alpha Predator"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 146.84,
+      "simulatedEntryPrice": 147.5742,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "0f65aaafaf5fab7abd0d5496cb71b5e032e795227d2fa6d660925d91ba092afc"
     },
     {
       "symbol": "AA",
       "name": "Alcoa Corporation",
-      "price": 60.01,
+      "price": 60.64,
       "change": 0,
       "changePercent": 0,
       "rating": "STRONG BUY",
@@ -240,22 +378,22 @@
       "algorithm": "CAN SLIM",
       "score": 80,
       "risk": "Medium",
-      "stopLoss": 55,
+      "stopLoss": 56.02,
       "indicators": {
         "rsRating": 87,
-        "rsi": 43.90896064205401,
+        "rsi": 48.94810459085268,
         "stage2": true,
-        "volZ": -1.3940770180858273,
-        "atr": 2.504213878086635
+        "volZ": -0.7389107039484116,
+        "atr": 2.3084994724818637
       },
       "allAlgorithms": [
         "CAN SLIM"
       ],
       "slippageSimulated": true,
-      "entryPrice": 60.01,
-      "simulatedEntryPrice": 60.31004999999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "7ca931b0816c477c949102d5ec8883756fd14b5d3890741adcacd16be127e4ea"
+      "entryPrice": 60.64,
+      "simulatedEntryPrice": 60.9432,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "a20e0f67fcb34932248b81f0f630d80539b6dddcc2eeeb0eb2579741dd83a516"
     },
     {
       "symbol": "K",
@@ -283,37 +421,8 @@
       "slippageSimulated": true,
       "entryPrice": 83.44,
       "simulatedEntryPrice": 83.85719999999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "aaeb7307bd08e999ac356f6c846d6ea14179afb4365a59bd63a4042713ce673c"
-    },
-    {
-      "symbol": "XLK",
-      "name": "State Street Technology Select Sector SPDR ETF",
-      "price": 149.133,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "STRONG BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM + 1",
-      "score": 80,
-      "risk": "Medium",
-      "stopLoss": 145.56,
-      "indicators": {
-        "rsRating": 56,
-        "rsi": 56.877874684712,
-        "stage2": true,
-        "volZ": 0.6564119251815561,
-        "atr": 1.784496852329799
-      },
-      "allAlgorithms": [
-        "CAN SLIM",
-        "Alpha Predator"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 149.133,
-      "simulatedEntryPrice": 149.87866499999998,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "c4348955f8f3080426f78850636e2f1cbd47f80a57fad4fdea08c601123a5668"
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "71c14078e761c6d7bfebd2c7c43c219b817bff7a3dace5275a44788e3288dc30"
     },
     {
       "symbol": "XLU",
@@ -326,13 +435,13 @@
       "algorithm": "CAN SLIM + 1",
       "score": 80,
       "risk": "Medium",
-      "stopLoss": 42.46,
+      "stopLoss": 42.45,
       "indicators": {
         "rsRating": 51,
-        "rsi": 68.81446517074207,
+        "rsi": 67.8191589197503,
         "stage2": true,
-        "volZ": 0.3172480256748294,
-        "atr": 0.4342858450753348
+        "volZ": 0.5905838730221219,
+        "atr": 0.4392858232770647
       },
       "allAlgorithms": [
         "CAN SLIM",
@@ -341,13 +450,99 @@
       "slippageSimulated": true,
       "entryPrice": 43.33,
       "simulatedEntryPrice": 43.54664999999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "21a9a8dc7377d83a32cbf2f9e373fa926b2b87185f1d64f6cbe907be6d7c20e0"
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "62246afcc3be67273e36eceb30dd31855d35951b10b1992a1c6181de0e1f4600"
     },
     {
       "symbol": "XLC",
       "name": "State Street Communication Services Select Sector SPDR ETF",
-      "price": 116.75,
+      "price": 119.79,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "3m",
+      "algorithm": "CAN SLIM + 3",
+      "score": 80,
+      "risk": "Medium",
+      "stopLoss": 117.5,
+      "indicators": {
+        "rsRating": 55,
+        "rsi": 58.73015232266986,
+        "stage2": true,
+        "volZ": 1.407761203237398,
+        "atr": 1.1463574000767298
+      },
+      "allAlgorithms": [
+        "CAN SLIM",
+        "Technical Momentum",
+        "Composite Rating",
+        "Alpha Predator"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 119.79,
+      "simulatedEntryPrice": 120.38895,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "44e71db5a27db788cf543849daf0949deb1e892eb09c7948be90a51122cd97d8"
+    },
+    {
+      "symbol": "NNDM",
+      "name": "Nano Dimension Ltd.",
+      "price": 1.87,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "24h",
+      "algorithm": "Penny Sniper + 2",
+      "score": 80,
+      "risk": "Very High",
+      "stopLoss": 1.5,
+      "indicators": {
+        "volZ": 3.0256336697561537,
+        "relVol": 0.03151260230994753
+      },
+      "allAlgorithms": [
+        "CAN SLIM",
+        "Technical Momentum",
+        "Penny Sniper"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 1.87,
+      "simulatedEntryPrice": 1.9261000000000001,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "f0a686e6afe4eb9402609bdd1ccd41c0f36480e138bbcf890598c56af5f947f4"
+    },
+    {
+      "symbol": "VNQ",
+      "name": "Vanguard Real Estate Index Fund ETF Shares",
+      "price": 90.71,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "STRONG BUY",
+      "timeframe": "7d",
+      "algorithm": "Technical Momentum + 1",
+      "score": 80,
+      "risk": "High",
+      "stopLoss": 89.45,
+      "indicators": {
+        "rsi": 58.04986955649207,
+        "volZ": 1.6785681263849213,
+        "breakout": false,
+        "atr": 0.8425009591238839
+      },
+      "allAlgorithms": [
+        "CAN SLIM",
+        "Technical Momentum"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 90.71,
+      "simulatedEntryPrice": 91.16354999999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "3a94eee469f3e7e8196bd076155ec8f7dc87e7ef078a5931dab740440c8ff14d"
+    },
+    {
+      "symbol": "SPG",
+      "name": "Simon Property Group, Inc.",
+      "price": 189.8,
       "change": 0,
       "changePercent": 0,
       "rating": "STRONG BUY",
@@ -355,81 +550,28 @@
       "algorithm": "CAN SLIM + 1",
       "score": 80,
       "risk": "Medium",
-      "stopLoss": 114.76,
+      "stopLoss": 185.01,
       "indicators": {
-        "rsRating": 54,
-        "rsi": 48.39321229183223,
+        "rsRating": 56,
+        "rsi": 63.14069870957543,
         "stage2": true,
-        "volZ": 1.0609755899901665,
-        "atr": 0.9963575090680804
+        "volZ": 0.36494011084779626,
+        "atr": 2.3933421543666293
       },
       "allAlgorithms": [
         "CAN SLIM",
-        "Composite Rating"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 116.75,
-      "simulatedEntryPrice": 117.33374999999998,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "16c2fb5b397b75e645125e362b5b9279e464eb51422be981eeccb7e85b392949"
-    },
-    {
-      "symbol": "CRON",
-      "name": "Cronos Group Inc.",
-      "price": 2.66,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "STRONG BUY",
-      "timeframe": "24h",
-      "algorithm": "Penny Sniper + 1",
-      "score": 80,
-      "risk": "Very High",
-      "stopLoss": 2.13,
-      "indicators": {
-        "volZ": 3.343623835731152,
-        "relVol": 0.020408163009217422
-      },
-      "allAlgorithms": [
-        "CAN SLIM",
-        "Penny Sniper"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 2.66,
-      "simulatedEntryPrice": 2.7398000000000002,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "bf543ee5ceaf9560e4db3c8e7a6a35e5aa7b871e5a30647c4cc76d1d458099c2"
-    },
-    {
-      "symbol": "MCD",
-      "name": "McDonald's Corporation",
-      "price": 312.8,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3d",
-      "algorithm": "Alpha Predator",
-      "score": 80,
-      "risk": "Medium",
-      "stopLoss": 305.49,
-      "indicators": {
-        "rsi": 64.5258542401857,
-        "adx": 25,
-        "ao": 1.0693542480468636,
-        "atr": 3.652858189174107
-      },
-      "allAlgorithms": [
         "Alpha Predator"
       ],
       "slippageSimulated": true,
-      "entryPrice": 312.8,
-      "simulatedEntryPrice": 314.364,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "0ba89bc142ba6934daeec759a479d86354461353bd3344e16619f70725f82f5f"
+      "entryPrice": 189.8,
+      "simulatedEntryPrice": 190.749,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "a76ef73f2f8d6e19459338a01e05071f6739a41a72ed7c849be8d12ce125602c"
     },
     {
       "symbol": "DUK",
       "name": "Duke Energy Corporation",
-      "price": 120.24,
+      "price": 120.89,
       "change": 0,
       "changePercent": 0,
       "rating": "BUY",
@@ -437,26 +579,53 @@
       "algorithm": "Alpha Predator",
       "score": 80,
       "risk": "Medium",
-      "stopLoss": 117.86,
+      "stopLoss": 118.58,
       "indicators": {
-        "rsi": 71.07175832385283,
+        "rsi": 69.55090253190261,
         "adx": 25,
-        "ao": 1.5805872748879892,
-        "atr": 1.1892869131905692
+        "ao": 2.050410820456122,
+        "atr": 1.155001504080636
       },
       "allAlgorithms": [
         "Alpha Predator"
       ],
       "slippageSimulated": true,
-      "entryPrice": 120.24,
-      "simulatedEntryPrice": 120.84119999999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "103b9da7043f167d69126883e5d1dcf25e3afafdaa52c30223c0ebdae68a5050"
+      "entryPrice": 120.89,
+      "simulatedEntryPrice": 121.49444999999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "1eaa6b846a21009a52fed9536b5ae19aeb176bc41cdad449864e1436c20adae1"
     },
     {
-      "symbol": "URA",
-      "name": "Global X Uranium ETF",
-      "price": 61.81,
+      "symbol": "SO",
+      "name": "The Southern Company",
+      "price": 89.14,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "3d",
+      "algorithm": "Alpha Predator",
+      "score": 80,
+      "risk": "Medium",
+      "stopLoss": 87.27,
+      "indicators": {
+        "rsi": 63.079013125891315,
+        "adx": 25,
+        "ao": 1.2490591161391364,
+        "atr": 0.935713631766183
+      },
+      "allAlgorithms": [
+        "Alpha Predator"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 89.14,
+      "simulatedEntryPrice": 89.58569999999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "f0efee9c453af1a43f94bcbe1f133a7611689d2ff22bd0b60531a84080247571"
+    },
+    {
+      "symbol": "META",
+      "name": "Meta Platforms, Inc.",
+      "price": 738.31,
       "change": 0,
       "changePercent": 0,
       "rating": "BUY",
@@ -464,373 +633,204 @@
       "algorithm": "Technical Momentum",
       "score": 70,
       "risk": "High",
-      "stopLoss": 59.36,
+      "stopLoss": 712.17,
       "indicators": {
-        "rsi": 81.03625720221505,
-        "volZ": 2.0652470558194542,
+        "rsi": 72.05144964750923,
+        "volZ": 4.010107585630597,
         "breakout": true,
-        "atr": 1.6328574589320592
+        "atr": 17.424285888671875
       },
       "allAlgorithms": [
         "Technical Momentum"
       ],
       "slippageSimulated": true,
-      "entryPrice": 61.81,
-      "simulatedEntryPrice": 62.119049999999994,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "39041db5edec3a9092fc00d6b025bd0ae42c2ac985a99110a05f63d09ddab357"
+      "entryPrice": 738.31,
+      "simulatedEntryPrice": 742.0015499999998,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "9b88fc45749f6428fddd5bdf22b27d78668ed0d9485569e3b30430ace234c8aa"
     },
     {
-      "symbol": "BBBY",
-      "name": "Bed Bath & Beyond, Inc.",
-      "price": 6.52,
+      "symbol": "SNOW",
+      "name": "Snowflake Inc.",
+      "price": 199.37,
       "change": 0,
       "changePercent": 0,
       "rating": "BUY",
       "timeframe": "24h",
-      "algorithm": "Penny Sniper",
-      "score": 70,
-      "risk": "Very High",
-      "stopLoss": 5.22,
-      "indicators": {
-        "volZ": -0.7915603062927558,
-        "relVol": 0.053352316046471567
-      },
-      "allAlgorithms": [
-        "Penny Sniper"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 6.52,
-      "simulatedEntryPrice": 6.5851999999999995,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "fac59ef9a558fd98cb7d2346e102894bfae6761d575d01620ba50da735259720"
-    },
-    {
-      "symbol": "PLUG",
-      "name": "Plug Power Inc.",
-      "price": 2.45,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "24h",
-      "algorithm": "Penny Sniper + 1",
-      "score": 70,
-      "risk": "Very High",
-      "stopLoss": 1.96,
-      "indicators": {
-        "volZ": 0.6348623795348785,
-        "relVol": 0.05889209991988913
-      },
-      "allAlgorithms": [
-        "CAN SLIM",
-        "Penny Sniper"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 2.45,
-      "simulatedEntryPrice": 2.5235000000000003,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "c6f0cbea03a40b75d677debbe21e0562fd376402d032052d5661c7503e5ba1bd"
-    },
-    {
-      "symbol": "CLSK",
-      "name": "CleanSpark, Inc.",
-      "price": 13.45,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "24h",
-      "algorithm": "Penny Sniper + 1",
-      "score": 70,
-      "risk": "Very High",
-      "stopLoss": 10.76,
-      "indicators": {
-        "volZ": -0.07577330566193347,
-        "relVol": 0.0548911284590046
-      },
-      "allAlgorithms": [
-        "CAN SLIM",
-        "Penny Sniper"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 13.45,
-      "simulatedEntryPrice": 13.517249999999997,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "791f137ad1465365ff3158a1977e0253c6d83f74cb9f33bbb3f615a4114c9d95"
-    },
-    {
-      "symbol": "SOS",
-      "name": "SOS Limited",
-      "price": 1.68,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3d",
       "algorithm": "Technical Momentum",
       "score": 70,
       "risk": "High",
-      "stopLoss": 1.55,
+      "stopLoss": 190.83,
       "indicators": {
-        "rsi": 56.75675240287339,
-        "volZ": 1.64114815802886,
+        "rsi": 28.838821957953968,
+        "volZ": 2.193777253527848,
         "breakout": false,
-        "atr": 0.08534998553139823
+        "atr": 5.691073826381138
       },
       "allAlgorithms": [
         "Technical Momentum"
       ],
       "slippageSimulated": true,
-      "entryPrice": 1.68,
-      "simulatedEntryPrice": 1.7304,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "619aed2080ba9aff05167624bd38621d02317744135e87470b3e500f03a3eb9c"
+      "entryPrice": 199.37,
+      "simulatedEntryPrice": 200.36684999999997,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "41e0830ed5a934ace41f44c1b9cb77846a20ce285be0652eb29a7575e17f1741"
     },
     {
-      "symbol": "OCGN",
-      "name": "Ocugen, Inc.",
-      "price": 1.54,
+      "symbol": "XOM",
+      "name": "Exxon Mobil Corporation",
+      "price": 140.51,
       "change": 0,
       "changePercent": 0,
       "rating": "BUY",
       "timeframe": "24h",
-      "algorithm": "Penny Sniper",
-      "score": 70,
-      "risk": "Very High",
-      "stopLoss": 1.23,
-      "indicators": {
-        "volZ": -0.46869671519626227,
-        "relVol": 0.08177178910136886
-      },
-      "allAlgorithms": [
-        "Penny Sniper"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 1.54,
-      "simulatedEntryPrice": 1.5862,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "3846dd72507f8bcf6223595515fd11eeb7be1f9c3b488a98ffd7a3136e579891"
-    },
-    {
-      "symbol": "NCTY",
-      "name": "The9 Limited",
-      "price": 6.84,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3d",
       "algorithm": "Technical Momentum",
       "score": 70,
       "risk": "High",
-      "stopLoss": 6.29,
+      "stopLoss": 137.68,
       "indicators": {
-        "rsi": 52.12766658995561,
-        "volZ": 1.703378007013098,
-        "breakout": false,
-        "atr": 0.3657142434801374
+        "rsi": 91.58790286001496,
+        "volZ": 2.8163286680008386,
+        "breakout": true,
+        "atr": 1.8885705130440849
       },
       "allAlgorithms": [
         "Technical Momentum"
       ],
       "slippageSimulated": true,
-      "entryPrice": 6.84,
-      "simulatedEntryPrice": 6.9084,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "bfa9ed9e4c8a2d337672f827dad124add1b911674acfdb25fd31c71155d1c49b"
-    },
-    {
-      "symbol": "GOOGL",
-      "name": "Alphabet Inc.",
-      "price": 336.01,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 326.13,
-      "indicators": {
-        "rsRating": 77,
-        "rsi": 64.86542591683626,
-        "stage2": true,
-        "volZ": -0.4839878104122403,
-        "atr": 4.941428048270089
-      },
-      "allAlgorithms": [
-        "CAN SLIM"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 336.01,
-      "simulatedEntryPrice": 337.6900499999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "6db9716aef63734cd83eada84b933e8d9ac8581858bb368b144f88cf29dcc247"
-    },
-    {
-      "symbol": "AMZN",
-      "name": "Amazon.com, Inc.",
-      "price": 243.01,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 234.15,
-      "indicators": {
-        "rsRating": 52,
-        "rsi": 51.64884740140872,
-        "stage2": true,
-        "volZ": -0.19675259951355484,
-        "atr": 4.427855355398996
-      },
-      "allAlgorithms": [
-        "CAN SLIM"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 243.01,
-      "simulatedEntryPrice": 244.22504999999995,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "2e12a9597f28d49f75ee9de824e8b64874feba5281e42d22cddab6555df6743e"
-    },
-    {
-      "symbol": "NVDA",
-      "name": "NVIDIA Corporation",
-      "price": 191.52,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 184.85,
-      "indicators": {
-        "rsRating": 57,
-        "rsi": 53.29145674187836,
-        "stage2": true,
-        "volZ": -0.53756756250337,
-        "atr": 3.3364268711635043
-      },
-      "allAlgorithms": [
-        "CAN SLIM"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 191.52,
-      "simulatedEntryPrice": 192.4776,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "27db9d29d83a6b9eb7405cd551e1e45722f7b92974b619894afda7b97dd331dd"
-    },
-    {
-      "symbol": "PFE",
-      "name": "Pfizer Inc.",
-      "price": 25.86,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 24.98,
-      "indicators": {
-        "rsRating": 52,
-        "rsi": 56.971156381115954,
-        "stage2": true,
-        "volZ": -0.3180336282604484,
-        "atr": 0.4410715103149414
-      },
-      "allAlgorithms": [
-        "CAN SLIM"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 25.86,
-      "simulatedEntryPrice": 25.989299999999997,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "e0af9c310ed356834d685f142e677a6b31f950f3a4eb4f9891a2952d706a954b"
-    },
-    {
-      "symbol": "COP",
-      "name": "ConocoPhillips",
-      "price": 101.39,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 97.22,
-      "indicators": {
-        "rsRating": 54,
-        "rsi": 65.4756848385878,
-        "stage2": true,
-        "volZ": -0.9906619179002588,
-        "atr": 2.0835718427385603
-      },
-      "allAlgorithms": [
-        "CAN SLIM"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 101.39,
-      "simulatedEntryPrice": 101.89694999999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "6ae42c97e97da38c4fb2247cbe32cbdd72e7788cd81a03739790dd147195516a"
+      "entryPrice": 140.51,
+      "simulatedEntryPrice": 141.21254999999996,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "c5cb1b50f6ebc962abfc0440a497103c42751ba55d96ee235aab721f4ed32fa1"
     },
     {
       "symbol": "CAT",
       "name": "Caterpillar Inc.",
-      "price": 643.28,
+      "price": 665.24,
       "change": 0,
       "changePercent": 0,
       "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 616.69,
+      "timeframe": "24h",
+      "algorithm": "Technical Momentum",
+      "score": 70,
+      "risk": "High",
+      "stopLoss": 644.38,
       "indicators": {
-        "rsRating": 71,
-        "rsi": 68.45304963937699,
-        "stage2": true,
-        "volZ": 0.07456965617908032,
-        "atr": 13.294281005859375
+        "rsi": 70.83546730108229,
+        "volZ": 2.826595579628147,
+        "breakout": true,
+        "atr": 13.904994419642858
       },
       "allAlgorithms": [
-        "CAN SLIM"
+        "Technical Momentum"
       ],
       "slippageSimulated": true,
-      "entryPrice": 643.28,
-      "simulatedEntryPrice": 646.4963999999999,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "b7abb64c74bfb9d380eea999cfd77344fc6e667164de3e885b89198d0d211a11"
+      "entryPrice": 665.24,
+      "simulatedEntryPrice": 668.5662,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "d6d376f66d878213a797f847b4ad05686fbb2fe897f0d7ea7a7c3d517930674f"
     },
     {
-      "symbol": "RTX",
-      "name": "RTX Corporation",
-      "price": 199.46,
+      "symbol": "XOP",
+      "name": "State Street SPDR S&P Oil & Gas Exploration & Production ETF",
+      "price": 138.97,
       "change": 0,
       "changePercent": 0,
       "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 192.76,
+      "timeframe": "24h",
+      "algorithm": "Technical Momentum",
+      "score": 70,
+      "risk": "High",
+      "stopLoss": 136.21,
       "indicators": {
-        "rsRating": 65,
-        "rsi": 69.4862597192,
-        "stage2": true,
-        "volZ": 0.4264099930829901,
-        "atr": 3.348569597516741
+        "rsi": 79.11350404547363,
+        "volZ": 2.7897814987879945,
+        "breakout": true,
+        "atr": 1.8428573608398438
       },
       "allAlgorithms": [
-        "CAN SLIM"
+        "Technical Momentum"
       ],
       "slippageSimulated": true,
-      "entryPrice": 199.46,
-      "simulatedEntryPrice": 200.45729999999998,
-      "pickedAt": "2026-01-28T21:25:32.440Z",
-      "pickHash": "285f137589855f1e0ac0b4a14c0ac3bcd7f4c01f6b01a832bfd261f071083059"
+      "entryPrice": 138.97,
+      "simulatedEntryPrice": 139.66484999999997,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "e77bf0d26410b75bd91e7cfcdc1b3ff506aff2c72a3ca00556c6bc4078c170d5"
+    },
+    {
+      "symbol": "PLUG",
+      "name": "Plug Power Inc.",
+      "price": 2.34,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "24h",
+      "algorithm": "Penny Sniper",
+      "score": 70,
+      "risk": "Very High",
+      "stopLoss": 1.87,
+      "indicators": {
+        "volZ": -0.30344488838179545,
+        "relVol": 0.06456041074061132
+      },
+      "allAlgorithms": [
+        "Penny Sniper"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 2.34,
+      "simulatedEntryPrice": 2.4102,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "cc7de811a3cbc5c13bba9ce69fc14d7c6c6010a1d7955ffc87ae96a3c744977e"
+    },
+    {
+      "symbol": "CLSK",
+      "name": "CleanSpark, Inc.",
+      "price": 12.59,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "24h",
+      "algorithm": "Penny Sniper",
+      "score": 70,
+      "risk": "Very High",
+      "stopLoss": 10.07,
+      "indicators": {
+        "volZ": -0.3846744770002774,
+        "relVol": 0.06397367538232261
+      },
+      "allAlgorithms": [
+        "Penny Sniper"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 12.59,
+      "simulatedEntryPrice": 12.652949999999999,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "5c2a3719a71078cffbc028865e737f85af2ece4c845da5fbde2a9cd63ab038cb"
+    },
+    {
+      "symbol": "FCEL",
+      "name": "FuelCell Energy, Inc.",
+      "price": 8.99,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "24h",
+      "algorithm": "Penny Sniper",
+      "score": 70,
+      "risk": "Very High",
+      "stopLoss": 7.19,
+      "indicators": {
+        "volZ": -0.3456700626637328,
+        "relVol": 0.05413714187163797
+      },
+      "allAlgorithms": [
+        "Penny Sniper"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 8.99,
+      "simulatedEntryPrice": 9.0799,
+      "pickedAt": "2026-01-29T21:23:07.660Z",
+      "pickHash": "9abda265ce45a7cfad6047f8bbd0bfca14bcee39bd37a3b2499c478014cad4ad"
     }
   ]
 }
