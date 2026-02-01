@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-01-31T21:17:24.486Z",
+  "lastUpdated": "2026-02-01T21:19:10.910Z",
   "totalPicks": 30,
   "stocks": [
     {
@@ -18,7 +18,7 @@
         "rsRating": 99,
         "rsi": 70.11883569882127,
         "stage2": true,
-        "volZ": 2.5204413459486243,
+        "volZ": 2.642239918539546,
         "atr": 13.34857177734375
       },
       "allAlgorithms": [
@@ -27,8 +27,8 @@
       "slippageSimulated": true,
       "entryPrice": 250.23,
       "simulatedEntryPrice": 251.48114999999996,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "5503de797488784894bded74b5f76449d772f9fe89dcd88dec69ad56a54a7918"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "e90e4c376f6094afd7083d00de4796490123c78fcd5afee424f4d10f484c0505"
     },
     {
       "symbol": "INTC",
@@ -46,7 +46,7 @@
         "rsRating": 94,
         "rsi": 51.28851843220401,
         "stage2": true,
-        "volZ": -0.6672393302196027,
+        "volZ": -0.6198496662791334,
         "atr": 2.9135709490094865
       },
       "allAlgorithms": [
@@ -55,8 +55,8 @@
       "slippageSimulated": true,
       "entryPrice": 46.47,
       "simulatedEntryPrice": 46.702349999999996,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "965be1a3fe6c186e9ca818fb3fb32bd20aa6f3c05de811f36c2306e8c07681ad"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "01a7c8852cc247d84037ad1869248f6ccf768c8ea86c821f0a83d917d5b282a4"
     },
     {
       "symbol": "STX",
@@ -74,7 +74,7 @@
         "rsRating": 99,
         "rsi": 75.76796028316811,
         "stage2": true,
-        "volZ": 1.3932711173845482,
+        "volZ": 1.4243263312826868,
         "atr": 19.013578142438615
       },
       "allAlgorithms": [
@@ -83,8 +83,8 @@
       "slippageSimulated": true,
       "entryPrice": 407.69,
       "simulatedEntryPrice": 409.72844999999995,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "a34aaf657394d1e1c50e1a85d4386f32c87c3f7aa441e8d1e1bfe09910137790"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "5a5295c92dfa6a3cf69220350849e2988665992393c90085eeeb935dd079fc00"
     },
     {
       "symbol": "SOXL",
@@ -111,8 +111,8 @@
       "slippageSimulated": true,
       "entryPrice": 61.79,
       "simulatedEntryPrice": 62.098949999999995,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "84fc1b4b4392972d1ca0a0c1034941ba03755bc001d879f07a73cddd2f619222"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "15614b6d9dbe24a04072b8e5f5368d5710b04be4e2dd7f440c161f926a09c92b"
     },
     {
       "symbol": "LABU",
@@ -139,8 +139,8 @@
       "slippageSimulated": true,
       "entryPrice": 165.86,
       "simulatedEntryPrice": 166.6893,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "3a3aebfd70469cf8d9ce856e2e0c06eee993e323d16e33ec74886e36af63a69a"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "ed702cdb3c587377036bf3a467f7bab140248897e50ce018faccf41e5414c744"
     },
     {
       "symbol": "BBIG",
@@ -167,8 +167,8 @@
       "slippageSimulated": true,
       "entryPrice": 0.005,
       "simulatedEntryPrice": 0.00515,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "3dec1678edb42a1fabc120d85595106bb852d850a410f4f974868d59acd68d4a"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "b4509d61571d0dd80ca4843a316fa80edfd712066301baa999050725bc57e9a6"
     },
     {
       "symbol": "HUT",
@@ -178,7 +178,7 @@
       "changePercent": 0,
       "rating": "STRONG BUY",
       "timeframe": "3m",
-      "algorithm": "CAN SLIM",
+      "algorithm": "CAN SLIM + 1",
       "score": 90,
       "risk": "Medium",
       "stopLoss": 47.87,
@@ -186,17 +186,18 @@
         "rsRating": 99,
         "rsi": 44.11188939234594,
         "stage2": true,
-        "volZ": 0.9451201455791283,
+        "volZ": 1.4252335495617934,
         "atr": 3.979285648890904
       },
       "allAlgorithms": [
-        "CAN SLIM"
+        "CAN SLIM",
+        "Composite Rating"
       ],
       "slippageSimulated": true,
       "entryPrice": 55.83,
       "simulatedEntryPrice": 56.10914999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "b4d7fbb9ceb4eb35ca1f4c86d30afd235b56025780858338146ad08b871ad916"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "841f8f2099b88c3315b2c57a4d53cf288a030e54940eb6b2b659166dc392f630"
     },
     {
       "symbol": "XLC",
@@ -226,8 +227,8 @@
       "slippageSimulated": true,
       "entryPrice": 120.08,
       "simulatedEntryPrice": 120.68039999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "10a216854c66e8692d8b16610ddf5aa63979dae4925bf2fc2354fae779b04b9e"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "251d10d227e165a476591062be3cb356ad3331d81a044630a12dcab07872909a"
     },
     {
       "symbol": "GDX",
@@ -256,8 +257,8 @@
       "slippageSimulated": true,
       "entryPrice": 94.2,
       "simulatedEntryPrice": 94.67099999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "af6f20bb56cc70da554e668490d49e8fe193a42c08f54015bd45aa20e47c8c43"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "58bd477177b52200dc671013547877f34ffa8dcde92079587dab68b29a901e13"
     },
     {
       "symbol": "KEY",
@@ -285,8 +286,8 @@
       "slippageSimulated": true,
       "entryPrice": 21.52,
       "simulatedEntryPrice": 21.627599999999997,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "cdb8b31f5bb81e582f3312b145d2781f441e23cc16aebfc0b176fb92e5691071"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "e3883090a941010ebb4f23a3f7d835308943bfb42baee1a4069804ded8d55654"
     },
     {
       "symbol": "K",
@@ -314,8 +315,8 @@
       "slippageSimulated": true,
       "entryPrice": 83.44,
       "simulatedEntryPrice": 83.85719999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "e27bffbc3c306a0211ffc5150a848ea0d153eb562f90267aa8da80efb43490e3"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "1d18d725495e20b0a3a8b79b16fdfd912910d41bc1882af414ed51f0e2403fc4"
     },
     {
       "symbol": "XLU",
@@ -343,8 +344,8 @@
       "slippageSimulated": true,
       "entryPrice": 43.25,
       "simulatedEntryPrice": 43.466249999999995,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "74dedb2e77fb565643b887ced912d76f0abf5c6b758540a7f892d2637bb95333"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "3497b592940601ec598f9d7e30d09fe5c9f2b9c9617da53a655e25538752379a"
     },
     {
       "symbol": "VNQ",
@@ -372,8 +373,8 @@
       "slippageSimulated": true,
       "entryPrice": 90.8,
       "simulatedEntryPrice": 91.25399999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "9a551cb9f5590732be1898a676cf40f8db1a013749fd418184b0cb892f5f26d1"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "f87d242736ad8ceca94ba4182ce700216f569ee6ba2d1f9b8c5e52f4a4ddfb65"
     },
     {
       "symbol": "SPG",
@@ -401,8 +402,8 @@
       "slippageSimulated": true,
       "entryPrice": 191.31,
       "simulatedEntryPrice": 192.26655,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "237e8892374d0020b23c91d97f5a98952df6493e493902d82990b8633849c912"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "0c90d6f59ee16e9ef6adc0644c5971fdb424d173070dee3688112696379e68cd"
     },
     {
       "symbol": "SO",
@@ -428,8 +429,8 @@
       "slippageSimulated": true,
       "entryPrice": 89.31,
       "simulatedEntryPrice": 89.75654999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "41eb5bc063836deeb5b19ea406eb3d4d91fac82f861b61fa08e334f928da2aae"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "7b9655ebea8ba94aa2161bca8d10a139c54ed3ea137adf0d344371db24a9eeb0"
     },
     {
       "symbol": "DUK",
@@ -457,8 +458,8 @@
       "slippageSimulated": true,
       "entryPrice": 121.35,
       "simulatedEntryPrice": 121.95674999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "d2379c0d2b004366c12d855e1444ca7b5fb70a3d023c87e14931a44e92fff528"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "d4ba892c97dab84f15d23e82e69ee0ccbaee763e83fe1cacaee577b8117b85a5"
     },
     {
       "symbol": "VZ",
@@ -484,8 +485,35 @@
       "slippageSimulated": true,
       "entryPrice": 44.52,
       "simulatedEntryPrice": 44.742599999999996,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "15641d004473c43ced2775a59e02fe08458ff310d77a8d257b23e0b7b9d4b357"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "fa203be6c499ed65ba3f7ab5a0ea10cc112dd17a35e893b326fa4eebf4a2e5cd"
+    },
+    {
+      "symbol": "PEP",
+      "name": "PepsiCo, Inc.",
+      "price": 153.63,
+      "change": 0,
+      "changePercent": 0,
+      "rating": "BUY",
+      "timeframe": "24h",
+      "algorithm": "Technical Momentum",
+      "score": 70,
+      "risk": "High",
+      "stopLoss": 150.23,
+      "indicators": {
+        "rsi": 82.20654794909157,
+        "volZ": 2.245704163605159,
+        "breakout": true,
+        "atr": 2.2685743059430803
+      },
+      "allAlgorithms": [
+        "Technical Momentum"
+      ],
+      "slippageSimulated": true,
+      "entryPrice": 153.63,
+      "simulatedEntryPrice": 154.39815,
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "a6be2f1f7b5b678ee89847f4c2379ad7d710319553a6475a66c60adc70458bff"
     },
     {
       "symbol": "CL",
@@ -511,8 +539,8 @@
       "slippageSimulated": true,
       "entryPrice": 90.29,
       "simulatedEntryPrice": 90.74145,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "54e79031d75f4c2345a8126605966690ee82f897e1311bedf712fac8ee362aaf"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "9e3141522ed62bc6952a6f1ce120da062cf145f7d6d5c87337740e4ca8d368ce"
     },
     {
       "symbol": "AA",
@@ -539,8 +567,8 @@
       "slippageSimulated": true,
       "entryPrice": 56.81,
       "simulatedEntryPrice": 57.094049999999996,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "cbee9712940b1bf4c5a60875d15303ead72ead7583c44ed78bc40e9fbd37ceea"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "83a93656d9eee205b1d4ec6d617fffce72e7c95d5389872076e6c3297cac89e3"
     },
     {
       "symbol": "XLB",
@@ -566,8 +594,8 @@
       "slippageSimulated": true,
       "entryPrice": 49.27,
       "simulatedEntryPrice": 49.516349999999996,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "9dd96426e2c69a4bc5223a8e2f7a8ef858ffd6092e0224ed2d26f7f67819b746"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "2a22aaaea0a521b8e0077aa516b6d2e05e96c86aebaf9c4b422ba40936adc37c"
     },
     {
       "symbol": "SQQQ",
@@ -583,7 +611,7 @@
       "stopLoss": 63.21,
       "indicators": {
         "rsi": 54.13417824069941,
-        "volZ": 2.6059041573417936,
+        "volZ": 2.648631101672984,
         "breakout": false,
         "atr": 2.0335720607212613
       },
@@ -593,8 +621,8 @@
       "slippageSimulated": true,
       "entryPrice": 66.26,
       "simulatedEntryPrice": 66.5913,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "b1b4d49a2caaa4031320928b1b5c5294a43584d8932a3dda90b2b2faf8e4cf3d"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "329dd6ed0e900767b1440ade844aa61fde217b8dee4106cf1d394d4e380b72c0"
     },
     {
       "symbol": "SOFI",
@@ -610,7 +638,7 @@
       "stopLoss": 21.64,
       "indicators": {
         "rsi": 16.59388015851819,
-        "volZ": 2.9231630310705525,
+        "volZ": 2.9959223816821385,
         "breakout": false,
         "atr": 0.781428609575544
       },
@@ -620,8 +648,8 @@
       "slippageSimulated": true,
       "entryPrice": 22.81,
       "simulatedEntryPrice": 22.924049999999998,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "25f3b787df7779fdd8c806185371f083ed887a35b6546fb9c4173abbd8b86fa0"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "201eac3392398caaf8d029dbb09b532173b435714161ea55d21f55347db5008e"
     },
     {
       "symbol": "DKNG",
@@ -637,7 +665,7 @@
       "stopLoss": 25.73,
       "indicators": {
         "rsi": 17.542384757764324,
-        "volZ": 2.200185591306913,
+        "volZ": 2.361568548229779,
         "breakout": false,
         "atr": 1.1860711233956474
       },
@@ -647,8 +675,8 @@
       "slippageSimulated": true,
       "entryPrice": 27.51,
       "simulatedEntryPrice": 27.64755,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "9889e221ce266d437b8bed9e75db7b5b09ed5ca792376e5bad5620e8f9880ac8"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "7ce08a7cc2276a080746faffe3c37d585be2fddeaa5ac9a8f72b465321a1ec61"
     },
     {
       "symbol": "BNGO",
@@ -664,7 +692,7 @@
       "stopLoss": 1.18,
       "indicators": {
         "rsi": 32.051272842147156,
-        "volZ": 3.636806859864123,
+        "volZ": 3.6498981212039965,
         "breakout": false,
         "atr": 0.08142856189182826
       },
@@ -674,8 +702,8 @@
       "slippageSimulated": true,
       "entryPrice": 1.3,
       "simulatedEntryPrice": 1.3390000000000002,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "b96f66fadde6859cf66b72de56742a5619b7363be3f45b97a8985434c2125bc7"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "530e164afe2f820b44da4e9ce50791770fd102cbcb6a5cff5dbd729c66286b5c"
     },
     {
       "symbol": "SENS",
@@ -691,7 +719,7 @@
       "stopLoss": 6.76,
       "indicators": {
         "rsi": 51.549297779993765,
-        "volZ": 2.5598956419102827,
+        "volZ": 2.5988485023497816,
         "breakout": false,
         "atr": 0.3784285954066685
       },
@@ -701,8 +729,8 @@
       "slippageSimulated": true,
       "entryPrice": 7.33,
       "simulatedEntryPrice": 7.4033,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "1c308ddb9ffd4db37a5bf36403805a577ae72d5c158ca3718ddb81824a105446"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "13a8efdc0cc197c5d1e1fb866efe661dc5198b0a9c140d4157122117490e3ba4"
     },
     {
       "symbol": "FCEL",
@@ -717,7 +745,7 @@
       "risk": "Very High",
       "stopLoss": 6.55,
       "indicators": {
-        "volZ": -0.32724475120665364,
+        "volZ": -0.30685090344339344,
         "relVol": 0.0647130612197522
       },
       "allAlgorithms": [
@@ -726,8 +754,8 @@
       "slippageSimulated": true,
       "entryPrice": 8.19,
       "simulatedEntryPrice": 8.271899999999999,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "86bfae64e70820c53adf5e64bc530704658cba4695819170868f6bde5ab861aa"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "4595965b3bb6c24b98bbd213d38bf08dd2fc14dac2a72a9b8d89147719e2c305"
     },
     {
       "symbol": "MRK",
@@ -755,13 +783,13 @@
       "slippageSimulated": true,
       "entryPrice": 110.27,
       "simulatedEntryPrice": 110.82134999999998,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "9b749480a1389e520541be3232b8aee5d201a7032dd589080f7544d4597189a4"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "361a5d0a2f58299750358869d959f7a01766d133bd9fd69740eaed00785b27a8"
     },
     {
       "symbol": "GOOGL",
       "name": "Alphabet Inc.",
-      "price": 338,
+      "price": 338.233,
       "change": 0,
       "changePercent": 0,
       "rating": "BUY",
@@ -769,22 +797,22 @@
       "algorithm": "CAN SLIM",
       "score": 60,
       "risk": "Medium",
-      "stopLoss": 326.6,
+      "stopLoss": 326.84,
       "indicators": {
         "rsRating": 76,
         "rsi": 60.94219865238311,
         "stage2": true,
-        "volZ": -0.8916426815909434,
+        "volZ": -0.011421752645597232,
         "atr": 5.698569161551339
       },
       "allAlgorithms": [
         "CAN SLIM"
       ],
       "slippageSimulated": true,
-      "entryPrice": 338,
-      "simulatedEntryPrice": 339.68999999999994,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "bb024e2aa59ef82f5da62c3bc957a0ee7484128db78e59e07d98e0bc876851f6"
+      "entryPrice": 338.233,
+      "simulatedEntryPrice": 339.92416499999996,
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "093ff93c611f57b58c19bb1cd6e5678615f1c7a9bb66af58d897c665774ad879"
     },
     {
       "symbol": "AMZN",
@@ -802,7 +830,7 @@
         "rsRating": 53,
         "rsi": 40.348779606734425,
         "stage2": true,
-        "volZ": 0.5811168868317848,
+        "volZ": 0.7110697225438167,
         "atr": 4.462854657854352
       },
       "allAlgorithms": [
@@ -811,36 +839,8 @@
       "slippageSimulated": true,
       "entryPrice": 239.3,
       "simulatedEntryPrice": 240.4965,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "f85809a37dee46c022a5d75946be9b6e8687c4874da79d81cbc187e93a9ed465"
-    },
-    {
-      "symbol": "NVDA",
-      "name": "NVIDIA Corporation",
-      "price": 191.13,
-      "change": 0,
-      "changePercent": 0,
-      "rating": "BUY",
-      "timeframe": "3m",
-      "algorithm": "CAN SLIM",
-      "score": 60,
-      "risk": "Medium",
-      "stopLoss": 184.07,
-      "indicators": {
-        "rsRating": 58,
-        "rsi": 59.026793195091706,
-        "stage2": true,
-        "volZ": 0.0625957215962114,
-        "atr": 3.530712672642299
-      },
-      "allAlgorithms": [
-        "CAN SLIM"
-      ],
-      "slippageSimulated": true,
-      "entryPrice": 191.13,
-      "simulatedEntryPrice": 192.08565,
-      "pickedAt": "2026-01-31T21:17:24.486Z",
-      "pickHash": "7519ff01ba6f3ef96872e7e98a22d5431d2e02cb97855c9f96ad54dcfb4d33b6"
+      "pickedAt": "2026-02-01T21:19:10.910Z",
+      "pickHash": "961a9fd7f4a07be1af4ab2371cd67ccbe73c82380cda51a28cdabad38cf70b1c"
     }
   ]
 }
