@@ -314,19 +314,24 @@ export function scoreCANSLIM(
   let score = 0;
   if (rsRating >= 90) score += C.RS_RATING_WEIGHTS.TIER1;
   else if (rsRating >= 80) score += C.RS_RATING_WEIGHTS.TIER2;
+  else if (rsRating >= 70) score += C.RS_RATING_WEIGHTS.TIER3;
+  else if (rsRating >= 60) score += C.RS_RATING_WEIGHTS.TIER4;
   if (stage2) score += C.STAGE2_WEIGHT;
-  if (rsi >= 40 && rsi <= 70) score += C.RSI_WEIGHT;
+  if (rsi >= 40) score += C.RSI_WEIGHT;
   if (data.price > sma200) score += 10;
   if (volZ > 1.5) score += C.VOL_Z_BONUS;
   if (indicators.vcp) score += C.VCP_BONUS;
   if (indicators.institutionalFootprint) score += C.INSTITUTIONAL_BONUS;
+
+  if (marketRegime === "bull") score += 20;
+  else if (marketRegime === "bear") score -= 30;
 
   score = Math.max(0, score - earningsRisk.penalty);
 
   let rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL" = "HOLD";
   if (score >= C.RATING_THRESHOLDS.STRONG_BUY) rating = "STRONG BUY";
   else if (score >= C.RATING_THRESHOLDS.BUY) rating = "BUY";
-  if (rating !== "STRONG BUY" && rating !== "BUY") return null;
+  else if (score < C.RATING_THRESHOLDS.SELL) rating = "SELL";
 
   return {
     symbol: data.symbol,
@@ -455,6 +460,8 @@ export function scoreComposite(
   if (volZ > 1.0) score += C.TECHNICAL_WEIGHTS.VOL_Z;
   if (breakout) score += C.TECHNICAL_WEIGHTS.BREAKOUT;
   if (ytdPerf > 0) score += C.YTD_PERF_WEIGHT;
+  if (data.pe && data.pe > 0 && data.pe < 40) score += C.FUNDAMENTAL_WEIGHTS.PE;
+  if (data.marketCap && data.marketCap >= 1_000_000_000) score += C.FUNDAMENTAL_WEIGHTS.MARKET_CAP;
 
   if (marketRegime === "bull") score += C.REGIME_WEIGHTS.BULL;
   else if (marketRegime === "neutral") score += C.REGIME_WEIGHTS.NEUTRAL;
@@ -464,7 +471,7 @@ export function scoreComposite(
   let rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL" = "HOLD";
   if (score >= C.RATING_THRESHOLDS.STRONG_BUY) rating = "STRONG BUY";
   else if (score >= C.RATING_THRESHOLDS.BUY) rating = "BUY";
-  if (rating !== "STRONG BUY" && rating !== "BUY") return null;
+  else if (score < C.RATING_THRESHOLDS.SELL) rating = "SELL";
 
   return {
     symbol: data.symbol,
