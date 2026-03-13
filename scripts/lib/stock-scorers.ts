@@ -71,6 +71,7 @@ const CONSTANTS = {
     VOL_Z_BONUS: 5,
     VCP_BONUS: 20,
     INSTITUTIONAL_BONUS: 10,
+    REGIME_WEIGHTS: { BULL: 30, BEAR_PENALTY: 30 },
     RATING_THRESHOLDS: { STRONG_BUY: 80, BUY: 60, SELL: 40 },
   },
   MOMENTUM: {
@@ -83,7 +84,7 @@ const CONSTANTS = {
     TECHNICAL_WEIGHTS: { RSI: 20, RSI_Z: 10, VOL_Z: 10, BREAKOUT: 10 },
     FUNDAMENTAL_WEIGHTS: { PE: 10, MARKET_CAP: 10 },
     YTD_PERF_WEIGHT: 10,
-    REGIME_WEIGHTS: { BULL: 10, NEUTRAL: 5, STRESS: 0 },
+    REGIME_WEIGHTS: { BULL: 30, NEUTRAL: 5, STRESS: 0 },
     RATING_THRESHOLDS: { STRONG_BUY: 70, BUY: 50, SELL: 30 },
   },
   RISK: {
@@ -323,10 +324,13 @@ export function scoreCANSLIM(
 
   score = Math.max(0, score - earningsRisk.penalty);
 
+  if (marketRegime === "bull") score += C.REGIME_WEIGHTS.BULL;
+  else if (marketRegime === "bear") score = Math.max(0, score - C.REGIME_WEIGHTS.BEAR_PENALTY);
+
   let rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL" = "HOLD";
   if (score >= C.RATING_THRESHOLDS.STRONG_BUY) rating = "STRONG BUY";
   else if (score >= C.RATING_THRESHOLDS.BUY) rating = "BUY";
-  if (rating !== "STRONG BUY" && rating !== "BUY") return null;
+  else if (score <= C.RATING_THRESHOLDS.SELL) rating = "SELL";
 
   return {
     symbol: data.symbol,
@@ -464,7 +468,7 @@ export function scoreComposite(
   let rating: "STRONG BUY" | "BUY" | "HOLD" | "SELL" = "HOLD";
   if (score >= C.RATING_THRESHOLDS.STRONG_BUY) rating = "STRONG BUY";
   else if (score >= C.RATING_THRESHOLDS.BUY) rating = "BUY";
-  if (rating !== "STRONG BUY" && rating !== "BUY") return null;
+  else if (score <= C.RATING_THRESHOLDS.SELL) rating = "SELL";
 
   return {
     symbol: data.symbol,

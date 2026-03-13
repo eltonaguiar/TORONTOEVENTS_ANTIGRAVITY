@@ -9,7 +9,7 @@
     "fetch:github": "tsx scripts/fetch-github-data.ts",
     "build:sftp:github": "npm run fetch:github && npm run build:sftp",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src/",
     "scrape": "npx tsx scripts/run-scraper.ts",
     "deploy": "gh-pages -d build -t",
     "deploy:sftp": "npm run stocks:generate && npm run build:sftp && tsx scripts/deploy-simple.ts",
