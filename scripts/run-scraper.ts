@@ -1,3 +1,3 @@
 import { runScraper } from '../src/lib/scraper';
 
-runScraper().catch(console.error);
+runScraper().catch(err => { console.error(err); process.exit(1); });
