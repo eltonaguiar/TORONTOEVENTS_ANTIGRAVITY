@@ -9,6 +9,9 @@ on:
     paths:
       - 'data/picks-archive/**'
 
+permissions:
+  contents: write
+
 jobs:
   verify-performance:
     runs-on: ubuntu-latest
@@ -41,7 +44,7 @@ jobs:
           git diff --staged --quiet || git commit -m "chore: update pick performance data [skip ci]"
       
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
