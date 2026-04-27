@@ -5,8 +5,24 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Toronto Events Aggregator',
-  description: 'The best events in Toronto, curated and refreshed daily.',
+  title: 'Find Toronto Events | Dating, Activities & Things to Do This Weekend',
+  description: 'Find Toronto events including dating, singles meetups, speed dating, activities, and things to do this weekend in Toronto. Curated and refreshed daily.',
+  alternates: {
+    canonical: 'https://findtorontoevents.ca/',
+  },
+  openGraph: {
+    title: 'Find Toronto Events | Dating, Activities & Things to Do This Weekend',
+    description: 'Find Toronto events including dating, singles meetups, speed dating, activities, and things to do this weekend in Toronto.',
+    url: 'https://findtorontoevents.ca/',
+    siteName: 'Find Toronto Events',
+    locale: 'en_CA',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Find Toronto Events | Dating, Activities & Things to Do This Weekend',
+    description: 'Find Toronto events including dating, singles meetups, speed dating, activities, and things to do this weekend in Toronto.',
+  },
 };
 
 import { SettingsProvider } from '../context/SettingsContext';
