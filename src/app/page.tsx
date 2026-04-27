@@ -1,13 +1,25 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEventsFromGitHub, useMetadataFromGitHub } from '../lib/data-client';
-import EventFeed from '../components/EventFeed';
 import ChatAssistant from '../components/ChatAssistant';
 import AdUnit from '../components/AdUnit';
 import WindowsFixerPromo from '../components/WindowsFixerPromo';
 import MoviesShowsPromo from '../components/MoviesShowsPromo';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { EventFeedSkeleton } from '../components/LoadingSkeleton';
+
+// EventFeed depends on `new Date()` for time-based filtering, which differs
+// between SSG pre-render time and client mount time, causing React #418
+// hydration mismatches in production. Render client-only.
+const EventFeed = dynamic(() => import('../components/EventFeed'), {
+  ssr: false,
+  loading: () => (
+    <div className="max-w-7xl mx-auto px-4 py-20">
+      <EventFeedSkeleton count={12} />
+    </div>
+  ),
+});
 
 const VERSION = 'v0.5.0';
 
@@ -44,7 +56,15 @@ export default function Home() {
         <p className="text-lg text-[var(--text-2)] max-w-2xl mx-auto">
           The curated feed of what's happening in the city. Updated daily.
         </p>
-        <p className="text-sm text-[var(--text-3)] mt-2">
+        {/*
+          formatLastUpdated() uses Intl.DateTimeFormat with timeZoneName: 'short'.
+          The short token (EDT/EST) can resolve differently between Node.js
+          (build-time SSG) and the browser (runtime), e.g. server emits "EDT"
+          but client computes "EST" if locale data is stale. suppressHydrationWarning
+          accepts that the rendered text may differ across environments without
+          tripping React #418.
+        */}
+        <p className="text-sm text-[var(--text-3)] mt-2" suppressHydrationWarning>
           Last updated: {lastUpdated}
           {metadata && (
             <span className="ml-4">
