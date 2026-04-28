@@ -77,10 +77,13 @@ function EventCard({ event, onPreview }: EventCardProps) {
     const handleMouseEnter = () => settings.showTooltips && setIsHovered(true);
     const handleMouseLeave = () => setIsHovered(false);
 
+    const thumbSrc = getEventImage(event.image);
+    const hasRealThumb = thumbSrc !== getEventImage(null);
+
     return (
         // Placeholder container to hold grid space
         <div
-            className="relative h-[320px] w-full"
+            className="relative h-[420px] w-full"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -110,6 +113,26 @@ function EventCard({ event, onPreview }: EventCardProps) {
                 tabIndex={0}
                 aria-label={`View details for ${event.title}`}
             >
+            {/* Banner thumbnail */}
+            {!isHovered && (
+                <div className="relative w-full h-[140px] shrink-0 overflow-hidden bg-[var(--surface-2)]">
+                    <img
+                        src={thumbSrc}
+                        alt=""
+                        aria-hidden="true"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => {
+                            const img = e.currentTarget as HTMLImageElement;
+                            if (!hasRealThumb) return;
+                            img.src = getEventImage(null);
+                        }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] via-transparent to-transparent pointer-events-none" />
+                </div>
+            )}
+
             {/* Save Button */}
             <button
                 onClick={(e) => {
