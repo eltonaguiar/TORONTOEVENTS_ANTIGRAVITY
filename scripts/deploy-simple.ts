@@ -1,3 +1,51 @@
+/**
+ * Full FTP deploy for findtorontoevents.ca + sister sites/subdirs.
+ *
+ * ⚠️  KNOWN SEQUENCE BUG — read before running this script.
+ *
+ *   This script runs TWO Next.js builds back-to-back:
+ *     1. SFTP build (no basePath) → uploads to FTP root
+ *     2. GITHUB build (with /TORONTOEVENTS_ANTIGRAVITY basePath) → uploads to subdir
+ *
+ *   Step 2's `npm run build` OVERWRITES `build/` locally with the basePath
+ *   build BEFORE step 1's uploads have necessarily completed. If FTP TLS
+ *   drops mid-step-1 (we've seen this in production), the live root
+ *   `index.html` ends up referencing chunk hashes that:
+ *     a) never landed on the server, and
+ *     b) no longer exist locally either (overwritten by step-2 build).
+ *
+ *   Recovery: use `scripts/upload-next-only.mjs` after a clean
+ *   `rm -rf build && DEPLOY_TARGET=sftp npm run build` to re-push only
+ *   `_next/` + `index.html` to root. That helper refuses to run if
+ *   `build/index.html` still contains `/TORONTOEVENTS_ANTIGRAVITY/` so you
+ *   can't accidentally re-push the basePath build to root.
+ *
+ * ⚠️  REPLACING /findtorontoevents.ca/index.html IS DESTRUCTIVE.
+ *
+ *   The live root index.html is NOT this build's output — it is the
+ *   4,845-line hand-coded HTML at antigravity-monorepo/
+ *   TORONTOEVENTS_ANTIGRAVITY/index.html. That file contains the entire
+ *   site's mega-menu, hero tiles, "What's New" panel, filter controls, and
+ *   the applyThumbnails() injector. This Next.js build only builds the
+ *   event-grid widget that gets embedded inside that HTML.
+ *
+ *   So: this script's "Upload index.html" step at line ~73 will OVERWRITE
+ *   the live homepage with a stripped Next.js shell. That happened on
+ *   2026-04-27 — the entire site lost its nav. Recovery required uploading
+ *   the legacy HTML back manually.
+ *
+ *   If you only need to ship a Next.js bundle update, comment out the
+ *   `await uploadFile(client, indexHtml, 'index.html');` line at ~73 and
+ *   `await uploadFile(client, indexHtml, 'index3.html');` at ~74. The
+ *   `_next/` chunk upload at ~175 is safe — chunks live alongside, not
+ *   under, the legacy HTML.
+ *
+ * Required env vars: FTP_HOST, FTP_USER, FTP_PASS, FTP_REMOTE_PATH
+ *   (with hardcoded fallbacks below; the hardcoded password may be stale)
+ *
+ * Required PowerShell/Git Bash flag: MSYS_NO_PATHCONV=1 — otherwise Git
+ * Bash mangles `/findtorontoevents.ca` to `C:/Program Files/Git/...`.
+ */
 import * as ftp from 'basic-ftp';
 import path from 'path';
 import fs from 'fs';
