@@ -4,10 +4,10 @@ import fs from 'fs';
 import { execSync } from 'child_process';
 
 const config = {
-    host: 'ftps2.50webs.com',
-    user: 'ejaguiar1',
-    password: 'CxH1Uh*#0QkIVg@KxgMZXn7Hp',
-    remotePath: '/findtorontoevents.ca',
+    host: process.env.FTP_HOST || 'ftps2.50webs.com',
+    user: process.env.FTP_USER || 'ejaguiar1',
+    password: process.env.FTP_PASS || 'CxH1Uh*#0QkIVg@KxgMZXn7Hp',
+    remotePath: process.env.FTP_REMOTE_PATH || '/findtorontoevents.ca',
 };
 
 async function uploadFile(client: ftp.Client, localPath: string, remotePath: string) {
