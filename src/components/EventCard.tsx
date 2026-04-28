@@ -79,6 +79,23 @@ function EventCard({ event, onPreview }: EventCardProps) {
 
     const thumbSrc = getEventImage(event.image);
     const hasRealThumb = thumbSrc !== getEventImage(null);
+    // Deterministic color tile when there is no real event image: hashes the
+    // event id so the same event always gets the same color, but adjacent
+    // events look different. Beats the grey "Event Image" SVG placeholder.
+    const FALLBACK_PALETTE = [
+        'from-orange-500 to-amber-600',
+        'from-emerald-500 to-teal-600',
+        'from-pink-500 to-rose-600',
+        'from-violet-500 to-fuchsia-600',
+        'from-blue-500 to-indigo-600',
+        'from-amber-400 to-yellow-600',
+        'from-cyan-500 to-sky-600',
+        'from-rose-500 to-red-600',
+        'from-lime-500 to-green-600',
+        'from-purple-500 to-pink-600',
+    ];
+    const fallbackHash = (event.id || event.title || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    const fallbackGradient = FALLBACK_PALETTE[fallbackHash % FALLBACK_PALETTE.length];
 
     return (
         // Placeholder container to hold grid space
@@ -116,19 +133,27 @@ function EventCard({ event, onPreview }: EventCardProps) {
             {/* Banner thumbnail */}
             {!isHovered && (
                 <div className="relative w-full h-[140px] shrink-0 overflow-hidden bg-[var(--surface-2)]">
-                    <img
-                        src={thumbSrc}
-                        alt=""
-                        aria-hidden="true"
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => {
-                            const img = e.currentTarget as HTMLImageElement;
-                            if (!hasRealThumb) return;
-                            img.src = getEventImage(null);
-                        }}
-                    />
+                    {hasRealThumb ? (
+                        <img
+                            src={thumbSrc}
+                            alt=""
+                            aria-hidden="true"
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => {
+                                // Real image failed — hide the <img> so the
+                                // gradient fallback shows through. We keep the
+                                // gradient layer behind every banner anyway.
+                                (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            }}
+                        />
+                    ) : (
+                        <div
+                            className={`absolute inset-0 bg-gradient-to-br ${fallbackGradient}`}
+                            aria-hidden="true"
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-[var(--surface-1)] via-transparent to-transparent pointer-events-none" />
                 </div>
             )}
