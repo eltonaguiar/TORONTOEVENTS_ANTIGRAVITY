@@ -523,20 +523,29 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 const eventStartDate = new Date(e.date); // Need local var for date filter block
                 const eEndDate = e.endDate ? new Date(e.endDate) : eventStartDate;
 
-                // SURGICAL FIX: Invalid/unknown dates → INCLUDE in all views, never exclude.
-                // Previously we returned false when dateFilter !== 'all', which made "Today" show 0 events.
-                // Correct behavior: treat invalid date as "date unavailable — show anyway".
+                // SURGICAL FIX (2026-05-04, FIX A): Invalid/unknown dates only pass through
+                // when dateFilter === 'all'. Targeted filters (today, tomorrow, this-week,
+                // this-month, nearby) MUST NOT include events with unparseable dates — that
+                // bug was leaking "Timeleft — Dinner With Strangers" / "222 — Surprise Social"
+                // into the Tomorrow / This Month views despite having no real date attached.
+                // Sister fix to PR #11 (Tomorrow filter). See bug report:
+                // reports/findtorontoevents_thismonth_past_leak_2026_05_04.md
                 const hasInvalidDate = isNaN(eventStartDate.getTime());
-                if (hasInvalidDate) {
-                    // Do NOT return false. Skip date-range checks below; event passes through.
-                    // This is the exact fix: invalid dates were disqualifying; they should be included.
-                    // CRITICAL: Invalid dates should show in ALL filters (Today, This Week, etc.), not just "All Dates"
-                    // This prevents "0 events" when user has "Today" selected and events have bad dates
+                if (hasInvalidDate && dateFilter === 'all') {
+                    // Pass-through ONLY for "All Dates" view. Don't disqualify on missing date.
                     const eventIndex = sourceEvents.indexOf(e);
                     if (eventIndex < 5) {
-                        console.log(`✅ [Filter] Including invalid date event in ${dateFilter} filter: "${e.title.substring(0, 50)}"`);
+                        console.log(`✅ [Filter] Including invalid-date event in 'all' filter: "${e.title.substring(0, 50)}"`);
                     }
-                    // Skip to return true - invalid dates pass through all filters
+                } else if (hasInvalidDate) {
+                    // Targeted filter (today/tomorrow/this-week/this-month/nearby) +
+                    // unparseable date = exclude. We cannot prove this event is relevant
+                    // to the requested time window.
+                    const eventIndex = sourceEvents.indexOf(e);
+                    if (eventIndex < 5) {
+                        console.log(`❌ [Filter] Excluding invalid-date event from '${dateFilter}' filter: "${e.title.substring(0, 50)}"`);
+                    }
+                    return false;
                 } else if (dateFilter !== 'all' && now && !hasInvalidDate) {
                     const todayStr = getTorontoDateParts(now);
                     const [y, m, d] = todayStr.split('-').map(Number);
@@ -590,12 +599,44 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                         }
                     }
                     if (dateFilter === 'this-month') {
+                        // FIX D (2026-05-04): tighten "This Month" to events that are
+                        // happening today onwards within the current calendar month.
+                        // Smoking gun: today=MAY 4 was rendering MAY 1 single-day events
+                        // ("Before Borders Gallery Show", "Contact Photography Festival
+                        // 2026 Announces", "We Are Gumbo: 10 Years of") because the prior
+                        // logic only checked year+month, accepting any day. Console log
+                        // evidence: dateFilter=this-month, now=2026-05-04T02:40Z, output
+                        // included MAY 1 single-day cards. Mirrors index.html's override
+                        // window [today, end-of-month] (lines ~3666-3708). Single-day past
+                        // events whose start_date < today are dropped; multi-day events
+                        // currently running (start <= now <= end, end in this month) are
+                        // kept; upcoming this-month events are kept.
+                        const todayY = todayStr.split('-')[0];
+                        const todayM = todayStr.split('-')[1];
+                        const eventStartParts = getTorontoDateParts(eventStartDate).split('-');
+                        const eventStartYMD = eventStartParts.join('-');
                         if (isMultiDay(e)) {
-                            const eventStartParts = getTorontoDateParts(eventStartDate).split('-');
-                            const nowParts = getTorontoDateParts(now).split('-');
-                            if (eventStartParts[0] !== nowParts[0] || eventStartParts[1] !== nowParts[1]) return false;
+                            // Multi-day: must overlap [today, end-of-month] AND end within this month.
+                            if (isNaN(eEndDate.getTime())) return false;
+                            const eventEndParts = getTorontoDateParts(eEndDate).split('-');
+                            const eventEndYMD = eventEndParts.join('-');
+                            // End >= today (still running or upcoming)
+                            if (eventEndYMD < todayStr) return false;
+                            // Either start is in this month (upcoming/starting this month)
+                            // OR end is in this month (currently running, will end this month).
+                            const startsThisMonth = eventStartParts[0] === todayY && eventStartParts[1] === todayM;
+                            const endsThisMonth = eventEndParts[0] === todayY && eventEndParts[1] === todayM;
+                            if (!startsThisMonth && !endsThisMonth) return false;
                         } else {
-                            if (!isThisMonth(e.date)) return false;
+                            // Single-day: must be in current calendar month AND >= today.
+                            if (eventStartParts[0] !== todayY || eventStartParts[1] !== todayM) return false;
+                            if (eventStartYMD < todayStr) {
+                                const eventIndex = sourceEvents.indexOf(e);
+                                if (eventIndex < 5) {
+                                    console.log(`❌ [Filter] Event already passed this month: "${e.title.substring(0, 50)}" (date: ${e.date})`);
+                                }
+                                return false;
+                            }
                         }
                     }
                     if (dateFilter === ('nearby' as any)) {
