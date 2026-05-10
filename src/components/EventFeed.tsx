@@ -71,6 +71,9 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         if (!now) {
             setNow(new Date());
         }
+        // Belt-and-braces: also flip the hydration gate from this effect so
+        // we never get stuck on the skeleton if the primary effect failed.
+        setMounted(true);
     }, []);
 
     const [showMultiDay, setShowMultiDay] = useState(false);
