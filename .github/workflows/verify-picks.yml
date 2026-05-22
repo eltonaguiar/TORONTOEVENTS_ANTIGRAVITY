@@ -9,15 +9,23 @@ on:
     paths:
       - 'data/picks-archive/**'
 
+permissions:
+  contents: write
+
+concurrency:
+  group: verify-stock-pick-performance
+  cancel-in-progress: false
+
 jobs:
   verify-performance:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.ACTIONS_RUNNER_LABEL || 'ubuntu-latest' }}
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          token: ${{ secrets.GH_PAT || github.token }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,14 +42,14 @@ jobs:
           NODE_ENV: production
       
       - name: Commit updated performance data
+        env:
+          TOKEN_FOR_PUSH: ${{ secrets.GH_PAT || github.token }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data/pick-performance.json public/data/pick-performance.json || true
-          git diff --staged --quiet || git commit -m "chore: update pick performance data [skip ci]"
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: update pick performance data [skip ci]"
+          bash .github/scripts/safe_push.sh
       
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+      # (No separate Push step — safe_push.sh handles token, retries, shallow, auth validation)

@@ -5,13 +5,22 @@ on:
     - cron: '0 4 * * *' # 4 AM UTC = 11 PM or 12 AM EST
   workflow_dispatch: # Allow manual trigger
 
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-scraper-refresh
+  cancel-in-progress: false
+
 jobs:
   scrape:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.ACTIONS_RUNNER_LABEL || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,15 +34,20 @@ jobs:
       - name: Run Scraper
         run: npm run scrape
 
-
       - name: Commit and Push changes
+        env:
+          TOKEN_FOR_PUSH: ${{ secrets.GH_PAT || github.token }}
         run: |
-          git config --global user.name "Event Bot"
-          git config --global user.email "bot@torontoevents.ca"
-          git add data/events.json data/metadata.json
-          git commit -m "chore: nightly event refresh [skip ci]" || echo "No changes to commit"
-          git push
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/events.json data/metadata.json || true
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: nightly event refresh [skip ci]"
+          bash .github/scripts/safe_push.sh
 
       - name: Build and Deploy to SFTP
+        # Deploy even if prior push had transient issues (data may already be on disk for build);
+        # the events.json commit is the source of truth. Matches audit-dashboard pattern.
+        if: always()
         run: npm run deploy:sftp
 
