@@ -523,20 +523,28 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 const eventStartDate = new Date(e.date); // Need local var for date filter block
                 const eEndDate = e.endDate ? new Date(e.endDate) : eventStartDate;
 
-                // SURGICAL FIX: Invalid/unknown dates → INCLUDE in all views, never exclude.
-                // Previously we returned false when dateFilter !== 'all', which made "Today" show 0 events.
-                // Correct behavior: treat invalid date as "date unavailable — show anyway".
+                // SURGICAL FIX (2026-05-04): Invalid/unknown dates only pass through when
+                // dateFilter === 'all'. Targeted filters (today, tomorrow, this-week, this-month)
+                // MUST NOT include events with unparseable dates — that bug was leaking
+                // "Timeleft — Dinner With Strangers" / "222 — Surprise Social" into the
+                // Tomorrow view despite having no real date attached. See bug report:
+                // reports/findtorontoevents_tomorrow_filter_bug_2026_05_04.md
                 const hasInvalidDate = isNaN(eventStartDate.getTime());
-                if (hasInvalidDate) {
-                    // Do NOT return false. Skip date-range checks below; event passes through.
-                    // This is the exact fix: invalid dates were disqualifying; they should be included.
-                    // CRITICAL: Invalid dates should show in ALL filters (Today, This Week, etc.), not just "All Dates"
-                    // This prevents "0 events" when user has "Today" selected and events have bad dates
+                if (hasInvalidDate && dateFilter === 'all') {
+                    // Pass-through ONLY for "All Dates" view. Don't disqualify on missing date.
                     const eventIndex = sourceEvents.indexOf(e);
                     if (eventIndex < 5) {
-                        console.log(`✅ [Filter] Including invalid date event in ${dateFilter} filter: "${e.title.substring(0, 50)}"`);
+                        console.log(`✅ [Filter] Including invalid-date event in 'all' filter: "${e.title.substring(0, 50)}"`);
                     }
-                    // Skip to return true - invalid dates pass through all filters
+                } else if (hasInvalidDate) {
+                    // Targeted filter (today/tomorrow/this-week/this-month/nearby) +
+                    // unparseable date = exclude. We cannot prove this event is relevant
+                    // to the requested time window.
+                    const eventIndex = sourceEvents.indexOf(e);
+                    if (eventIndex < 5) {
+                        console.log(`❌ [Filter] Excluding invalid-date event from '${dateFilter}' filter: "${e.title.substring(0, 50)}"`);
+                    }
+                    return false;
                 } else if (dateFilter !== 'all' && now && !hasInvalidDate) {
                     const todayStr = getTorontoDateParts(now);
                     const [y, m, d] = todayStr.split('-').map(Number);
@@ -544,32 +552,31 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
 
                     // ... (rest of date logic)
                     if (dateFilter === 'today') {
-                        const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
-                        if (isMultiDay(e)) {
-                            if (!isNaN(eEndDate.getTime()) && (eEndDate < todayStart || eventStartDate > todayEnd)) {
-                                const eventIndex = sourceEvents.indexOf(e);
-                                if (eventIndex < 5) {
-                                    console.log(`❌ [Filter] Event not today (multi-day): "${e.title.substring(0, 50)}"`);
-                                }
-                                return false;
+                        // FIX C (2026-05-04): tighten "Today" to events that START today.
+                        // Previously multi-day events spanning today were included, but their
+                        // card label still showed the original start date (e.g. "DEC 3"),
+                        // confusing users. Multi-day events live under the Multi-Day toggle.
+                        if (!isToday(e.date)) {
+                            const eventIndex = sourceEvents.indexOf(e);
+                            if (eventIndex < 5) {
+                                console.log(`❌ [Filter] Event not today (start != today): "${e.title.substring(0, 50)}" (date: ${e.date})`);
                             }
-                        } else {
-                            if (!isToday(e.date)) {
-                                const eventIndex = sourceEvents.indexOf(e);
-                                if (eventIndex < 5) {
-                                    console.log(`❌ [Filter] Event not today: "${e.title.substring(0, 50)}" (date: ${e.date})`);
-                                }
-                                return false;
-                            }
+                            return false;
                         }
                     }
                     if (dateFilter === 'tomorrow') {
-                        const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-                        const tomorrowEnd = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000 - 1);
-                        if (isMultiDay(e)) {
-                            if (!isNaN(eEndDate.getTime()) && (eEndDate < tomorrowStart || eventStartDate > tomorrowEnd)) return false;
-                        } else {
-                            if (!isTomorrow(e.date)) return false;
+                        // FIX C (2026-05-04): tighten "Tomorrow" to events that START tomorrow.
+                        // Smoking gun: "& Juliet" (start=Dec 3, end=May 17) was passing the
+                        // multi-day overlap check and rendering with a "DEC 3" badge in the
+                        // Tomorrow view (today=2026-05-04, tomorrow=2026-05-05). Strict
+                        // start===tomorrow keeps the view honest. Multi-day events that
+                        // happen to be running tomorrow appear under the Multi-Day toggle.
+                        if (!isTomorrow(e.date)) {
+                            const eventIndex = sourceEvents.indexOf(e);
+                            if (eventIndex < 5) {
+                                console.log(`❌ [Filter] Event not tomorrow (start != tomorrow): "${e.title.substring(0, 50)}" (date: ${e.date})`);
+                            }
+                            return false;
                         }
                     }
                     if (dateFilter === 'this-week') {
@@ -647,25 +654,30 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
                 console.error(`     - location: ${e.location}`);
             });
 
-            // EMERGENCY FALLBACK: If all events filtered, return at least invalid date events
-            console.warn(`⚠️ [Filter] EMERGENCY: Returning invalid date events to prevent empty feed`);
-            const invalidDateEvents = sourceEvents.filter(e => isNaN(new Date(e.date).getTime())).slice(0, 50);
-            if (invalidDateEvents.length > 0) {
-                console.warn(`⚠️ [Filter] Returning ${invalidDateEvents.length} invalid date events as fallback`);
-                return invalidDateEvents.sort((a: Event, b: Event) => {
-                    const { key, direction } = sortConfig;
-                    let valA: any = a[key as keyof Event];
-                    let valB: any = b[key as keyof Event];
-                    if (key === 'date') {
-                        valA = 0; // Invalid dates sort together
-                        valB = 0;
-                    }
-                    if (direction === 'asc') {
-                        return valA > valB ? 1 : -1;
-                    } else {
-                        return valA < valB ? 1 : -1;
-                    }
-                });
+            // EMERGENCY FALLBACK (2026-05-04): Only fall back to invalid-date events when
+            // the user is on the "All Dates" view. On a targeted view (today/tomorrow/etc.)
+            // an empty result is the correct answer — surfacing undated events would
+            // re-introduce the bug fixed above.
+            if (dateFilter === 'all') {
+                console.warn(`⚠️ [Filter] EMERGENCY: Returning invalid date events to prevent empty feed (dateFilter=all)`);
+                const invalidDateEvents = sourceEvents.filter(e => isNaN(new Date(e.date).getTime())).slice(0, 50);
+                if (invalidDateEvents.length > 0) {
+                    console.warn(`⚠️ [Filter] Returning ${invalidDateEvents.length} invalid date events as fallback`);
+                    return invalidDateEvents.sort((a: Event, b: Event) => {
+                        const { key, direction } = sortConfig;
+                        let valA: any = a[key as keyof Event];
+                        let valB: any = b[key as keyof Event];
+                        if (key === 'date') {
+                            valA = 0; // Invalid dates sort together
+                            valB = 0;
+                        }
+                        if (direction === 'asc') {
+                            return valA > valB ? 1 : -1;
+                        } else {
+                            return valA < valB ? 1 : -1;
+                        }
+                    });
+                }
             }
         }
 
