@@ -29,6 +29,10 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
     // Users can manually select "Today" if they want, but default should show all events
     const [dateFilter, setDateFilter] = useState<DateFilter>('all');
     const [now, setNow] = useState<Date | null>(null);
+    // Hydration gate: SSR has no `now` / browser-only state, so rendering
+    // anything time-dependent on the server-rendered HTML produces a
+    // React #418 mismatch on hydration. Render skeleton until effects run.
+    const [mounted, setMounted] = useState(false);
 
     const [previewEvent, setPreviewEvent] = useState<Event | null>(null);
     const [previewAnchor, setPreviewAnchor] = useState<DOMRect | null>(null);
@@ -46,6 +50,7 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         // This effect is mainly for setting the current time
         // CRITICAL: Set now immediately to prevent filtering out all events
         setNow(new Date());
+        setMounted(true);
 
         // Update liveEvents if initialEvents prop changes
         if (initialEvents) {
@@ -66,6 +71,9 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         if (!now) {
             setNow(new Date());
         }
+        // Belt-and-braces: also flip the hydration gate from this effect so
+        // we never get stuck on the skeleton if the primary effect failed.
+        setMounted(true);
     }, []);
 
     const [showMultiDay, setShowMultiDay] = useState(false);
@@ -780,6 +788,13 @@ export default function EventFeed({ events: initialEvents }: EventFeedProps) {
         if (dateFilter !== 'all') return []; // We merged them
         return (validEvents || []).filter((e: Event) => isMultiDay(e));
     }, [validEvents, dateFilter]);
+
+    // Hydration gate — server emits skeleton, client emits skeleton on first
+    // render, then time-dependent UI on second render after mount. Eliminates
+    // the React #418 mismatch caused by `now` being null on SSR but Date on CSR.
+    if (!mounted) {
+        return <EventFeedSkeleton />;
+    }
 
     return (
         <div id="event-feed-section" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
