@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Heart, Bookmark, Share2, Volume2, VolumeX, ExternalLink, RefreshCw, AlertTriangle, Sparkles, X, ListPlus, ListCheck } from "lucide-react";
 import { Movie, getSimilarMovies } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
+import { getReleaseDayDifference } from "@/lib/releaseDate";
 
 interface VideoCardProps {
     movie: Movie;
@@ -26,8 +27,27 @@ export const VideoCard: React.FC<VideoCardProps> = ({ movie, isActive, isMuted, 
     /** Current trailer URL (primary or fallback). Switches to fallback when user clicks "Try backup trailer". */
     const [currentVideoId, setCurrentVideoId] = useState(movie.videoUrl);
     const [descIndex, setDescIndex] = useState(0);
+    const [releaseDays, setReleaseDays] = useState<number | null>(null);
     const hasFallback = Boolean(movie.videoUrlFallback && movie.videoUrlFallback !== movie.videoUrl);
     const hasMultipleDescs = Boolean(movie.descriptions && movie.descriptions.length > 1);
+
+    useEffect(() => {
+        setReleaseDays(null);
+        const releaseDate = movie.releaseDate;
+        if (!releaseDate) return;
+        const updateReleaseDays = () => {
+            try {
+                setReleaseDays(getReleaseDayDifference(releaseDate));
+            } catch (error) {
+                if (!(error instanceof RangeError)) throw error;
+                console.error("Invalid release date for movie", movie.id, error);
+                setReleaseDays(null);
+            }
+        };
+        updateReleaseDays();
+        const timer = setInterval(updateReleaseDays, 60000);
+        return () => clearInterval(timer);
+    }, [movie.id, movie.releaseDate]);
 
     // Reset to primary when movie changes
     useEffect(() => {
@@ -264,7 +284,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({ movie, isActive, isMuted, 
                         </div>
                     )}
                     <div className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                        {movie.releaseDate ? new Date(movie.releaseDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : movie.year}
+                        {movie.releaseDate ? new Date(movie.releaseDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : movie.year}
                     </div>
                     <div className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                         {movie.type === 'movie' ? 'Movie' : 'TV Show'}
@@ -284,19 +304,16 @@ export const VideoCard: React.FC<VideoCardProps> = ({ movie, isActive, isMuted, 
                 </div>
 
                 {/* Countdown / Release Status Badge */}
-                {movie.releaseDate && (
+                {movie.releaseDate && releaseDays !== null && (
                     <div className="flex items-center">
                         {(() => {
-                            const releaseDate = new Date(movie.releaseDate);
-                            const today = new Date("2026-01-28");
-                            const diffTime = releaseDate.getTime() - today.getTime();
-                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            const diffDays = releaseDays;
 
                             if (diffDays <= 0) {
                                 return (
                                     <div className="bg-green-500/90 text-white text-[10px] font-black px-2 py-1 rounded-sm uppercase flex items-center gap-1 shadow-lg ring-1 ring-white/20">
                                         <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                                        Streaming Now
+                                        Released
                                     </div>
                                 );
                             } else if (diffDays === 1) {
