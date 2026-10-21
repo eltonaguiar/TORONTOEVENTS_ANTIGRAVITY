@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0-alpha",
+  "date": "2026-10-21",
+  "timestamp": "2026-10-21T21:07:07.128Z",
+  "regime": {
+    "symbol": "SPY",
+    "price": 0,
+    "sma200": 0,
+    "status": "BEARISH",
+    "reason": "Price is below long-term 200-day average"
+  },
+  "metadata": {
+    "engine": "STOCKSUNIFY2-Scientific",
+    "system": "linux",
+    "checksPerformed": [
+      "Purging",
+      "Slippage-Stress",
+      "Regime-Detection",
+      "Runner-Up-Verification"
+    ],
+    "runSource": "GitHub Actions",
+    "runStatus": "Success",
+    "durationMs": 25875,
+    "jobId": "39675900042"
+  },
+  "picks": [],
+  "runnerUps": {}
+}
