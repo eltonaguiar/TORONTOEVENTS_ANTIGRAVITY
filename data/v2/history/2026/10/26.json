@@ -1,0 +1,449 @@
+{
+  "version": "2.0.0-alpha",
+  "date": "2026-10-26",
+  "timestamp": "2026-10-26T21:06:17.812Z",
+  "regime": {
+    "symbol": "SPY",
+    "price": 765.37,
+    "sma200": 727.3856494140625,
+    "status": "BULLISH",
+    "reason": "Price is above long-term 200-day average"
+  },
+  "metadata": {
+    "engine": "STOCKSUNIFY2-Scientific",
+    "system": "linux",
+    "checksPerformed": [
+      "Purging",
+      "Slippage-Stress",
+      "Regime-Detection",
+      "Runner-Up-Verification"
+    ],
+    "runSource": "GitHub Actions",
+    "runStatus": "Success",
+    "durationMs": 19734,
+    "jobId": "40401280101"
+  },
+  "picks": [
+    {
+      "symbol": "ABBV",
+      "name": "AbbVie Inc.",
+      "score": 100,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 1.835482814992615,
+        "totalReturn": 16.98898117485078,
+        "ytdReturn": 25.04470064665699,
+        "martinRatio": 9.255865016049816
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-ABBV-1793048777812"
+    },
+    {
+      "symbol": "PLTR",
+      "name": "Palantir Technologies Inc.",
+      "score": 100,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 4.540288844764324,
+        "totalReturn": 58.2491027340313,
+        "ytdReturn": 18.455855639820587,
+        "martinRatio": 12.82938260661583
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-PLTR-1793048777812"
+    },
+    {
+      "symbol": "TMO",
+      "name": "Thermo Fisher Scientific Inc.",
+      "score": 99,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.2710854972530856,
+        "totalReturn": 19.31257339253079,
+        "ytdReturn": 15.591296132012536,
+        "martinRatio": 8.503675187873666
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-TMO-1793048777812"
+    },
+    {
+      "symbol": "NOW",
+      "name": "ServiceNow, Inc.",
+      "score": 98,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 5.663761090834043,
+        "totalReturn": 38.52351048084628,
+        "ytdReturn": 7.277045285748129,
+        "martinRatio": 6.8017541458785855
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-NOW-1793048777812"
+    },
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "score": 92,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 1.5746225923491581,
+        "totalReturn": 13.344533906926731,
+        "ytdReturn": 26.899371834058982,
+        "martinRatio": 8.474750693763514
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-AAPL-1793048777812"
+    },
+    {
+      "symbol": "TSLA",
+      "name": "Tesla, Inc.",
+      "score": 92,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 3.1614908698996658,
+        "totalReturn": 21.59091416011705,
+        "ytdReturn": -10.603329729862278,
+        "martinRatio": 6.829345725993593
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-TSLA-1793048777812"
+    },
+    {
+      "symbol": "PFE",
+      "name": "Pfizer Inc.",
+      "score": 92,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.6406434684278035,
+        "totalReturn": 19.017176119751923,
+        "ytdReturn": 18.30817966224022,
+        "martinRatio": 7.201720469698412
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-PFE-1793048777812"
+    },
+    {
+      "symbol": "MSTR",
+      "name": "Strategy Inc",
+      "score": 92,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 8.072463668703875,
+        "totalReturn": 47.39616181780014,
+        "ytdReturn": -11.033343890338674,
+        "martinRatio": 5.871337891745523
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-MSTR-1793048777812"
+    },
+    {
+      "symbol": "INTC",
+      "name": "Intel Corporation",
+      "score": 91,
+      "rating": "STRONG BUY",
+      "algorithm": "Value Sleeper",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 24.4134759377243,
+        "sma200": 86.05760000228882,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-INTC-1793048777812"
+    },
+    {
+      "symbol": "XOM",
+      "name": "ExxonMobil Holdings Corporation",
+      "score": 91,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.7314599548013123,
+        "totalReturn": 19.01199723046971,
+        "ytdReturn": 50.460658543948256,
+        "martinRatio": 6.960379264228552
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-XOM-1793048777812"
+    },
+    {
+      "symbol": "CVX",
+      "name": "Chevron Corporation",
+      "score": 90,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 3.0033546981190655,
+        "totalReturn": 20.10042902806612,
+        "ytdReturn": 48.8197620803319,
+        "martinRatio": 6.692659059103
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-CVX-1793048777812"
+    },
+    {
+      "symbol": "AMD",
+      "name": "Advanced Micro Devices, Inc.",
+      "score": 89,
+      "rating": "STRONG BUY",
+      "algorithm": "Value Sleeper",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 25.588905415702612,
+        "sma200": 403.71625,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-AMD-1793048777812"
+    },
+    {
+      "symbol": "FCX",
+      "name": "Freeport-McMoRan Inc.",
+      "score": 89,
+      "rating": "STRONG BUY",
+      "algorithm": "Value Sleeper",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 25.39894547922664,
+        "sma200": 65.0796000289917,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-FCX-1793048777812"
+    },
+    {
+      "symbol": "GME",
+      "name": "GameStop Corp.",
+      "score": 88,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 4.287103199208072,
+        "totalReturn": 25.39349774225354,
+        "ytdReturn": 15.906881800537029,
+        "martinRatio": 5.923229873949456
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-GME-1793048777812"
+    },
+    {
+      "symbol": "COP",
+      "name": "ConocoPhillips",
+      "score": 85,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 5.035938098345124,
+        "totalReturn": 27.030878942590032,
+        "ytdReturn": 56.535682292750685,
+        "martinRatio": 5.367595553144852
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-COP-1793048777812"
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "score": 83,
+      "rating": "STRONG BUY",
+      "algorithm": "Value Sleeper",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 28.73351140849259,
+        "sma200": 203.82020011901855,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-NVDA-1793048777812"
+    },
+    {
+      "symbol": "DHR",
+      "name": "Danaher Corporation",
+      "score": 81,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 3.4115984520556903,
+        "totalReturn": 17.959493670886076,
+        "ytdReturn": 1.1154540675336533,
+        "martinRatio": 5.264246048670944
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-DHR-1793048777812"
+    },
+    {
+      "symbol": "LMT",
+      "name": "Lockheed Martin Corporation",
+      "score": 80,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.31,
+        "rsi": 86.71909407727937,
+        "rsiZScore": 2.55,
+        "breakout": true,
+        "sma20": 533.3210021972657
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-LMT-1793048777812"
+    },
+    {
+      "symbol": "CRM",
+      "name": "Salesforce, Inc.",
+      "score": 78,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 7.816210428687439,
+        "totalReturn": 33.159453650822286,
+        "ytdReturn": -2.369685053582038,
+        "martinRatio": 4.242395205881207
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-CRM-1793048777812"
+    },
+    {
+      "symbol": "PG",
+      "name": "The Procter & Gamble Company",
+      "score": 76,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 1.8256346880055578,
+        "totalReturn": 10.31247751494249,
+        "ytdReturn": 12.786520609589665,
+        "martinRatio": 5.648708135694174
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-10-26T21:06:17.812Z",
+      "audit_id": "v2-PG-1793048777812"
+    }
+  ],
+  "runnerUps": {
+    "Institutional Footprint (V2)": {
+      "symbol": "TSLA",
+      "name": "Tesla, Inc.",
+      "score": 90,
+      "rating": "STRONG BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 1.36,
+        "rsi": 55.12364248814857,
+        "rsiZScore": -0.24,
+        "breakout": true,
+        "sma20": 371.5754989624023
+      },
+      "v2_hash": "if-v2.0.0-alpha"
+    },
+    "Regime-Aware Reversion (V2)": {
+      "symbol": "LRCX",
+      "name": "Lam Research Corporation",
+      "score": 100,
+      "rating": "STRONG BUY",
+      "algorithm": "Value Sleeper",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "rsi": 12.262157206004005,
+        "sma200": 283.6121492767334,
+        "regime": "Bullish"
+      },
+      "v2_hash": "rar-v2.0.0-alpha"
+    },
+    "Scientific CAN SLIM (V2)": {
+      "symbol": "GOOGL",
+      "name": "Alphabet Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "CAN SLIM",
+      "timeframe": "1y",
+      "risk": "Medium",
+      "metrics": {
+        "yearlyReturn": 1.1666353387577995,
+        "sma200": 341.2706492614746,
+        "adjustedReturn": 115.16353387577995
+      },
+      "v2_hash": "scs-v2.0.0-alpha"
+    },
+    "Adversarial Trend (V2)": {
+      "symbol": "LMT",
+      "name": "Lockheed Martin Corporation",
+      "score": 72,
+      "rating": "BUY",
+      "algorithm": "Technical Momentum",
+      "timeframe": "1m",
+      "risk": "Medium",
+      "metrics": {
+        "trendStrength": 0.1748464404769508,
+        "avgVolatilty": 0.017331580658453964,
+        "signalDensity": 31.986155989640658
+      },
+      "v2_hash": "at-v2.0.0-alpha"
+    }
+  }
+}
