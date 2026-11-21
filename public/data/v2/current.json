@@ -1,11 +1,11 @@
 {
   "version": "2.0.0-alpha",
-  "date": "2026-11-20",
-  "timestamp": "2026-11-20T21:04:29.078Z",
+  "date": "2026-11-21",
+  "timestamp": "2026-11-21T21:04:13.913Z",
   "regime": {
     "symbol": "SPY",
-    "price": 688.82,
-    "sma200": 732.7503494262695,
+    "price": 689.81,
+    "sma200": 732.7552993774414,
     "status": "BEARISH",
     "reason": "Price is below long-term 200-day average"
   },
@@ -20,8 +20,8 @@
     ],
     "runSource": "GitHub Actions",
     "runStatus": "Success",
-    "durationMs": 20083,
-    "jobId": "44816798957"
+    "durationMs": 18713,
+    "jobId": "44949455905"
   },
   "picks": [
     {
@@ -33,14 +33,14 @@
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 1.6499525530307253,
-        "totalReturn": 17.693699705585388,
-        "ytdReturn": 19.34551661802629,
-        "martinRatio": 10.723762736743314
+        "ulcerIndex": 1.648066153978086,
+        "totalReturn": 17.79802576016427,
+        "ytdReturn": 19.451306876226887,
+        "martinRatio": 10.799339405887055
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-PG-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-PG-1795295053913"
     },
     {
       "symbol": "WMT",
@@ -57,8 +57,8 @@
         "martinRatio": 11.560061065561827
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-WMT-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-WMT-1795295053913"
     },
     {
       "symbol": "GME",
@@ -69,32 +69,32 @@
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 7.059563957631144,
-        "totalReturn": 48.824839121501086,
-        "ytdReturn": 28.976716380137336,
-        "martinRatio": 6.916126748695736
+        "ulcerIndex": 7.0568416904851485,
+        "totalReturn": 49.1885772129806,
+        "ytdReturn": 29.291944301352192,
+        "martinRatio": 6.970338767738312
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-GME-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-GME-1795295053913"
     },
     {
       "symbol": "ABBV",
       "name": "AbbVie Inc.",
-      "score": 87,
+      "score": 88,
       "rating": "STRONG BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 1.512442721229437,
-        "totalReturn": 11.90700046233868,
-        "ytdReturn": 24.678384302431574,
-        "martinRatio": 7.872695140917269
+        "ulcerIndex": 1.5090280264741212,
+        "totalReturn": 12.024426485908819,
+        "ytdReturn": 24.809211568226367,
+        "martinRatio": 7.968325488297371
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-ABBV-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-ABBV-1795295053913"
     },
     {
       "symbol": "COST",
@@ -111,26 +111,140 @@
         "martinRatio": 6.439568713511775
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-COST-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-COST-1795295053913"
+    },
+    {
+      "symbol": "WMT",
+      "name": "Walmart Inc.",
+      "score": 85,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.32,
+        "rsi": 50.7150560873561,
+        "rsiZScore": -1.09,
+        "breakout": false,
+        "sma20": 125.32700004577637
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-WMT-1795295053913"
     },
     {
       "symbol": "LLY",
       "name": "Eli Lilly and Company",
-      "score": 82,
+      "score": 83,
       "rating": "BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 2.4237517020976855,
-        "totalReturn": 14.377539502858175,
-        "ytdReturn": 24.35577198491036,
-        "martinRatio": 5.931935804486424
+        "ulcerIndex": 2.411991861556624,
+        "totalReturn": 14.68572690507206,
+        "ytdReturn": 24.69084548347407,
+        "martinRatio": 6.088630371909445
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-LLY-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-LLY-1795295053913"
+    },
+    {
+      "symbol": "AVGO",
+      "name": "Broadcom Inc.",
+      "score": 75,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.63,
+        "rsi": 46.0325917688132,
+        "rsiZScore": 0.1,
+        "breakout": false,
+        "sma20": 332.38050079345703
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-AVGO-1795295053913"
+    },
+    {
+      "symbol": "NFLX",
+      "name": "Netflix, Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.66,
+        "rsi": 34.089622641509436,
+        "rsiZScore": -0.33,
+        "breakout": false,
+        "sma20": 62.284499931335446
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-NFLX-1795295053913"
+    },
+    {
+      "symbol": "JNJ",
+      "name": "Johnson & Johnson",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.4,
+        "rsi": 49.92148273818367,
+        "rsiZScore": 0.02,
+        "breakout": false,
+        "sma20": 275.00950317382814
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-JNJ-1795295053913"
+    },
+    {
+      "symbol": "BLK",
+      "name": "BlackRock, Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.59,
+        "rsi": 39.6277866943051,
+        "rsiZScore": -0.94,
+        "breakout": false,
+        "sma20": 1176.7910095214843
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-BLK-1795295053913"
+    },
+    {
+      "symbol": "SNDL",
+      "name": "SNDL Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.17,
+        "rsi": 40.19607361900094,
+        "rsiZScore": -0.46,
+        "breakout": false,
+        "sma20": 1.3312499880790711
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-SNDL-1795295053913"
     },
     {
       "symbol": "AAPL",
@@ -147,8 +261,8 @@
         "martinRatio": 4.474647085253695
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-AAPL-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-AAPL-1795295053913"
     },
     {
       "symbol": "COST",
@@ -164,27 +278,103 @@
         "signalDensity": 26.564111274231365
       },
       "v2_hash": "at-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-COST-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-COST-1795295053913"
     },
     {
-      "symbol": "NFLX",
-      "name": "Netflix, Inc.",
+      "symbol": "JPM",
+      "name": "JPMorgan Chase & Co.",
       "score": 65,
       "rating": "BUY",
       "algorithm": "Composite Rating",
       "timeframe": "7d",
       "risk": "Medium",
       "metrics": {
-        "volumeZScore": 2.2,
-        "rsi": 34.089622641509436,
-        "rsiZScore": -0.33,
+        "volumeZScore": 2.26,
+        "rsi": 31.869185654701454,
+        "rsiZScore": -1.01,
         "breakout": false,
-        "sma20": 62.284499931335446
+        "sma20": 336.59149780273435
       },
       "v2_hash": "if-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-NFLX-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-JPM-1795295053913"
+    },
+    {
+      "symbol": "GS",
+      "name": "The Goldman Sachs Group, Inc.",
+      "score": 65,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.43,
+        "rsi": 31.97998494431903,
+        "rsiZScore": -0.55,
+        "breakout": false,
+        "sma20": 893.1959991455078
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-GS-1795295053913"
+    },
+    {
+      "symbol": "MS",
+      "name": "Morgan Stanley",
+      "score": 65,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.05,
+        "rsi": 32.65906048696222,
+        "rsiZScore": -0.27,
+        "breakout": false,
+        "sma20": 185.02550048828124
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-MS-1795295053913"
+    },
+    {
+      "symbol": "DE",
+      "name": "Deere & Company",
+      "score": 65,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2.75,
+        "rsi": 29.71846176954037,
+        "rsiZScore": -1.5,
+        "breakout": false,
+        "sma20": 660.3489990234375
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-DE-1795295053913"
+    },
+    {
+      "symbol": "LIN",
+      "name": "Linde plc",
+      "score": 65,
+      "rating": "BUY",
+      "algorithm": "Composite Rating",
+      "timeframe": "7d",
+      "risk": "Medium",
+      "metrics": {
+        "volumeZScore": 2,
+        "rsi": 38.433098937422855,
+        "rsiZScore": -1.1,
+        "breakout": false,
+        "sma20": 515.7614944458007
+      },
+      "v2_hash": "if-v2.0.0-alpha",
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-LIN-1795295053913"
     },
     {
       "symbol": "TMO",
@@ -195,14 +385,14 @@
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 2.469272645851788,
-        "totalReturn": 7.484973459840333,
-        "ytdReturn": 12.86729151875978,
-        "martinRatio": 3.0312462548089147
+        "ulcerIndex": 2.463892745286593,
+        "totalReturn": 7.611946363067652,
+        "ytdReturn": 13.000622599581932,
+        "martinRatio": 3.0893984235430882
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-20T21:04:29.078Z",
-      "audit_id": "v2-TMO-1795208669078"
+      "pickedAt": "2026-11-21T21:04:13.913Z",
+      "audit_id": "v2-TMO-1795295053913"
     }
   ],
   "runnerUps": {
@@ -222,19 +412,19 @@
       "v2_hash": "rar-v2.0.0-alpha"
     },
     "Institutional Footprint (V2)": {
-      "symbol": "WMT",
-      "name": "Walmart Inc.",
+      "symbol": "MCD",
+      "name": "McDonald's Corporation",
       "score": 85,
       "rating": "BUY",
       "algorithm": "Composite Rating",
       "timeframe": "7d",
       "risk": "Medium",
       "metrics": {
-        "volumeZScore": 1.23,
-        "rsi": 50.7150560873561,
-        "rsiZScore": -1.09,
+        "volumeZScore": 0.13,
+        "rsi": 57.99323658100697,
+        "rsiZScore": 0.22,
         "breakout": false,
-        "sma20": 125.32700004577637
+        "sma20": 269.19400253295896
       },
       "v2_hash": "if-v2.0.0-alpha"
     }
