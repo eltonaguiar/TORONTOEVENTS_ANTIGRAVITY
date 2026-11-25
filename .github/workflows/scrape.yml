@@ -35,6 +35,7 @@ jobs:
           git config --global user.email "bot@torontoevents.ca"
           git add data/events.json data/metadata.json
           git commit -m "chore: nightly event refresh [skip ci]" || echo "No changes to commit"
+          git pull --rebase --autostash origin main || true
           git push
 
       - name: Build and Deploy to SFTP
