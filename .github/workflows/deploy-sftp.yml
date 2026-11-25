@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+concurrency:
+  # Two deploys landing together made the second fail mid-transfer (50webs
+  # refuses the concurrent data channel). Serialise, newest wins.
+  group: deploy-sftp
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
