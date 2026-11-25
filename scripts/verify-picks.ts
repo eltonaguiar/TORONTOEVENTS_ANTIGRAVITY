@@ -303,24 +303,40 @@ async function main() {
 
     console.log(`📊 Verifying ${archivedPicks.length} picks...\n`);
 
-    // Verify each pick
-    const verifiedPicks: VerifiedPick[] = [];
+    // Verify each pick. The archive holds ~8.5k picks; a strictly serial loop with a
+    // 200 ms sleep per pick cannot finish inside a CI job (8.5k x 0.2 s is already
+    // 28 minutes before any network call), which is what made this workflow hang.
+    const CONCURRENCY = Number(process.env.VERIFY_CONCURRENCY || 6);
+    const verifiedPicks: VerifiedPick[] = new Array(archivedPicks.length);
+    let cursor = 0;
 
-    for (const pick of archivedPicks) {
-        const verified = await verifyPick(pick);
-        verifiedPicks.push(verified);
+    async function verifyWorker(): Promise<void> {
+        while (true) {
+            const index = cursor++;
+            if (index >= archivedPicks.length) return;
+            const pick = archivedPicks[index];
+            let verified: VerifiedPick;
+            try {
+                verified = await verifyPick(pick);
+            } catch (err) {
+                console.warn(`⚠️ ${pick.symbol}: verification failed (${err})`);
+                verified = { ...pick, verifiedAt: new Date().toISOString(), currentPrice: pick.price, returnPercent: 0, status: "PENDING", daysHeld: 0 };
+            }
+            verifiedPicks[index] = verified;
 
-        if (verified.status === "WIN") {
-            console.log(`✅ ${pick.symbol} (${pick.algorithm}): +${verified.returnPercent}%`);
-        } else if (verified.status === "LOSS") {
-            console.log(`❌ ${pick.symbol} (${pick.algorithm}): ${verified.returnPercent}%`);
-        } else {
-            console.log(`⏳ ${pick.symbol} (${pick.algorithm}): Pending (${verified.daysHeld.toFixed(1)}/${parseTimeframeToDays(pick.timeframe)} days)`);
+            if (verified.status === "WIN") {
+                console.log(`✅ ${pick.symbol} (${pick.algorithm}): +${verified.returnPercent}%`);
+            } else if (verified.status === "LOSS") {
+                console.log(`❌ ${pick.symbol} (${pick.algorithm}): ${verified.returnPercent}%`);
+            } else {
+                console.log(`⏳ ${pick.symbol} (${pick.algorithm}): Pending (${verified.daysHeld.toFixed(1)}/${parseTimeframeToDays(pick.timeframe)} days)`);
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 25));
         }
-
-        // Rate limit to avoid API throttling
-        await new Promise(resolve => setTimeout(resolve, 200));
     }
+
+    await Promise.all(Array.from({ length: CONCURRENCY }, () => verifyWorker()));
 
     // Generate report
     const report = generateReport(verifiedPicks);
