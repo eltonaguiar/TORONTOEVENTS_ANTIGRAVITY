@@ -45,6 +45,13 @@ export interface StockData {
 /**
  * Fetch stock data from Yahoo Finance (primary, free)
  */
+// Bound every provider call: without a timeout a stalled socket can hold a job for minutes.
+const FETCH_TIMEOUT_MS = Number(process.env.STOCK_FETCH_TIMEOUT_MS || 8000);
+
+function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return fetch(input, { ...(init || {}), signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+}
+
 async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
   try {
     const quoteUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5y`;
@@ -52,8 +59,8 @@ async function fetchFromYahoo(symbol: string): Promise<StockData | null> {
     const infoUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=summaryProfile,financialData,defaultKeyStatistics,calendarEvents`;
 
     const [quoteResponse, infoResponse] = await Promise.all([
-      fetch(quoteUrl),
-      fetch(infoUrl).catch(() => null),
+      fetchWithTimeout(quoteUrl),
+      fetchWithTimeout(infoUrl).catch(() => null),
     ]);
 
     if (!quoteResponse.ok) {
@@ -177,7 +184,7 @@ async function fetchFromPolygon(symbol: string): Promise<StockData | null> {
 
     // Get current quote
     const quoteUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/prev?adjusted=true&apikey=${apiKey}`;
-    const quoteResponse = await fetch(quoteUrl);
+    const quoteResponse = await fetchWithTimeout(quoteUrl);
 
     if (!quoteResponse.ok) return null;
 
@@ -194,7 +201,7 @@ async function fetchFromPolygon(symbol: string): Promise<StockData | null> {
     startDate.setFullYear(startDate.getFullYear() - 1);
 
     const historyUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${startDate.toISOString().split("T")[0]}/${endDate.toISOString().split("T")[0]}?adjusted=true&sort=asc&apikey=${apiKey}`;
-    const historyResponse = await fetch(historyUrl);
+    const historyResponse = await fetchWithTimeout(historyUrl);
 
     let history: any[] = [];
     if (historyResponse.ok) {
@@ -213,7 +220,7 @@ async function fetchFromPolygon(symbol: string): Promise<StockData | null> {
 
     // Get company info
     const tickerUrl = `https://api.polygon.io/v3/reference/tickers/${symbol}?apikey=${apiKey}`;
-    const tickerResponse = await fetch(tickerUrl);
+    const tickerResponse = await fetchWithTimeout(tickerUrl);
     let name = symbol;
     let marketCap: number | undefined;
 
@@ -266,7 +273,7 @@ async function fetchFromFinnhub(symbol: string): Promise<StockData | null> {
 
     // Get quote
     const quoteUrl = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`;
-    const quoteResponse = await fetch(quoteUrl);
+    const quoteResponse = await fetchWithTimeout(quoteUrl);
 
     if (!quoteResponse.ok) return null;
 
@@ -283,12 +290,12 @@ async function fetchFromFinnhub(symbol: string): Promise<StockData | null> {
 
     // Get company profile (try new key if first fails)
     let profileUrl = `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${apiKey}`;
-    let profileResponse = await fetch(profileUrl);
+    let profileResponse = await fetchWithTimeout(profileUrl);
 
     // Try new Finnhub key if first fails
     if (!profileResponse.ok && STOCK_API_KEYS.FINNHUB_NEW) {
       profileUrl = `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${STOCK_API_KEYS.FINNHUB_NEW}`;
-      profileResponse = await fetch(profileUrl);
+      profileResponse = await fetchWithTimeout(profileUrl);
     }
 
     let name = symbol;
@@ -307,7 +314,7 @@ async function fetchFromFinnhub(symbol: string): Promise<StockData | null> {
     const startTime = endTime - 365 * 24 * 60 * 60; // 1 year ago
 
     const candlesUrl = `https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=D&from=${startTime}&to=${endTime}&token=${apiKey}`;
-    const candlesResponse = await fetch(candlesUrl);
+    const candlesResponse = await fetchWithTimeout(candlesUrl);
 
     let history: any[] = [];
     if (candlesResponse.ok) {
@@ -362,7 +369,7 @@ async function fetchFromTwelveData(symbol: string): Promise<StockData | null> {
 
     // Get real-time quote
     const quoteUrl = `https://api.twelvedata.com/price?symbol=${symbol}&apikey=${apiKey}`;
-    const quoteResponse = await fetch(quoteUrl);
+    const quoteResponse = await fetchWithTimeout(quoteUrl);
 
     if (!quoteResponse.ok) return null;
 
@@ -377,7 +384,7 @@ async function fetchFromTwelveData(symbol: string): Promise<StockData | null> {
     startDate.setFullYear(startDate.getFullYear() - 1);
 
     const historyUrl = `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1day&start_date=${startDate.toISOString().split("T")[0]}&end_date=${endDate.toISOString().split("T")[0]}&apikey=${apiKey}`;
-    const historyResponse = await fetch(historyUrl);
+    const historyResponse = await fetchWithTimeout(historyUrl);
 
     let history: any[] = [];
     let previousClose = price;
@@ -415,7 +422,7 @@ async function fetchFromTwelveData(symbol: string): Promise<StockData | null> {
 
     // Get company profile
     const profileUrl = `https://api.twelvedata.com/profile?symbol=${symbol}&apikey=${apiKey}`;
-    const profileResponse = await fetch(profileUrl);
+    const profileResponse = await fetchWithTimeout(profileUrl);
 
     let name = symbol;
     let marketCap: number | undefined;
