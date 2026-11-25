@@ -1,5 +1,8 @@
 name: Verify Stock Pick Performance
 
+permissions:
+  contents: write
+
 on:
   schedule:
     # Run every 6 hours

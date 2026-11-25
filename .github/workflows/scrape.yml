@@ -1,5 +1,8 @@
 name: Daily Scraper Refresh
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: '0 4 * * *' # 4 AM UTC = 11 PM or 12 AM EST
