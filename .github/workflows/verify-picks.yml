@@ -12,12 +12,6 @@ on:
     paths:
       - 'data/picks-archive/**'
 
-# The "Push changes" step below commits pick-performance.json back to the repo.
-# Without this block the default GITHUB_TOKEN is read-only, so that push is
-# rejected and the job fails at "Push changes" on every 6-hourly run.
-permissions:
-  contents: write
-
 jobs:
   verify-performance:
     runs-on: ubuntu-latest
