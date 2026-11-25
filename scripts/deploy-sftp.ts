@@ -30,7 +30,11 @@ async function main() {
             user: config.user,
             password: config.password,
             secure: true,
-            secureOptions: { rejectUnauthorized: false }
+            // 50webs' FTPS front-end drops the data-channel handshake when
+            // Node offers TLS 1.3 (ERR_SSL_TLSV1_ALERT_DECODE_ERROR), which is why
+            // this job failed from 2026-10-12 onward. Pin the control+data channel
+            // to TLS 1.2, which that server does negotiate.
+            secureOptions: { rejectUnauthorized: false, minVersion: 'TLSv1.2', maxVersion: 'TLSv1.2' }
         });
 
         console.log('Connected');
