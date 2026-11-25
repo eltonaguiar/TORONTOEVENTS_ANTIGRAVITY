@@ -38,5 +38,9 @@ jobs:
           git push
 
       - name: Build and Deploy to SFTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_PASS: ${{ secrets.FTP_PASSWORD }}
         run: npm run deploy:sftp
 
