@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Not source: the exported site and downloaded vendor bundles. Linting these
+    // produced thousands of findings in minified one-liners.
+    "_next/**",
+    "public/**",
+    "**/*.min.js",
   ]),
 ]);
 
