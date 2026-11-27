@@ -1,11 +1,11 @@
 {
   "version": "2.0.0-alpha",
-  "date": "2026-11-26",
-  "timestamp": "2026-11-26T21:04:42.291Z",
+  "date": "2026-11-27",
+  "timestamp": "2026-11-27T21:04:27.719Z",
   "regime": {
     "symbol": "SPY",
-    "price": 716.7,
-    "sma200": 733.1606994628906,
+    "price": 728.32,
+    "sma200": 733.3424993896484,
     "status": "BEARISH",
     "reason": "Price is below long-term 200-day average"
   },
@@ -20,8 +20,8 @@
     ],
     "runSource": "GitHub Actions",
     "runStatus": "Success",
-    "durationMs": 18641,
-    "jobId": "45895421074"
+    "durationMs": 20590,
+    "jobId": "46067713623"
   },
   "picks": [
     {
@@ -33,14 +33,14 @@
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 1.7165095614652326,
-        "totalReturn": 17.052604564647247,
-        "ytdReturn": 27.18665886483323,
-        "martinRatio": 9.934465235422834
+        "ulcerIndex": 1.5901857127608348,
+        "totalReturn": 18.62958384483967,
+        "ytdReturn": 28.47396138092451,
+        "martinRatio": 11.71535104066274
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-COST-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-COST-1795813467719"
     },
     {
       "symbol": "LLY",
@@ -51,14 +51,14 @@
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 2.3187651816662833,
-        "totalReturn": 20.01069346416405,
-        "ytdReturn": 28.86630557192975,
-        "martinRatio": 8.629892160871677
+        "ulcerIndex": 2.3574032788759176,
+        "totalReturn": 20.074166032682136,
+        "ytdReturn": 28.881115450319317,
+        "martinRatio": 8.515372067461497
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-LLY-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-LLY-1795813467719"
     },
     {
       "symbol": "PG",
@@ -69,14 +69,14 @@
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 1.6682101905781164,
-        "totalReturn": 17.33270165005552,
-        "ytdReturn": 22.173642853922075,
-        "martinRatio": 10.389998663207356
+        "ulcerIndex": 1.614914212690716,
+        "totalReturn": 17.655868604916492,
+        "ytdReturn": 21.912693550360636,
+        "martinRatio": 10.933007132000451
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-PG-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-PG-1795813467719"
     },
     {
       "symbol": "WMT",
@@ -88,227 +88,244 @@
       "risk": "Low",
       "metrics": {
         "ulcerIndex": 2.0863615150075767,
-        "totalReturn": 24.36610854408796,
-        "ytdReturn": 17.009575647752566,
-        "martinRatio": 11.678756710578739
+        "totalReturn": 22.79100004461387,
+        "ytdReturn": 18.064914400373645,
+        "martinRatio": 10.923801978072389
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-WMT-1795727082291"
-    },
-    {
-      "symbol": "GME",
-      "name": "GameStop Corp.",
-      "score": 92,
-      "rating": "STRONG BUY",
-      "algorithm": "Alpha Predator",
-      "timeframe": "1m",
-      "risk": "Low",
-      "metrics": {
-        "ulcerIndex": 7.085548984454034,
-        "totalReturn": 42.171855436039316,
-        "ytdReturn": 30.795339002530703,
-        "martinRatio": 5.951811994887902
-      },
-      "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-GME-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-WMT-1795813467719"
     },
     {
       "symbol": "ABBV",
       "name": "AbbVie Inc.",
-      "score": 89,
+      "score": 88,
       "rating": "STRONG BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 1.5563572094607023,
-        "totalReturn": 12.517193422932571,
-        "ytdReturn": 28.42004410416249,
-        "martinRatio": 8.042622443513427
+        "ulcerIndex": 1.511983491000038,
+        "totalReturn": 12.170942540609278,
+        "ytdReturn": 27.28620780060766,
+        "martinRatio": 8.049653063711244
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-ABBV-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-ABBV-1795813467719"
+    },
+    {
+      "symbol": "GME",
+      "name": "GameStop Corp.",
+      "score": 85,
+      "rating": "STRONG BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 7.127702882684513,
+        "totalReturn": 36.973482199765165,
+        "ytdReturn": 27.740052996909853,
+        "martinRatio": 5.187292849928645
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-GME-1795813467719"
     },
     {
       "symbol": "AAPL",
       "name": "Apple Inc.",
-      "score": 76,
+      "score": 75,
       "rating": "BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
         "ulcerIndex": 1.6171420998186952,
-        "totalReturn": 9.422701055540468,
-        "ytdReturn": 31.205485844420593,
-        "martinRatio": 5.826761331979972
+        "totalReturn": 9.241037547473061,
+        "ytdReturn": 32.29769642459802,
+        "martinRatio": 5.714425187810715
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-AAPL-1795727082291"
-    },
-    {
-      "symbol": "TMO",
-      "name": "Thermo Fisher Scientific Inc.",
-      "score": 76,
-      "rating": "BUY",
-      "algorithm": "Alpha Predator",
-      "timeframe": "1m",
-      "risk": "Low",
-      "metrics": {
-        "ulcerIndex": 2.556236995427465,
-        "totalReturn": 12.649953125872901,
-        "ytdReturn": 15.697623449630207,
-        "martinRatio": 4.948662095299
-      },
-      "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-TMO-1795727082291"
-    },
-    {
-      "symbol": "V",
-      "name": "Visa Inc.",
-      "score": 70,
-      "rating": "BUY",
-      "algorithm": "Alpha Predator",
-      "timeframe": "1m",
-      "risk": "Low",
-      "metrics": {
-        "ulcerIndex": 3.0614641498309028,
-        "totalReturn": 12.153807305847025,
-        "ytdReturn": 22.486142502675612,
-        "martinRatio": 3.9699329180510996
-      },
-      "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-V-1795727082291"
-    },
-    {
-      "symbol": "DE",
-      "name": "Deere & Company",
-      "score": 70,
-      "rating": "BUY",
-      "algorithm": "Composite Rating",
-      "timeframe": "7d",
-      "risk": "Medium",
-      "metrics": {
-        "volumeZScore": 2.26,
-        "rsi": 44.08848264272096,
-        "rsiZScore": -0.38,
-        "breakout": false,
-        "sma20": 658.664501953125
-      },
-      "v2_hash": "if-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-DE-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-AAPL-1795813467719"
     },
     {
       "symbol": "MA",
       "name": "Mastercard Incorporated",
-      "score": 68,
+      "score": 74,
       "rating": "BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 3.2887694316444747,
-        "totalReturn": 12.21307572389869,
-        "ytdReturn": 17.196738635395562,
-        "martinRatio": 3.71357006860521
+        "ulcerIndex": 3.1107858414363507,
+        "totalReturn": 13.872048450476562,
+        "ytdReturn": 18.43801506168981,
+        "martinRatio": 4.459338944422926
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-MA-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-MA-1795813467719"
+    },
+    {
+      "symbol": "V",
+      "name": "Visa Inc.",
+      "score": 73,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 3.068474215649154,
+        "totalReturn": 13.415181518151817,
+        "ytdReturn": 23.978292074387564,
+        "martinRatio": 4.371938812369573
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-V-1795813467719"
+    },
+    {
+      "symbol": "LIN",
+      "name": "Linde plc",
+      "score": 73,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.1788375672733293,
+        "totalReturn": 10.456458512891004,
+        "ytdReturn": 24.11969382712959,
+        "martinRatio": 4.799099607033382
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-LIN-1795813467719"
+    },
+    {
+      "symbol": "HON",
+      "name": "Honeywell International Inc.",
+      "score": 70,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.3484192937820456,
+        "totalReturn": 10.041898871483117,
+        "ytdReturn": 11.21895010054049,
+        "martinRatio": 4.2760246852302926
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-HON-1795813467719"
+    },
+    {
+      "symbol": "TMO",
+      "name": "Thermo Fisher Scientific Inc.",
+      "score": 69,
+      "rating": "BUY",
+      "algorithm": "Alpha Predator",
+      "timeframe": "1m",
+      "risk": "Low",
+      "metrics": {
+        "ulcerIndex": 2.6478226555641324,
+        "totalReturn": 10.447424621931495,
+        "ytdReturn": 15.279065119960636,
+        "martinRatio": 3.9456663005648376
+      },
+      "v2_hash": "vam-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-TMO-1795813467719"
+    },
+    {
+      "symbol": "WMT",
+      "name": "Walmart Inc.",
+      "score": 68,
+      "rating": "BUY",
+      "algorithm": "Technical Momentum",
+      "timeframe": "1m",
+      "risk": "Medium",
+      "metrics": {
+        "trendStrength": 0.12293682131178787,
+        "avgVolatilty": 0.012079066195549939,
+        "signalDensity": 27.8401315125741
+      },
+      "v2_hash": "at-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-WMT-1795813467719"
     },
     {
       "symbol": "LOW",
       "name": "Lowe's Companies, Inc.",
-      "score": 68,
+      "score": 67,
+      "rating": "BUY",
+      "algorithm": "Technical Momentum",
+      "timeframe": "1m",
+      "risk": "Medium",
+      "metrics": {
+        "trendStrength": 0.15318664908301594,
+        "avgVolatilty": 0.018038462962985096,
+        "signalDensity": 27.317233702368938
+      },
+      "v2_hash": "at-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-LOW-1795813467719"
+    },
+    {
+      "symbol": "HD",
+      "name": "The Home Depot, Inc.",
+      "score": 66,
+      "rating": "BUY",
+      "algorithm": "Technical Momentum",
+      "timeframe": "1m",
+      "risk": "Medium",
+      "metrics": {
+        "trendStrength": 0.13528139566194614,
+        "avgVolatilty": 0.01565684573175779,
+        "signalDensity": 26.363606243010643
+      },
+      "v2_hash": "at-v2.0.0-alpha",
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-HD-1795813467719"
+    },
+    {
+      "symbol": "LOW",
+      "name": "Lowe's Companies, Inc.",
+      "score": 66,
       "rating": "BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
         "ulcerIndex": 5.509039764330824,
-        "totalReturn": 17.919337629270977,
-        "ytdReturn": -4.552634540660014,
-        "martinRatio": 3.252715245457593
+        "totalReturn": 17.117388384486432,
+        "ytdReturn": -4.22455320808176,
+        "martinRatio": 3.1071455492689948
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-LOW-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-LOW-1795813467719"
     },
     {
-      "symbol": "HON",
-      "name": "Honeywell International Inc.",
-      "score": 68,
+      "symbol": "AMC",
+      "name": "AMC Entertainment Holdings, Inc.",
+      "score": 62,
       "rating": "BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 2.3482363140897475,
-        "totalReturn": 9.234722181496574,
-        "ytdReturn": 9.57364175258957,
-        "martinRatio": 3.93262046331834
+        "ulcerIndex": 9.759976473376938,
+        "totalReturn": 23.622049100711394,
+        "ytdReturn": 95.03105416773813,
+        "martinRatio": 2.420297750219699
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-HON-1795727082291"
-    },
-    {
-      "symbol": "WMT",
-      "name": "Walmart Inc.",
-      "score": 66,
-      "rating": "BUY",
-      "algorithm": "Technical Momentum",
-      "timeframe": "1m",
-      "risk": "Medium",
-      "metrics": {
-        "trendStrength": 0.11786654338463284,
-        "avgVolatilty": 0.01267213885157108,
-        "signalDensity": 25.993697409026147
-      },
-      "v2_hash": "at-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-WMT-1795727082291"
-    },
-    {
-      "symbol": "LOW",
-      "name": "Lowe's Companies, Inc.",
-      "score": 66,
-      "rating": "BUY",
-      "algorithm": "Technical Momentum",
-      "timeframe": "1m",
-      "risk": "Medium",
-      "metrics": {
-        "trendStrength": 0.1539941957184569,
-        "avgVolatilty": 0.020104499710047595,
-        "signalDensity": 25.576607683511877
-      },
-      "v2_hash": "at-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-LOW-1795727082291"
-    },
-    {
-      "symbol": "HD",
-      "name": "The Home Depot, Inc.",
-      "score": 65,
-      "rating": "BUY",
-      "algorithm": "Technical Momentum",
-      "timeframe": "1m",
-      "risk": "Medium",
-      "metrics": {
-        "trendStrength": 0.1367419334295187,
-        "avgVolatilty": 0.017331755479482666,
-        "signalDensity": 25.015212347441018
-      },
-      "v2_hash": "at-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-HD-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-AMC-1795813467719"
     },
     {
       "symbol": "DHR",
@@ -319,67 +336,67 @@
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 2.928250325037996,
-        "totalReturn": 8.308320724896777,
-        "ytdReturn": -1.323782108195151,
-        "martinRatio": 2.837298660519733
+        "ulcerIndex": 2.961229900222011,
+        "totalReturn": 8.463252297784342,
+        "ytdReturn": -0.6553793127107498,
+        "martinRatio": 2.858019330802323
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-DHR-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-DHR-1795813467719"
     },
     {
-      "symbol": "LIN",
-      "name": "Linde plc",
+      "symbol": "LMT",
+      "name": "Lockheed Martin Corporation",
       "score": 61,
       "rating": "BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 2.697783771847456,
-        "totalReturn": 7.623343289031668,
-        "ytdReturn": 22.25536993043776,
-        "martinRatio": 2.8257799489286586
+        "ulcerIndex": 5.467857709826627,
+        "totalReturn": 13.684207922419214,
+        "ytdReturn": 21.890275227330076,
+        "martinRatio": 2.502663501617182
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-LIN-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-LMT-1795813467719"
     },
     {
-      "symbol": "AMC",
-      "name": "AMC Entertainment Holdings, Inc.",
+      "symbol": "HD",
+      "name": "The Home Depot, Inc.",
       "score": 60,
       "rating": "BUY",
       "algorithm": "Alpha Predator",
       "timeframe": "1m",
       "risk": "Low",
       "metrics": {
-        "ulcerIndex": 9.672327147773112,
-        "totalReturn": 21.590904259320652,
-        "ytdReturn": 99.37888021606351,
-        "martinRatio": 2.2322346969303646
+        "ulcerIndex": 5.8995105730555855,
+        "totalReturn": 13.858581966469133,
+        "ytdReturn": 4.722107550148557,
+        "martinRatio": 2.349107064874915
       },
       "v2_hash": "vam-v2.0.0-alpha",
-      "pickedAt": "2026-11-26T21:04:42.291Z",
-      "audit_id": "v2-AMC-1795727082291"
+      "pickedAt": "2026-11-27T21:04:27.719Z",
+      "audit_id": "v2-HD-1795813467719"
     }
   ],
   "runnerUps": {
     "Institutional Footprint (V2)": {
-      "symbol": "LOW",
-      "name": "Lowe's Companies, Inc.",
-      "score": 90,
-      "rating": "STRONG BUY",
+      "symbol": "META",
+      "name": "Meta Platforms, Inc.",
+      "score": 85,
+      "rating": "BUY",
       "algorithm": "Composite Rating",
       "timeframe": "7d",
       "risk": "Medium",
       "metrics": {
-        "volumeZScore": -0.78,
-        "rsi": 59.367335971302985,
-        "rsiZScore": 0.28,
-        "breakout": true,
-        "sma20": 224.03950042724608
+        "volumeZScore": -1,
+        "rsi": 54.06035533362758,
+        "rsiZScore": 0.34,
+        "breakout": false,
+        "sma20": 615.4900024414062
       },
       "v2_hash": "if-v2.0.0-alpha"
     },
@@ -392,8 +409,8 @@
       "timeframe": "7d",
       "risk": "Medium",
       "metrics": {
-        "rsi": 14.716811610997283,
-        "sma200": 130.9366996383667,
+        "rsi": 16.781350459922635,
+        "sma200": 130.71444965362548,
         "regime": "Bullish"
       },
       "v2_hash": "rar-v2.0.0-alpha"
